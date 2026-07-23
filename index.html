@@ -10,6 +10,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script>
   /* =========================================================
      JEMBATAN KE APPS SCRIPT (dual-mode: Apps Script asli & Blogger/Netlify)
@@ -32,7 +33,7 @@
     // 1) GANTI URL INI dengan URL Web App hasil Deploy Apps Script kamu
     //    (Deploy > New deployment > Web app > Execute as: Me > Who has access: Anyone > /exec)
     //    Hanya dipakai saat file ini berjalan di LUAR Apps Script (Blogger/Netlify).
-    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxuMlGyxuZrGb_Ji5n3x6bsHpaZmh91j2gZTDTYA4f2R6bE5gVhdYjoVad1N9GcNgJF/exec';
+    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwz86iiss6Cis2VD8dO1jMYHceGLOlrjL6aO5NWUuQLcDDvKJHgsPUleJUMshLcWcoK/exec';
 
     // 2) Peta nama fungsi server -> urutan nama parameter,
     //    HARUS SAMA PERSIS dengan switch(action) di Code.gs (doPost)
@@ -48,6 +49,7 @@
       getTodayInputs: ['instansi', 'pic'],
       getDataByRow: ['rowIndex'],
       simpanData: ['data'],
+      simpanDataBatch: ['dataArray'],
       updateDataPendataan: ['data', 'rowIndex'],
       hapusDataBaris: ['rowIndex', 'adminPassword'],
       hapusDataBarisUser: ['rowIndex', 'instansi', 'pic'],
@@ -814,6 +816,26 @@
             </div>
           </div>
 
+          <!-- UPLOAD DATA VIA TEMPLATE EXCEL -->
+          <div class="modern-card p-3 mb-3">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <div class="d-flex align-items-center gap-2">
+                <div style="width:36px;height:36px;border-radius:10px;background:#10b981;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <i class="ph ph-file-xls text-white" style="font-size:1.1rem;"></i>
+                </div>
+                <div>
+                  <h6 class="mb-0 fw-bold" style="font-size:.9rem;">Upload Data Massal via Template Excel</h6>
+                  <small class="text-muted" style="font-size:.75rem;">Unduh template, isi data, lalu upload. Sistem akan memverifikasi setiap baris sebelum menyimpan.</small>
+                </div>
+              </div>
+              <div class="d-flex gap-2 flex-shrink-0">
+                <button type="button" class="btn btn-outline-primary btn-sm fw-bold rounded-pill" onclick="downloadTemplateExcel()"><i class="ph ph-download-simple me-1"></i>Unduh Template</button>
+                <button type="button" class="btn btn-success btn-sm fw-bold rounded-pill" onclick="document.getElementById('uploadTemplateFile').click()"><i class="ph ph-upload-simple me-1"></i>Upload Data</button>
+                <input type="file" id="uploadTemplateFile" accept=".xlsx,.xls" style="display:none" onchange="handleTemplateUpload(event)">
+              </div>
+            </div>
+          </div>
+
           <div class="modern-card p-4">
 
             <!-- NIK / NIP -->
@@ -928,6 +950,7 @@
               <div class="d-flex gap-2 flex-shrink-0">
                 <button class="btn btn-outline-warning rounded-circle d-flex align-items-center justify-content-center modern-btn" style="width:42px;height:42px" onclick="scanNIKDuplicates()" title="Cek Duplikat"><i class="ph ph-radar"></i></button>
                 <button class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center modern-btn" style="width:42px;height:42px" onclick="refreshData()" title="Refresh"><i class="ph ph-arrows-clockwise"></i></button>
+                <button class="btn btn-outline-success px-4 fw-bold rounded-pill d-flex align-items-center gap-2 modern-btn" onclick="downloadExcelDataMasuk()" title="Unduh data ini sebagai file Excel (.xlsx)"><i class="ph ph-file-xls"></i>Unduh Excel</button>
                 <button class="btn btn-success px-4 fw-bold rounded-pill d-flex align-items-center gap-2 modern-btn" onclick="cetakPDF()"><i class="ph ph-printer"></i>Cetak</button>
               </div>
             </div>
@@ -3203,6 +3226,219 @@ function syncJumlah() {
     document.getElementById('wanita').textContent = '0';
   }
 }
+// ============================================================
+// DOWNLOAD EXCEL - TAB DATA MASUK
+// ============================================================
+function downloadExcelDataMasuk() {
+  if (typeof XLSX === 'undefined') { Swal.fire('Error', 'Pustaka Excel belum termuat. Coba refresh halaman lalu ulangi.', 'error'); return; }
+  if (!allDataCache || !allDataCache.length) { Swal.fire('Info', 'Tidak ada data untuk diunduh.', 'info'); return; }
+
+  const instansi = (document.getElementById('instansi') || {}).value || '';
+  const rows = allDataCache.map((item, i) => ({
+    'No': i + 1,
+    'Nama': item.nama || '-',
+    'NIK/NISN/NIP': item.nik || '-',
+    'Tanggal Lahir': item.tglLahir || '-',
+    'Usia': getUsiaDisplay(item.tglLahir, item.usia),
+    'Jenis Kelamin': item.jk === 'PRIA' ? 'Laki-laki' : (item.jk === 'WANITA' ? 'Perempuan' : '-'),
+    'Kategori': item.ket || item.kategori || '-',
+    'Nama Orang Tua': item.namaOrangTua || '-',
+    'Instansi': item.instansi || '-',
+    'PIC': item.pic || '-',
+    'No HP PIC': item.noHp || '-',
+    'Alergi': (item.alergi && item.alergi !== '-') ? item.alergi : '-',
+    'Tanggal Input': item.timestamp || '-'
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(rows);
+  ws['!cols'] = [
+    { wch: 5 }, { wch: 28 }, { wch: 20 }, { wch: 14 }, { wch: 14 },
+    { wch: 14 }, { wch: 16 }, { wch: 22 }, { wch: 22 }, { wch: 18 },
+    { wch: 16 }, { wch: 24 }, { wch: 20 }
+  ];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Data Masuk');
+
+  const safeInstansi = (instansi.trim() || 'Data').replace(/[^a-zA-Z0-9]+/g, '_');
+  const tanggal = new Date().toISOString().split('T')[0];
+  XLSX.writeFile(wb, `Data_Masuk_${safeInstansi}_${tanggal}.xlsx`);
+}
+
+// ============================================================
+// UPLOAD DATA MASSAL VIA TEMPLATE EXCEL
+// ============================================================
+function downloadTemplateExcel() {
+  if (typeof XLSX === 'undefined') { Swal.fire('Error', 'Pustaka Excel belum termuat. Coba refresh halaman lalu ulangi.', 'error'); return; }
+
+  const headers = [
+    'Nama Lengkap', 'NIK/NISN/NIP', 'Tanggal Lahir (YYYY-MM-DD)',
+    'Jenis Kelamin (PRIA/WANITA)', 'Kategori', 'Nama Orang Tua',
+    'Alamat Domisili', 'Alergi (opsional)'
+  ];
+  const contoh = [
+    'Budi Santoso', '1234567890123456', '2015-05-20',
+    'PRIA', 'BALITA', 'Siti Aminah',
+    'Jl. Contoh No 1, RT 01/RW 02', '-'
+  ];
+  const ws = XLSX.utils.aoa_to_sheet([headers, contoh]);
+  ws['!cols'] = headers.map(() => ({ wch: 26 }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Template Data');
+
+  const ketSelect = document.getElementById('ket');
+  const kategoriOptions = ketSelect ? Array.from(ketSelect.options).map(o => o.value).filter(v => v) : [];
+  const petunjukData = [
+    ['PETUNJUK PENGISIAN TEMPLATE'],
+    [''],
+    ['1. Jangan mengubah urutan atau nama kolom pada sheet "Template Data".'],
+    ['2. Baris pertama adalah judul kolom - jangan dihapus. Baris kedua adalah contoh, boleh dihapus/diganti.'],
+    ['3. Format Tanggal Lahir: YYYY-MM-DD, contoh 2015-05-20.'],
+    ['4. Jenis Kelamin hanya boleh diisi: PRIA atau WANITA (akan otomatis menentukan Jumlah Pria = 392 atau Jumlah Wanita = 64).'],
+    ['5. Kategori harus salah satu dari daftar berikut:'],
+    ...kategoriOptions.map(k => ['     - ' + k]),
+    [''],
+    ['6. NIK/NISN/NIP: 16 digit untuk NIK, 10 digit untuk NISN, 18 digit untuk NIP.'],
+    ['7. Instansi, PIC, dan No HP PIC akan otomatis memakai data Instansi & PIC yang sedang aktif di form Input Data saat file ini diupload.'],
+    ['8. Setiap baris akan diverifikasi sistem. Baris yang tidak lolos verifikasi akan ditampilkan sebagai gagal dan tidak tersimpan.']
+  ];
+  const wsInfo = XLSX.utils.aoa_to_sheet(petunjukData);
+  wsInfo['!cols'] = [{ wch: 65 }];
+  XLSX.utils.book_append_sheet(wb, wsInfo, 'Petunjuk');
+
+  XLSX.writeFile(wb, 'Template_Input_Data_MBG.xlsx');
+}
+
+function handleTemplateUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const instansi = document.getElementById('instansi').value.trim();
+  const pic = document.getElementById('pic').value.trim();
+  if (!instansi || !pic) {
+    Swal.fire('Info', 'Isi Nama Instansi dan PIC Kader terlebih dahulu sebelum upload template.', 'info');
+    event.target.value = '';
+    return;
+  }
+  if (typeof XLSX === 'undefined') { Swal.fire('Error', 'Pustaka Excel belum termuat. Coba refresh halaman lalu ulangi.', 'error'); event.target.value = ''; return; }
+
+  const noHp = (typeof getFormattedNoHp === 'function') ? getFormattedNoHp() : (document.getElementById('noHp').value || '');
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    try {
+      const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array', cellDates: true });
+      const wsName = wb.SheetNames[0];
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[wsName], { defval: '' });
+      processTemplateRows(rows, instansi, pic, noHp);
+    } catch (err) {
+      Swal.fire('Error', 'Gagal membaca file: ' + (err && err.message ? err.message : err), 'error');
+    } finally {
+      event.target.value = '';
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function processTemplateRows(rows, instansi, pic, noHp) {
+  if (!rows || !rows.length) {
+    Swal.fire('Info', 'File template kosong atau tidak ada data untuk diproses.', 'info');
+    return;
+  }
+
+  const ketSelect = document.getElementById('ket');
+  const kategoriValid = ketSelect ? Array.from(ketSelect.options).map(o => o.value).filter(v => v) : [];
+  const dataToSend = [];
+  const errors = [];
+
+  rows.forEach((row, idx) => {
+    const rowNo = idx + 2; // baris Excel: 1 = header, data mulai dari baris 2
+    const nama = String(row['Nama Lengkap'] || '').trim();
+    const nik = String(row['NIK/NISN/NIP'] || '').replace(/[^0-9]/g, '').trim();
+    const tglRaw = row['Tanggal Lahir (YYYY-MM-DD)'];
+    let tglLahir = '';
+    if (tglRaw instanceof Date && !isNaN(tglRaw)) {
+      tglLahir = tglRaw.toISOString().split('T')[0];
+    } else if (tglRaw) {
+      const parsed = new Date(String(tglRaw));
+      if (!isNaN(parsed)) tglLahir = parsed.toISOString().split('T')[0];
+    }
+    const jk = String(row['Jenis Kelamin (PRIA/WANITA)'] || '').trim().toUpperCase();
+    const kategori = String(row['Kategori'] || '').trim().toUpperCase();
+    const namaOrangTua = String(row['Nama Orang Tua'] || '').trim();
+    const alamat = String(row['Alamat Domisili'] || '').trim();
+    const alergi = String(row['Alergi (opsional)'] || '').trim() || '-';
+
+    // Lewati baris kosong (mis. sisa baris kosong di bawah data)
+    if (!nama && !nik && !jk && !kategori && !alamat) return;
+
+    const rowErrors = [];
+    if (!nama) rowErrors.push('Nama kosong');
+    if (!tglLahir) rowErrors.push('Tanggal Lahir kosong/tidak valid (format YYYY-MM-DD)');
+    if (jk !== 'PRIA' && jk !== 'WANITA') rowErrors.push('Jenis Kelamin harus PRIA atau WANITA');
+    if (!kategori || (kategoriValid.length && kategoriValid.indexOf(kategori) === -1)) rowErrors.push('Kategori tidak dikenali: "' + (kategori || '-') + '"');
+    if (!alamat) rowErrors.push('Alamat kosong');
+
+    if (rowErrors.length) {
+      errors.push({ row: rowNo, nama: nama || '(tanpa nama)', pesan: rowErrors.join(', ') });
+      return;
+    }
+
+    const usia = calcUsiaStr(tglLahir) || '';
+    // Jumlah Pria/Wanita akan dihitung otomatis di server berdasarkan jk (PRIA=392, WANITA=64)
+    dataToSend.push({
+      nama, nik, tglLahir, usia, jk,
+      ket: kategori, kategori,
+      namaOrangTua, alamat, alergi,
+      instansi, pic, noHp
+    });
+  });
+
+  if (!dataToSend.length && !errors.length) {
+    Swal.fire('Info', 'Tidak ada baris data yang terbaca dari file.', 'info');
+    return;
+  }
+
+  let confirmHtml = '<div style="text-align:left;max-height:320px;overflow-y:auto">';
+  confirmHtml += `<p><strong>${dataToSend.length}</strong> data lolos verifikasi kolom dan siap diupload.</p>`;
+  if (errors.length) {
+    confirmHtml += `<p class="text-danger mb-1"><strong>${errors.length}</strong> baris bermasalah dan akan dilewati:</p><ul style="font-size:.8rem">`;
+    errors.slice(0, 20).forEach(e => { confirmHtml += `<li>Baris ${e.row} (${esc(e.nama)}): ${esc(e.pesan)}</li>`; });
+    if (errors.length > 20) confirmHtml += `<li>... dan ${errors.length - 20} baris lainnya</li>`;
+    confirmHtml += '</ul>';
+  }
+  confirmHtml += '</div>';
+
+  Swal.fire({
+    title: 'Konfirmasi Upload Data',
+    html: confirmHtml,
+    icon: dataToSend.length ? 'question' : 'warning',
+    showCancelButton: dataToSend.length > 0,
+    confirmButtonText: dataToSend.length ? `Upload ${dataToSend.length} Data` : 'Tutup',
+    cancelButtonText: 'Batal',
+    confirmButtonColor: '#6366f1'
+  }).then(r => {
+    if (!r.isConfirmed || !dataToSend.length) return;
+    Swal.fire({ title: 'Mengupload data...', text: 'Mohon tunggu, jangan tutup halaman.', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+    google.script.run.withSuccessHandler(res => {
+      Swal.close();
+      if (!res || !res.success) { Swal.fire('Gagal', (res && res.message) || 'Terjadi kesalahan saat upload.', 'error'); return; }
+      const gagalList = (res.results || []).filter(x => !x.success);
+      let html = `<p><strong>${res.successCount}</strong> dari <strong>${res.total}</strong> data berhasil disimpan.</p>`;
+      if (gagalList.length) {
+        html += `<p class="text-danger mb-1">${gagalList.length} data gagal disimpan:</p><ul style="text-align:left;font-size:.8rem;max-height:250px;overflow-y:auto">`;
+        gagalList.forEach(g => { html += `<li>${esc(g.nama || '(tanpa nama)')}: ${esc(g.message || '-')}</li>`; });
+        html += '</ul>';
+      }
+      Swal.fire({ title: res.successCount ? 'Selesai' : 'Gagal', html, icon: gagalList.length ? 'warning' : 'success' });
+      refreshData();
+      refreshSummary();
+    }).withFailureHandler(err => {
+      Swal.close();
+      Swal.fire('Error', 'Gagal mengirim data ke server: ' + (err && err.message ? err.message : err), 'error');
+    }).simpanDataBatch(dataToSend);
+  });
+}
+
 function checkAgeCategoryRule() {
   const ageStr = document.getElementById('usia').value;
   const match = ageStr.match(/(\d+)\s*Thn/);
