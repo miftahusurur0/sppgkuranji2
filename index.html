@@ -33,7 +33,7 @@
     // 1) GANTI URL INI dengan URL Web App hasil Deploy Apps Script kamu
     //    (Deploy > New deployment > Web app > Execute as: Me > Who has access: Anyone > /exec)
     //    Hanya dipakai saat file ini berjalan di LUAR Apps Script (Blogger/Netlify).
-    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwz86iiss6Cis2VD8dO1jMYHceGLOlrjL6aO5NWUuQLcDDvKJHgsPUleJUMshLcWcoK/exec';
+    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxk33hqzm9YMk_gDgiwkJWKPTcs9K0qj72AbLDSAGkXhM-6qhHe4z5kTavCd6XvYK9k/exec';
 
     // 2) Peta nama fungsi server -> urutan nama parameter,
     //    HARUS SAMA PERSIS dengan switch(action) di Code.gs (doPost)
@@ -258,12 +258,12 @@
     @media(max-width:768px){.scroll-body{padding:12px 14px}}
 
     /* Broadcast bar (same) */
-    .broadcast-bar{position:relative;z-index:9999;display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#991b1b 0%,#ef4444 50%,#991b1b 100%);background-size:200% auto;animation:shine gradientMove 5s ease infinite;color:#fff;padding:10px 20px;border-radius:16px;border:1px solid rgba(255,255,255,.2);margin-bottom:20px;box-shadow:0 10px 25px -5px rgba(220,38,38,.4),inset 0 0 15px rgba(255,255,255,.1);overflow:hidden}
+    .broadcast-bar{position:relative;z-index:3;display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#991b1b 0%,#ef4444 50%,#991b1b 100%);background-size:200% auto;animation:shine gradientMove 5s ease infinite;color:#fff;padding:10px 20px;border-radius:16px;border:1px solid rgba(255,255,255,.2);margin-bottom:20px;box-shadow:0 10px 25px -5px rgba(220,38,38,.4),inset 0 0 15px rgba(255,255,255,.1);overflow:hidden}
     [data-theme="dark"] .broadcast-bar{background:linear-gradient(135deg,#450a0a 0%,#991b1b 50%,#450a0a 100%);border-color:rgba(239,68,68,.3);box-shadow:0 10px 25px -5px rgba(220,38,38,.3),inset 0 0 15px rgba(239,68,68,.1)}
     .bc-badge{background:#ffd966;color:#991b1b;font-size:.7rem;font-weight:800;padding:2px 8px;border-radius:6px;text-transform:uppercase;letter-spacing:.5px}
     [data-theme="dark"] .bc-badge{background:#fde047;color:#450a0a}
     .broadcast-bar.hidden{display:none !important}
-    .maint-announcement-bar{position:relative;z-index:9998;display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#1e3a5f 0%,#3b82f6 50%,#1e3a5f 100%);background-size:200% auto;animation:gradientMove 5s ease infinite;color:#fff;padding:14px 20px;border-radius:16px;border:1px solid rgba(255,255,255,.2);margin-bottom:20px;box-shadow:0 10px 25px -5px rgba(59,130,246,.4),inset 0 0 15px rgba(255,255,255,.1);overflow:hidden}
+    .maint-announcement-bar{position:relative;z-index:2;display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,#1e3a5f 0%,#3b82f6 50%,#1e3a5f 100%);background-size:200% auto;animation:gradientMove 5s ease infinite;color:#fff;padding:14px 20px;border-radius:16px;border:1px solid rgba(255,255,255,.2);margin-bottom:20px;box-shadow:0 10px 25px -5px rgba(59,130,246,.4),inset 0 0 15px rgba(255,255,255,.1);overflow:hidden}
     [data-theme="dark"] .maint-announcement-bar{background:linear-gradient(135deg,#0f172a 0%,#1e40af 50%,#0f172a 100%);border:1px solid rgba(99,102,241,.3);box-shadow:0 10px 25px -5px rgba(99,102,241,.3),inset 0 0 15px rgba(99,102,241,.1)}
     .maint-announcement-bar.hidden{display:none !important}
     .ma-badge{background:#ffd966;color:#1e3a5f;font-size:1.2rem;font-weight:800;padding:8px 12px;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(0,0,0,.2);flex-shrink:0}
@@ -524,6 +524,22 @@
     .remember-me-wrap input[type="checkbox"]{width:18px;height:18px;accent-color:var(--primary);cursor:pointer;flex-shrink:0}
     .remember-me-wrap label{font-size:.85rem;font-weight:600;color:var(--text);cursor:pointer;flex:1;margin:0}
     .remember-me-wrap i.ph-fingerprint{font-size:1.1rem;color:var(--primary);opacity:.6}
+
+    /* Pastikan SEMUA modal (termasuk Login) selalu tampil paling depan,
+       di atas broadcast-bar / maint-announcement-bar / overlay lainnya. */
+    .modal-backdrop{z-index:10540!important}
+    .modal{z-index:10550!important}
+
+    /* ==== LOGIN MODAL - MODERN LOOK ==== */
+    #modalLogin .modal-content{border-radius:var(--r-xl);overflow:hidden;border:none;box-shadow:0 30px 70px -15px rgba(15,23,42,.45)}
+    #modalLogin .login-modal-hero{position:relative;background:var(--primary-grad);color:#fff;padding:38px 24px 30px;text-align:center;overflow:hidden}
+    #modalLogin .login-modal-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 25% 15%,rgba(255,255,255,.28),transparent 55%)}
+    #modalLogin .login-modal-hero::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:28px;background:var(--card);border-radius:50% 50% 0 0/100% 100% 0 0;transform:scaleX(1.4)}
+    #modalLogin .login-modal-icon{position:relative;z-index:1;width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.18);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:1.8rem;border:1px solid rgba(255,255,255,.35)}
+    #modalLogin .login-modal-title{position:relative;z-index:1;font-weight:800;margin-bottom:4px}
+    #modalLogin .login-modal-sub{position:relative;z-index:1;font-size:.78rem;opacity:.9;margin:0}
+    #modalLogin .login-modal-close{position:absolute;top:16px;right:16px;z-index:2}
+    #modalLogin .modal-body{background:var(--card);padding:28px 28px 24px!important}
     @media(max-width:768px){.header-logo{width:36px;height:36px;border-radius:10px}.header-title h2{font-size:1rem}.header-sub{font-size:.68rem}.scroll-body{padding:12px 14px;padding-bottom:80px}.cat-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}.data-grid{grid-template-columns:1fr;gap:14px}.instansi-grid{grid-template-columns:1fr;gap:14px}.adm-grid{grid-template-columns:1fr;gap:14px}.adm-cat-grid{grid-template-columns:1fr;gap:12px}.cat-stats{grid-template-columns:repeat(3,1fr);gap:8px}}
     @media(max-width:480px){.cat-grid{grid-template-columns:1fr 1fr;gap:10px}.cat-card-hd{padding:10px 12px}.cat-card-title{font-size:.8rem}.cs-val{font-size:1.1rem}.summary-banner{padding:16px}.stat-val-w{font-size:1.5rem}.stat-item{flex-direction:column;align-items:flex-start;gap:10px}.stat-trend{width:100%;flex-direction:row;justify-content:space-between}.adm-sgrid{grid-template-columns:1fr 1fr;gap:10px}}
     @media(max-width:360px){.cat-grid{grid-template-columns:1fr;gap:10px}}
@@ -1726,14 +1742,19 @@
 <div class="modal fade" id="modalLogin" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg">
-      <div class="modal-header" style="background:var(--primary-grad);color:#fff">
-        <h5 class="modal-title fw-bold">Login Administrator</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      <button type="button" class="btn-close btn-close-white login-modal-close" data-bs-dismiss="modal"></button>
+      <div class="login-modal-hero">
+        <div class="login-modal-icon"><i class="ph ph-shield-check"></i></div>
+        <h5 class="modal-title login-modal-title">Login Administrator</h5>
+        <p class="login-modal-sub">Masuk untuk mengelola data &amp; pengaturan sistem</p>
       </div>
-      <div class="modal-body p-4" style="background:var(--card)">
+      <div class="modal-body p-4">
         <div class="mb-3">
           <label class="fml">Username</label>
-          <input type="text" id="loginUser" class="form-control" placeholder="admin" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('loginPass').focus();}">
+          <div class="input-group">
+            <span class="input-group-text" style="background:var(--input);border-color:var(--border)"><i class="ph ph-user text-muted"></i></span>
+            <input type="text" id="loginUser" class="form-control" placeholder="admin" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('loginPass').focus();}">
+          </div>
         </div>
         <div class="mb-3">
           <label class="fml">Password</label>
@@ -1747,7 +1768,7 @@
           <label for="rememberMe">Ingat Saya</label>
           <i class="ph ph-fingerprint"></i>
         </div>
-        <button class="btn btn-prim w-100 py-2 fw-bold" onclick="processLogin()">MASUK SISTEM</button>
+        <button class="btn btn-prim w-100 py-2 fw-bold d-flex align-items-center justify-content-center gap-2" onclick="processLogin()"><i class="ph ph-sign-in"></i>MASUK SISTEM</button>
       </div>
     </div>
   </div>
@@ -3346,7 +3367,7 @@ function processTemplateRows(rows, instansi, pic, noHp) {
 
   const ketSelect = document.getElementById('ket');
   const kategoriValid = ketSelect ? Array.from(ketSelect.options).map(o => o.value).filter(v => v) : [];
-  const dataToSend = [];
+  let dataToSend = [];
   const errors = [];
 
   rows.forEach((row, idx) => {
@@ -3378,7 +3399,7 @@ function processTemplateRows(rows, instansi, pic, noHp) {
     if (!alamat) rowErrors.push('Alamat kosong');
 
     if (rowErrors.length) {
-      errors.push({ row: rowNo, nama: nama || '(tanpa nama)', pesan: rowErrors.join(', ') });
+      errors.push({ row: rowNo, nama: nama || '(tanpa nama)', pesan: rowErrors.join(', '), isDuplicate: false });
       return;
     }
 
@@ -3388,21 +3409,53 @@ function processTemplateRows(rows, instansi, pic, noHp) {
       nama, nik, tglLahir, usia, jk,
       ket: kategori, kategori,
       namaOrangTua, alamat, alergi,
-      instansi, pic, noHp
+      instansi, pic, noHp,
+      _rowNo: rowNo
     });
   });
+
+  // Cek NIK/NISN/NIP yang duplikat DI DALAM file yang sama (bukan hanya vs database).
+  // Baris pertama untuk suatu NIK tetap dikirim, baris berikutnya dengan NIK sama
+  // ditandai duplikat, tidak dikirim, dan wajib diperbaiki oleh pengguna.
+  const nikSeenAt = {};
+  const filteredData = [];
+  dataToSend.forEach(item => {
+    if (item.nik) {
+      if (nikSeenAt[item.nik]) {
+        errors.push({
+          row: item._rowNo,
+          nama: item.nama || '(tanpa nama)',
+          pesan: 'NIK/NISN/NIP "' + item.nik + '" sama dengan data pada baris ' + nikSeenAt[item.nik] + ' di file ini. Mohon periksa dan perbaiki salah satunya.',
+          isDuplicate: true
+        });
+        return;
+      }
+      nikSeenAt[item.nik] = item._rowNo;
+    }
+    filteredData.push(item);
+  });
+  dataToSend = filteredData;
 
   if (!dataToSend.length && !errors.length) {
     Swal.fire('Info', 'Tidak ada baris data yang terbaca dari file.', 'info');
     return;
   }
 
-  let confirmHtml = '<div style="text-align:left;max-height:320px;overflow-y:auto">';
-  confirmHtml += `<p><strong>${dataToSend.length}</strong> data lolos verifikasi kolom dan siap diupload.</p>`;
-  if (errors.length) {
-    confirmHtml += `<p class="text-danger mb-1"><strong>${errors.length}</strong> baris bermasalah dan akan dilewati:</p><ul style="font-size:.8rem">`;
-    errors.slice(0, 20).forEach(e => { confirmHtml += `<li>Baris ${e.row} (${esc(e.nama)}): ${esc(e.pesan)}</li>`; });
-    if (errors.length > 20) confirmHtml += `<li>... dan ${errors.length - 20} baris lainnya</li>`;
+  const dupErrorsPre = errors.filter(e => e.isDuplicate);
+  const otherErrorsPre = errors.filter(e => !e.isDuplicate);
+
+  let confirmHtml = '<div style="text-align:left;max-height:340px;overflow-y:auto">';
+  confirmHtml += `<p><strong>${dataToSend.length}</strong> data lolos verifikasi kolom dan siap diupload. Data ini akan tetap diproses satu per satu, jadi yang tidak bermasalah akan tetap tersimpan walau ada baris lain yang gagal.</p>`;
+  if (dupErrorsPre.length) {
+    confirmHtml += `<p class="text-warning mb-1"><i class="ph ph-copy"></i> <strong>${dupErrorsPre.length}</strong> baris NIK/NISN/NIP duplikat dalam file ini (dilewati, perlu diperbaiki):</p><ul style="font-size:.8rem">`;
+    dupErrorsPre.slice(0, 20).forEach(e => { confirmHtml += `<li>Baris ${e.row} (${esc(e.nama)}): ${esc(e.pesan)}</li>`; });
+    if (dupErrorsPre.length > 20) confirmHtml += `<li>... dan ${dupErrorsPre.length - 20} baris lainnya</li>`;
+    confirmHtml += '</ul>';
+  }
+  if (otherErrorsPre.length) {
+    confirmHtml += `<p class="text-danger mb-1"><strong>${otherErrorsPre.length}</strong> baris bermasalah dan akan dilewati:</p><ul style="font-size:.8rem">`;
+    otherErrorsPre.slice(0, 20).forEach(e => { confirmHtml += `<li>Baris ${e.row} (${esc(e.nama)}): ${esc(e.pesan)}</li>`; });
+    if (otherErrorsPre.length > 20) confirmHtml += `<li>... dan ${otherErrorsPre.length - 20} baris lainnya</li>`;
     confirmHtml += '</ul>';
   }
   confirmHtml += '</div>';
@@ -3422,11 +3475,21 @@ function processTemplateRows(rows, instansi, pic, noHp) {
     google.script.run.withSuccessHandler(res => {
       Swal.close();
       if (!res || !res.success) { Swal.fire('Gagal', (res && res.message) || 'Terjadi kesalahan saat upload.', 'error'); return; }
+
       const gagalList = (res.results || []).filter(x => !x.success);
+      const gagalDuplikat = gagalList.filter(x => x.isDuplicateNik);
+      const gagalLain = gagalList.filter(x => !x.isDuplicateNik);
+
       let html = `<p><strong>${res.successCount}</strong> dari <strong>${res.total}</strong> data berhasil disimpan.</p>`;
-      if (gagalList.length) {
-        html += `<p class="text-danger mb-1">${gagalList.length} data gagal disimpan:</p><ul style="text-align:left;font-size:.8rem;max-height:250px;overflow-y:auto">`;
-        gagalList.forEach(g => { html += `<li>${esc(g.nama || '(tanpa nama)')}: ${esc(g.message || '-')}</li>`; });
+      if (gagalDuplikat.length) {
+        html += `<p class="text-warning mb-1"><i class="ph ph-copy"></i> <strong>${gagalDuplikat.length}</strong> data <strong>NIK/NISN/NIP sudah terdaftar (duplikat)</strong> - mohon ubah/perbaiki lalu upload ulang khusus data ini:</p>`;
+        html += `<ul style="text-align:left;font-size:.8rem;max-height:220px;overflow-y:auto">`;
+        gagalDuplikat.forEach(g => { html += `<li>${esc(g.nama || '(tanpa nama)')}: ${esc(g.message || '-')}</li>`; });
+        html += '</ul>';
+      }
+      if (gagalLain.length) {
+        html += `<p class="text-danger mb-1">${gagalLain.length} data gagal disimpan karena sebab lain:</p><ul style="text-align:left;font-size:.8rem;max-height:220px;overflow-y:auto">`;
+        gagalLain.forEach(g => { html += `<li>${esc(g.nama || '(tanpa nama)')}: ${esc(g.message || '-')}</li>`; });
         html += '</ul>';
       }
       Swal.fire({ title: res.successCount ? 'Selesai' : 'Gagal', html, icon: gagalList.length ? 'warning' : 'success' });
