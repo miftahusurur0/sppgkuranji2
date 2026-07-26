@@ -33,7 +33,7 @@
     // 1) GANTI URL INI dengan URL Web App hasil Deploy Apps Script kamu
     //    (Deploy > New deployment > Web app > Execute as: Me > Who has access: Anyone > /exec)
     //    Hanya dipakai saat file ini berjalan di LUAR Apps Script (Blogger/Netlify).
-    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxP0Gkh-FcOUtPpNm_Kwa92Se_jjp0BkHmP_5mIiAwJB4XdeY7FxMR_Bvf7aBS7m-Qe/exec';
+    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyihK3PN_3IWISDYV63R9u21vCJts-1RrgdxnQ_Xi7OtsMGEVBtSxzOAabpb6iueZ53/exec';
 
     // 2) Peta nama fungsi server -> urutan nama parameter,
     //    HARUS SAMA PERSIS dengan switch(action) di Code.gs (doPost)
@@ -51,6 +51,7 @@
       getDataByRow: ['rowIndex'],
       simpanData: ['data'],
       simpanDataBatch: ['dataArray'],
+      preCheckNikBatch: ['dataArray'],
       updateDataPendataan: ['data', 'rowIndex'],
       hapusDataBaris: ['rowIndex', 'adminPassword'],
       hapusDataBarisUser: ['rowIndex', 'instansi', 'pic'],
@@ -856,7 +857,7 @@
                 </div>
                 <div>
                   <h6 class="mb-0 fw-bold" style="font-size:.9rem;">Upload Data Massal via Template Excel</h6>
-                  <small class="text-muted" style="font-size:.75rem;">Unduh template, isi data, lalu upload. Sistem akan memverifikasi setiap baris sebelum menyimpan.</small>
+                  <small class="text-muted" style="font-size:.75rem;">Unduh template, isi data, lalu upload. NIK duplikat otomatis dilewati, data baru langsung tersimpan.</small>
                 </div>
               </div>
               <div class="d-flex gap-2 flex-shrink-0">
@@ -3577,9 +3578,7 @@ function processTemplateRows(rows, instansi, pic, noHp) {
     });
   });
 
-  // Cek NIK/NISN/NIP yang duplikat DI DALAM file yang sama (bukan hanya vs database).
-  // Baris pertama untuk suatu NIK tetap dikirim, baris berikutnya dengan NIK sama
-  // ditandai duplikat, tidak dikirim, dan wajib diperbaiki oleh pengguna.
+  // Cek NIK/NISN/NIP yang duplikat DI DALAM file yang sama.
   const nikSeenAt = {};
   const filteredData = [];
   dataToSend.forEach(item => {
@@ -3607,12 +3606,70 @@ function processTemplateRows(rows, instansi, pic, noHp) {
   const dupErrorsPre = errors.filter(e => e.isDuplicate);
   const otherErrorsPre = errors.filter(e => !e.isDuplicate);
 
+  // =============================================
+  // PRE-CHECK NIK vs DATABASE sebelum upload
+  // =============================================
+  if (dataToSend.length > 0) {
+    Swal.fire({
+      title: 'Memverifikasi Data...',
+      html: '<p>Memeriksa ' + dataToSend.length + ' data terhadap database...</p>',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading(),
+      showConfirmButton: false
+    });
+
+    google.script.run
+      .withSuccessHandler(function(preCheckResult) {
+        Swal.close();
+
+        if (!preCheckResult || !preCheckResult.success) {
+          Swal.fire('Error', 'Gagal memverifikasi data: ' + ((preCheckResult && preCheckResult.message) || 'Unknown error'), 'error');
+          return;
+        }
+
+        const dbDuplicates = preCheckResult.existingNiks || [];
+        const cleanCount = preCheckResult.cleanCount || 0;
+
+        // Filter out data yang NIK-nya sudah ada di database
+        const dataToUpload = dataToSend.filter(item => {
+          const found = dbDuplicates.find(d => d.nik === item.nik);
+          if (found) {
+            const existingInfo = found.reason === 'database'
+              ? found.existingIn.map(e => esc(e.nama) + ' di ' + esc(e.instansi)).join(', ')
+              : 'baris ' + found.duplicateOfRow + ' di file ini';
+            dupErrorsPre.push({
+              row: item._rowNo,
+              nama: item.nama || '(tanpa nama)',
+              pesan: 'NIK/NISN/NIP "' + item.nik + '" sudah terdaftar (' + existingInfo + '). Data ini otomatis dilewati.',
+              isDuplicate: true
+            });
+            return false;
+          }
+          return true;
+        });
+
+        _showUploadConfirmation(dataToUpload, dupErrorsPre, otherErrorsPre, instansi, pic);
+      })
+      .withFailureHandler(function(err) {
+        Swal.close();
+        // Jika pre-check gagal, langsung lanjut ke upload tanpa pre-check
+        // (server-side simpanDataBatch tetap akan mengecek duplikat)
+        console.warn('preCheckNikBatch gagal, lanjut upload langsung:', err);
+        _showUploadConfirmation(dataToSend, dupErrorsPre, otherErrorsPre, instansi, pic);
+      })
+      .preCheckNikBatch(dataToSend);
+  } else {
+    _showUploadConfirmation(dataToSend, dupErrorsPre, otherErrorsPre, instansi, pic);
+  }
+}
+
+function _showUploadConfirmation(dataToSend, dupErrorsPre, otherErrorsPre, instansi, pic) {
   let confirmHtml = '<div style="text-align:left;max-height:340px;overflow-y:auto">';
-  confirmHtml += `<p><strong>${dataToSend.length}</strong> data lolos verifikasi kolom dan siap diupload. Data ini akan tetap diproses satu per satu, jadi yang tidak bermasalah akan tetap tersimpan walau ada baris lain yang gagal.</p>`;
+  confirmHtml += `<p><strong>${dataToSend.length}</strong> data lolos verifikasi dan siap disimpan.</p>`;
   if (dupErrorsPre.length) {
-    confirmHtml += `<p class="text-warning mb-1"><i class="ph ph-copy"></i> <strong>${dupErrorsPre.length}</strong> baris NIK/NISN/NIP duplikat dalam file ini (dilewati, perlu diperbaiki):</p><ul style="font-size:.8rem">`;
+    confirmHtml += `<p class="text-warning mb-1"><i class="ph ph-copy"></i> <strong>${dupErrorsPre.length}</strong> data <strong>NIK/NISN/NIP sudah terdaftar</strong> (otomatis dilewati):</p><ul style="font-size:.8rem">`;
     dupErrorsPre.slice(0, 20).forEach(e => { confirmHtml += `<li>Baris ${e.row} (${esc(e.nama)}): ${esc(e.pesan)}</li>`; });
-    if (dupErrorsPre.length > 20) confirmHtml += `<li>... dan ${dupErrorsPre.length - 20} baris lainnya</li>`;
+    if (dupErrorsPre.length > 20) confirmHtml += `<li>... dan ${dupErrorsPre.length - 20} data lainnya</li>`;
     confirmHtml += '</ul>';
   }
   if (otherErrorsPre.length) {
@@ -3623,39 +3680,67 @@ function processTemplateRows(rows, instansi, pic, noHp) {
   }
   confirmHtml += '</div>';
 
+  if (dataToSend.length === 0) {
+    Swal.fire({
+      title: 'Tidak Ada Data Baru',
+      html: confirmHtml,
+      icon: 'warning',
+      confirmButtonText: 'Tutup',
+      confirmButtonColor: '#6366f1'
+    });
+    return;
+  }
+
   Swal.fire({
     title: 'Konfirmasi Upload Data',
     html: confirmHtml,
-    icon: dataToSend.length ? 'question' : 'warning',
-    showCancelButton: dataToSend.length > 0,
-    confirmButtonText: dataToSend.length ? `Upload ${dataToSend.length} Data` : 'Tutup',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: `Upload ${dataToSend.length} Data`,
     cancelButtonText: 'Batal',
     confirmButtonColor: '#6366f1'
   }).then(r => {
-    if (!r.isConfirmed || !dataToSend.length) return;
+    if (!r.isConfirmed) return;
     Swal.fire({ title: 'Mengupload data...', text: 'Mohon tunggu, jangan tutup halaman.', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
     google.script.run.withSuccessHandler(res => {
       Swal.close();
       if (!res || !res.success) { Swal.fire('Gagal', (res && res.message) || 'Terjadi kesalahan saat upload.', 'error'); return; }
 
-      const gagalList = (res.results || []).filter(x => !x.success);
-      const gagalDuplikat = gagalList.filter(x => x.isDuplicateNik);
-      const gagalLain = gagalList.filter(x => !x.isDuplicateNik);
+      const savedList = (res.results || []).filter(x => x.success);
+      const skippedList = (res.results || []).filter(x => x.isSkipped);
+      const skippedDuplikat = skippedList.filter(x => x.isDuplicateNik || x.isDuplicateData);
+      const gagalList = (res.results || []).filter(x => !x.success && !x.isSkipped);
 
-      let html = `<p><strong>${res.successCount}</strong> dari <strong>${res.total}</strong> data berhasil disimpan.</p>`;
-      if (gagalDuplikat.length) {
-        html += `<p class="text-warning mb-1"><i class="ph ph-copy"></i> <strong>${gagalDuplikat.length}</strong> data <strong>NIK/NISN/NIP sudah terdaftar (duplikat)</strong> - mohon ubah/perbaiki lalu upload ulang khusus data ini:</p>`;
-        html += `<ul style="text-align:left;font-size:.8rem;max-height:220px;overflow-y:auto">`;
-        gagalDuplikat.forEach(g => { html += `<li>${esc(g.nama || '(tanpa nama)')}: ${esc(g.message || '-')}</li>`; });
-        html += '</ul>';
+      let html = '';
+      // Ringkasan utama
+      html += `<div class="text-start" style="max-height:400px;overflow-y:auto">`;
+      html += `<div class="alert alert-success py-2 px-3 mb-2"><i class="ph ph-check-circle me-1"></i><strong>${res.successCount}</strong> data berhasil disimpan</div>`;
+
+      if (skippedDuplikat.length) {
+        html += `<div class="alert alert-warning py-2 px-3 mb-2"><i class="ph ph-copy me-1"></i><strong>${skippedDuplikat.length}</strong> data duplikat otomatis dilewati (NIK/Nama sudah terdaftar)</div>`;
+        html += `<details style="margin-bottom:8px"><summary style="cursor:pointer;font-size:.8rem;color:#92400e;font-weight:600">Lihat detail data yang dilewati</summary><ul style="font-size:.75rem;max-height:150px;overflow-y:auto">`;
+        skippedDuplikat.forEach(g => { html += `<li>${esc(g.nama || '(tanpa nama)')}: ${esc(g.message || '-')}</li>`; });
+        html += '</ul></details>';
       }
-      if (gagalLain.length) {
-        html += `<p class="text-danger mb-1">${gagalLain.length} data gagal disimpan karena sebab lain:</p><ul style="text-align:left;font-size:.8rem;max-height:220px;overflow-y:auto">`;
-        gagalLain.forEach(g => { html += `<li>${esc(g.nama || '(tanpa nama)')}: ${esc(g.message || '-')}</li>`; });
-        html += '</ul>';
+
+      if (gagalList.length) {
+        html += `<div class="alert alert-danger py-2 px-3 mb-2"><i class="ph ph-x-circle me-1"></i><strong>${gagalList.length}</strong> data gagal (error lain)</div>`;
+        html += `<details style="margin-bottom:8px"><summary style="cursor:pointer;font-size:.8rem;color:#991b1b;font-weight:600">Lihat detail gagal</summary><ul style="font-size:.75rem;max-height:150px;overflow-y:auto">`;
+        gagalList.forEach(g => { html += `<li>${esc(g.nama || '(tanpa nama)')}: ${esc(g.message || '-')}</li>`; });
+        html += '</ul></details>';
       }
-      Swal.fire({ title: res.successCount ? 'Selesai' : 'Gagal', html, icon: gagalList.length ? 'warning' : 'success' });
+
+      html += '</div>';
+
+      const totalProcessed = res.successCount + (res.skippedCount || 0) + res.failCount;
+      Swal.fire({
+        title: 'Upload Selesai',
+        html: html,
+        icon: res.failCount > 0 ? 'warning' : 'success',
+        confirmButtonText: 'Tutup',
+        confirmButtonColor: '#6366f1'
+      });
       refreshData();
       refreshSummary();
     }).withFailureHandler(err => {
