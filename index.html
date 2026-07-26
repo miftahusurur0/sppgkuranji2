@@ -33,7 +33,7 @@
     // 1) GANTI URL INI dengan URL Web App hasil Deploy Apps Script kamu
     //    (Deploy > New deployment > Web app > Execute as: Me > Who has access: Anyone > /exec)
     //    Hanya dipakai saat file ini berjalan di LUAR Apps Script (Blogger/Netlify).
-    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxk33hqzm9YMk_gDgiwkJWKPTcs9K0qj72AbLDSAGkXhM-6qhHe4z5kTavCd6XvYK9k/exec';
+    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxye1wxZoeyXvfnwNgJGEhmfyMsY8D5_bVbRipqMEm_et812-KJb-pH3numxmKJMf5r/exec';
 
     // 2) Peta nama fungsi server -> urutan nama parameter,
     //    HARUS SAMA PERSIS dengan switch(action) di Code.gs (doPost)
@@ -47,6 +47,7 @@
       saveSignatureSettings: ['settings', 'adminPassword'],
       getInstansiSummary: ['instansi', 'pic'],
       getTodayInputs: ['instansi', 'pic'],
+      getInstansiPicMapping: ['instansi'],
       getDataByRow: ['rowIndex'],
       simpanData: ['data'],
       simpanDataBatch: ['dataArray'],
@@ -739,11 +740,12 @@
           <div class="row g-3 mt-1 p-3">
             <div class="col-md-4">
               <label class="fml req">Nama Instansi</label>
-              <input type="text" class="form-control" id="instansi" placeholder="Contoh: SDN 01 Kuranji" onchange="saveToLocal()">
+              <input type="text" class="form-control" id="instansi" placeholder="Contoh: SDN 01 Kuranji" onchange="saveToLocal();onInstansiChange()">
+              <small id="instansiPicHint" class="text-primary d-none" style="font-size:.65rem"><i class="ph ph-magic-wand"></i> <span></span></small>
             </div>
             <div class="col-md-4">
               <label class="fml req">Nama PIC Kader</label>
-              <input type="text" class="form-control" id="pic" placeholder="Nama Penanggung Jawab" onchange="saveToLocal()">
+              <input type="text" class="form-control" id="pic" placeholder="Nama Penanggung Jawab" onchange="saveToLocal();onPicChange()">
             </div>
             <div class="col-md-4">
               <label class="fml req">No HP / WhatsApp</label>
@@ -752,6 +754,11 @@
                 <input type="tel" class="form-control" id="noHp" placeholder="8xxxxxxxxxx" oninput="formatNoHp(this)" onchange="saveToLocal();autoFillFromNoHp();">
               </div>
               <small class="text-muted" style="font-size:.68rem">Format +62 otomatis. Ketik 8xx atau 62xx</small>
+            </div>
+            <div class="col-md-4">
+              <label class="fml req">Email</label>
+              <input type="email" class="form-control" id="emailPelapor" placeholder="contoh@email.com" onchange="saveToLocal()">
+              <small class="text-muted" style="font-size:.68rem">Email wajib diisi untuk identitas pelapor</small>
             </div>
           </div>
         </div>
@@ -927,21 +934,13 @@
                         placeholder="Catatan tambahan..."></textarea>
             </div>
 
-            <!-- JUMLAH -->
+            <!-- JK CODE (392/64) - otomatis dari pilihan Jenis Kelamin -->
             <div id="jumlahSection"
-                class="alert d-flex align-items-center justify-content-center gap-4 py-3 mb-3 d-none"
+                class="alert d-flex align-items-center justify-content-center gap-3 py-2 mb-3 d-none"
                 style="background:var(--primary-l);border:none;color:var(--primary)">
-              
               <div class="text-center">
-                <small class="d-block fw-bold text-uppercase" style="font-size:.67rem">Laki-laki</small>
-                <span id="pria" class="fs-4 fw-bold">0</span>
-              </div>
-
-              <div style="width:1px;height:28px;background:var(--primary);opacity:.3"></div>
-
-              <div class="text-center">
-                <small class="d-block fw-bold text-uppercase" style="font-size:.67rem">Perempuan</small>
-                <span id="wanita" class="fs-4 fw-bold">0</span>
+                <small class="d-block fw-bold text-uppercase" style="font-size:.67rem">Kode Jenis Kelamin</small>
+                <span id="jkCode" class="fs-4 fw-bold">0</span>
               </div>
             </div>
 
@@ -1668,7 +1667,7 @@
                 <label class="form-label small fw-semibold text-muted mb-1"><i class="ph ph-user"></i> Cari Nama / Instansi / NIK</label>
                 <div class="position-relative">
                   <i class="ph ph-magnifying-glass position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" style="z-index:2;font-size:.9rem"></i>
-                  <input type="text" class="form-control search-modern ps-5" id="adminSearchInput" oninput="filterAdminData()" placeholder="Nama, Instansi, PIC, NIK...">
+                  <input type="text" class="form-control search-modern ps-5" id="adminSearchInput" oninput="debounceAdminSearch()" placeholder="Nama, Instansi, PIC, NIK...">
                 </div>
               </div>
               <div class="col-6 col-md-2">
@@ -2106,6 +2105,7 @@ function saveToLocal() {
   localStorage.setItem('mbg_instansi', document.getElementById('instansi').value);
   localStorage.setItem('mbg_pic', document.getElementById('pic').value);
   localStorage.setItem('mbg_nohp', document.getElementById('noHp').value);
+  localStorage.setItem('mbg_email', document.getElementById('emailPelapor').value);
   saveNoHpMapping();
 }
 function saveNoHpMapping() {
@@ -2201,6 +2201,7 @@ function loadFromLocal() {
   document.getElementById('instansi').value = localStorage.getItem('mbg_instansi') || '';
   document.getElementById('pic').value      = localStorage.getItem('mbg_pic') || '';
   document.getElementById('noHp').value     = localStorage.getItem('mbg_nohp') || '';
+  document.getElementById('emailPelapor').value = localStorage.getItem('mbg_email') || '';
   if (!document.getElementById('noHp').value.trim()) loadNoHpFromMapping();
   if (!document.getElementById('noHp').value.trim() &&
        document.getElementById('instansi').value.trim() &&
@@ -2213,6 +2214,139 @@ function formatNoHp(el) {
   if (val.startsWith('0')) val = val.substring(1);
   if (val.startsWith('62')) val = val.substring(2);
   el.value = val;
+}
+
+// ============================================================
+// AUTO-FILL PIC KADER & NO HP KETIKA INSTANSI COCOK
+// ============================================================
+let _instansiPicCache = {}; // cache: instansi_uppercase => [{pic, noHp, email}]
+let _instansiPicTimer = null;
+
+function onInstansiChange() {
+  const instansi = document.getElementById('instansi').value.trim();
+  if (!instansi) { hideInstansiPicHint(); return; }
+  const instKey = instansi.toUpperCase();
+
+  // Cek cache dulu
+  if (_instansiPicCache[instKey] && _instansiPicCache[instKey].length > 0) {
+    applyInstansiPicMapping(_instansiPicCache[instKey], instansi);
+    return;
+  }
+
+  // Debounce server call
+  clearTimeout(_instansiPicTimer);
+  _instansiPicTimer = setTimeout(() => {
+    google.script.run
+      .withSuccessHandler(function(mappingData) {
+        _instansiPicCache[instKey] = mappingData || [];
+        if (mappingData && mappingData.length > 0) {
+          applyInstansiPicMapping(mappingData, instansi);
+        } else {
+          hideInstansiPicHint();
+        }
+      })
+      .withFailureHandler(function() { hideInstansiPicHint(); })
+      .getInstansiPicMapping(instansi);
+  }, 500);
+}
+
+function applyInstansiPicMapping(mappingData, instansi) {
+  const picEl = document.getElementById('pic');
+  const noHpEl = document.getElementById('noHp');
+  const emailEl = document.getElementById('emailPelapor');
+  const hintEl = document.getElementById('instansiPicHint');
+
+  // Jika PIC sudah diisi, coba cocokkan dengan data yang ada
+  const currentPic = picEl.value.trim();
+  let matched = null;
+
+  if (currentPic) {
+    matched = mappingData.find(m => m.pic.toUpperCase() === currentPic.toUpperCase());
+  } else if (mappingData.length === 1) {
+    // Hanya satu PIC, auto-fill langsung
+    matched = mappingData[0];
+  }
+
+  if (matched) {
+    // Auto-fill PIC jika kosong
+    if (!currentPic) {
+      picEl.value = matched.pic || '';
+      picEl.style.transition = 'all 0.4s ease';
+      picEl.style.background = 'linear-gradient(135deg, var(--primary-l), rgba(139,92,246,0.05))';
+      picEl.style.borderColor = 'var(--border-f)';
+      setTimeout(() => { picEl.style.background = ''; picEl.style.borderColor = ''; }, 2000);
+    }
+
+    // Auto-fill No HP jika kosong
+    if (!noHpEl.value.trim() && matched.noHp) {
+      let rawHp = matched.noHp.replace(/[^0-9]/g, '');
+      if (rawHp.startsWith('62') && rawHp.length > 10) rawHp = rawHp.substring(2);
+      else if (rawHp.startsWith('0')) rawHp = rawHp.substring(1);
+      if (rawHp.length >= 8) {
+        _applyNoHpAutofill(noHpEl, rawHp, 'server');
+      }
+    }
+
+    // Auto-fill email jika kosong
+    if (!emailEl.value.trim() && matched.email) {
+      emailEl.value = matched.email;
+      emailEl.style.transition = 'all 0.4s ease';
+      emailEl.style.background = 'linear-gradient(135deg, var(--primary-l), rgba(139,92,246,0.05))';
+      emailEl.style.borderColor = 'var(--border-f)';
+      setTimeout(() => { emailEl.style.background = ''; emailEl.style.borderColor = ''; }, 2000);
+    }
+
+    saveToLocal();
+  }
+
+  // Tampilkan hint jika ada lebih dari 1 PIC
+  if (mappingData.length > 1 && !currentPic) {
+    hintEl.classList.remove('d-none');
+    hintEl.querySelector('span').textContent = mappingData.length + ' PIC terdaftar: ' + mappingData.map(m => esc(m.pic)).join(', ');
+  } else if (matched && currentPic) {
+    hintEl.classList.remove('d-none');
+    hintEl.querySelector('span').textContent = 'Data PIC ditemukan & cocok';
+  } else {
+    hideInstansiPicHint();
+  }
+}
+
+function onPicChange() {
+  // Ketika PIC berubah, coba auto-fill No HP & Email dari cache
+  const instansi = document.getElementById('instansi').value.trim();
+  const pic = document.getElementById('pic').value.trim();
+  if (!instansi || !pic) return;
+
+  const instKey = instansi.toUpperCase();
+  const cached = _instansiPicCache[instKey];
+  if (!cached || !cached.length) return;
+
+  const matched = cached.find(m => m.pic.toUpperCase() === pic.toUpperCase());
+  if (!matched) return;
+
+  const noHpEl = document.getElementById('noHp');
+  const emailEl = document.getElementById('emailPelapor');
+
+  if (!noHpEl.value.trim() && matched.noHp) {
+    let rawHp = matched.noHp.replace(/[^0-9]/g, '');
+    if (rawHp.startsWith('62') && rawHp.length > 10) rawHp = rawHp.substring(2);
+    else if (rawHp.startsWith('0')) rawHp = rawHp.substring(1);
+    if (rawHp.length >= 8) _applyNoHpAutofill(noHpEl, rawHp, 'cache');
+  }
+
+  if (!emailEl.value.trim() && matched.email) {
+    emailEl.value = matched.email;
+    emailEl.style.transition = 'all 0.4s ease';
+    emailEl.style.background = 'linear-gradient(135deg, var(--primary-l), rgba(139,92,246,0.05))';
+    setTimeout(() => { emailEl.style.background = ''; }, 2000);
+  }
+
+  saveToLocal();
+}
+
+function hideInstansiPicHint() {
+  const hintEl = document.getElementById('instansiPicHint');
+  if (hintEl) hintEl.classList.add('d-none');
 }
 function autoFillFromNoHp() {
   const noHpVal = document.getElementById('noHp').value.trim();
@@ -2879,7 +3013,11 @@ function switchAdminTab(t) {
     const mbBtn = document.getElementById('mb' + capId);
     if(mbBtn) mbBtn.classList.toggle('active', id === t);
   });
-  if(t === 'data') { loadAdminData(); }
+  if(t === 'data') { 
+    // Jangan reload data jika sudah ada data (hindari reset search)
+    if (!allAdminData || !allAdminData.length) loadAdminData(); 
+    else filterAdminData();
+  }
   if(t === 'signature') loadSignatureSettings();
   if(t === 'settings') { renderPKPBStats(allAdminData); renderInstansiCatCards(allAdminData); renderAdmCatSummary(allAdminData); }
   if(t === 'riwayat') renderRiwayat('all');
@@ -3236,15 +3374,13 @@ function toggleForm() {
 }
 function syncJumlah() {
   const jk = document.getElementById('jk').value;
+  const jkCodeEl = document.getElementById('jkCode');
   if (jk === 'PRIA') {
-    document.getElementById('pria').textContent = '392';
-    document.getElementById('wanita').textContent = '0';
+    jkCodeEl.textContent = '392';
   } else if (jk === 'WANITA') {
-    document.getElementById('pria').textContent = '0';
-    document.getElementById('wanita').textContent = '64';
+    jkCodeEl.textContent = '64';
   } else {
-    document.getElementById('pria').textContent = '0';
-    document.getElementById('wanita').textContent = '0';
+    jkCodeEl.textContent = '0';
   }
 }
 // ============================================================
@@ -3267,6 +3403,7 @@ function downloadExcelDataMasuk() {
     'Instansi': item.instansi || '-',
     'PIC': item.pic || '-',
     'No HP PIC': item.noHp || '-',
+    'Email': item.email || '-',
     'Alergi': (item.alergi && item.alergi !== '-') ? item.alergi : '-',
     'Tanggal Input': item.timestamp || '-'
   }));
@@ -3275,7 +3412,7 @@ function downloadExcelDataMasuk() {
   ws['!cols'] = [
     { wch: 5 }, { wch: 28 }, { wch: 20 }, { wch: 14 }, { wch: 14 },
     { wch: 14 }, { wch: 16 }, { wch: 22 }, { wch: 22 }, { wch: 18 },
-    { wch: 16 }, { wch: 24 }, { wch: 20 }
+    { wch: 16 }, { wch: 24 }, { wch: 20 }, { wch: 24 }, { wch: 20 }
   ];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Data Masuk');
@@ -3314,7 +3451,7 @@ function downloadTemplateExcel() {
     ['1. Jangan mengubah urutan atau nama kolom pada sheet "Template Data".'],
     ['2. Baris pertama adalah judul kolom - jangan dihapus. Baris kedua adalah contoh, boleh dihapus/diganti.'],
     ['3. Format Tanggal Lahir: YYYY-MM-DD, contoh 2015-05-20.'],
-    ['4. Jenis Kelamin hanya boleh diisi: PRIA atau WANITA (akan otomatis menentukan Jumlah Pria = 392 atau Jumlah Wanita = 64).'],
+    ['4. Jenis Kelamin hanya boleh diisi: PRIA atau WANITA (kode: PRIA = 392, WANITA = 64).'],
     ['5. Kategori harus salah satu dari daftar berikut:'],
     ...kategoriOptions.map(k => ['     - ' + k]),
     [''],
@@ -3404,7 +3541,7 @@ function processTemplateRows(rows, instansi, pic, noHp) {
     }
 
     const usia = calcUsiaStr(tglLahir) || '';
-    // Jumlah Pria/Wanita akan dihitung otomatis di server berdasarkan jk (PRIA=392, WANITA=64)
+    // Kode JK (PRIA=392, WANITA=64) ditangani otomatis di server berdasarkan jk
     dataToSend.push({
       nama, nik, tglLahir, usia, jk,
       ket: kategori, kategori,
@@ -3641,12 +3778,12 @@ function simpan() {
   const instansi = document.getElementById('instansi').value.trim();
   const pic = document.getElementById('pic').value.trim();
   const noHp = getFormattedNoHp();
+  const email = document.getElementById('emailPelapor').value.trim();
   const btn = document.getElementById('btnSimpanData');
   if(!instansi || !pic) { Swal.fire('Info','Isi Nama Instansi dan PIC Kader terlebih dahulu','info'); return; }
-  
-  // Ambil nilai dari elemen jumlah (sudah diatur oleh syncJumlah)
-  const priaVal = parseInt(document.getElementById('pria').innerText) || 0;
-  const wanitaVal = parseInt(document.getElementById('wanita').innerText) || 0;
+  if(!email) { Swal.fire('Info','Email wajib diisi','info'); document.getElementById('emailPelapor').focus(); return; }
+  // Validasi format email sederhana
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { Swal.fire('Info','Format email tidak valid','info'); document.getElementById('emailPelapor').focus(); return; }
   
   const data = { 
     nama: document.getElementById('nama').value.trim(), 
@@ -3661,8 +3798,7 @@ function simpan() {
     instansi, 
     pic, 
     noHp,
-    pria: priaVal,      // <-- tambahkan ini
-    wanita: wanitaVal   // <-- tambahkan ini
+    email
   };
   
   if(!data.nama) { Swal.fire('Info','Nama wajib diisi','info'); return; }
@@ -3904,7 +4040,8 @@ function simpanEdit() {
       refreshSummary();
       
       if(isAdmin) { 
-        loadAdminData(); 
+        loadAdminData();
+        // Note: loadAdminData sekarang sudah mempertahankan search state
       }
       setTimeout(() => { 
         if(typeof renderInstansiCatCards === 'function' && allAdminData && allAdminData.length) {
@@ -4088,14 +4225,6 @@ function updateGroupCharts(data) {
   }
 }
 
-// Override loadAdminData untuk juga memperbarui group charts
-const originalLoadAdminData = loadAdminData;
-window.loadAdminData = function() {
-  originalLoadAdminData();
-  setTimeout(() => { if (allAdminData && allAdminData.length) { updateGroupCharts(allAdminData); renderGroupCategoryDetails(allAdminData); } }, 300);
-};
-
-
 function renderGroupCategoryDetails(data) {
   const posyanduCats = ['BUMIL', 'BUSUI', 'BALITA', 'ATS < 9'];
   const sekolahCats = ['PAUD','RA','TK','MI 1-3','MI 4-6','SD 1-3','SD 4-6','MTs','MTS','MTSN','SMP 7-9','SMA 10-12','SMK','MA','MAK','PONPES'];
@@ -4123,12 +4252,11 @@ function renderGroupCategoryDetails(data) {
     if (!entries.length) return '<div class="text-muted small text-center py-3"><i class="ph ph-empty d-block mb-1" style="font-size:1.5rem;opacity:.4"></i>Belum ada data</div>';
     let html = '';
     entries.forEach(([cat, val]) => {
-      const pct = val.total > 0 ? Math.round((val.pria / val.total) * 100) : 0;
       html += `<div class="d-flex justify-content-between align-items-center px-2 py-1" style="border-bottom:1px solid var(--border)">
         <span class="fw-semibold" style="font-size:.8rem">${esc(cat)}</span>
         <div class="d-flex gap-1 align-items-center">
-          <span class="badge" style="background:#3b82f6;font-size:.68rem">♂ ${val.pria}</span>
-          <span class="badge" style="background:#ec4899;font-size:.68rem">♀ ${val.wanita}</span>
+          <span class="badge" style="background:#3b82f6;font-size:.68rem">\u2642 ${val.pria}</span>
+          <span class="badge" style="background:#ec4899;font-size:.68rem">\u2640 ${val.wanita}</span>
           <span class="badge rounded-pill" style="background:var(--primary);font-size:.7rem;min-width:32px">${val.total}</span>
         </div>
       </div>`;
@@ -4149,9 +4277,12 @@ function renderGroupCategoryDetails(data) {
 }
 
 // ============================================================
-// loadAdminData (utamanya seperti asli, ditambah update group charts)
+// loadAdminData - versi final (sudah termasuk update group charts)
 // ============================================================
+let _loadAdminDataInProgress = false;
 function loadAdminData() {
+  if (_loadAdminDataInProgress) return; // cegah load bersamaan
+  _loadAdminDataInProgress = true;
   let riwayatLoaded = false;
   let adminDataLoaded = false;
   let riwayatData = [];
@@ -4159,6 +4290,7 @@ function loadAdminData() {
 
   function tryRender() {
     if (riwayatLoaded && adminDataLoaded) {
+      _loadAdminDataInProgress = false;
       var localEntries = (_riwayatCache || []).filter(function(e) { return e.timestamp; });
       _riwayatCache = riwayatData || [];
       localEntries.forEach(function(local) {
@@ -4181,12 +4313,18 @@ function loadAdminData() {
       renderCategoryChart(allAdminData);
       renderInstansiCatCards(allAdminData);
       renderAdmCatSummary(allAdminData);
-      updateGroupCharts(allAdminData);  // <-- tambahkan update grup charts
-      renderGroupCategoryDetails(allAdminData); // <-- isi list kategori per grup
+      updateGroupCharts(allAdminData);
+      renderGroupCategoryDetails(allAdminData);
       const instansiList = [...new Set(allAdminData.map(d => d.instansi).filter(i => i))];
       const sel = document.getElementById('invoiceInstansiSelect');
-      sel.innerHTML = '<option value="">-- Pilih Instansi --</option>' + instansiList.map(i => `<option value="${esc(i)}">${esc(i)}</option>`).join('');
-      renderAdminGrid(allAdminData);
+      if (sel) sel.innerHTML = '<option value="">-- Pilih Instansi --</option>' + instansiList.map(i => `<option value="${esc(i)}">${esc(i)}</option>`).join('');
+      // Re-apply filter jika sedang aktif (hindari reset search)
+      const searchVal = (document.getElementById('adminSearchInput') || {}).value || '';
+      if (searchVal.trim()) {
+        filterAdminData();
+      } else {
+        renderAdminGrid(allAdminData);
+      }
       updatePeriodeInfo();
     }
   }
@@ -4206,7 +4344,8 @@ function loadAdminData() {
   google.script.run
     .withSuccessHandler(res => {
       if (!res.success) {
-        document.getElementById('adminDataContainer').innerHTML = `<div class="alert alert-danger">${res.message}</div>`;
+        const container = document.getElementById('adminDataContainer');
+        if (container) container.innerHTML = `<div class="alert alert-danger">${res.message}</div>`;
         adminDataLoaded = true;
         tryRender();
         return;
@@ -4253,7 +4392,6 @@ function startRiwayatAutoRefresh() {
           if (typeof renderAdmCatSummary === 'function' && allAdminData && allAdminData.length) {
             renderAdmCatSummary(allAdminData);
           }
-          // update grup charts juga saat riwayat berubah (tambah/hapus)
           if (allAdminData && allAdminData.length) { updateGroupCharts(allAdminData); renderGroupCategoryDetails(allAdminData); }
         }
       })
@@ -4262,11 +4400,15 @@ function startRiwayatAutoRefresh() {
   }, 30000);
 }
 
-// Restart auto-refresh saat loadAdminData pertama kali
-var _origLoadAdminData = loadAdminData;
+// Start riwayat auto-refresh after first admin data load
+var _adminDataFirstLoaded = false;
+var _origLoadAdminDataFinal = loadAdminData;
 loadAdminData = function() {
-  _origLoadAdminData();
-  setTimeout(function() { startRiwayatAutoRefresh(); }, 5000);
+  _origLoadAdminDataFinal();
+  if (!_adminDataFirstLoaded) {
+    _adminDataFirstLoaded = true;
+    setTimeout(function() { startRiwayatAutoRefresh(); }, 5000);
+  }
 };
 
 // ============================================================
@@ -4563,6 +4705,12 @@ function resetAdminFilter() {
   document.getElementById('filterJK').value = '';
   document.getElementById('sortAdminData').value = 'instansi';
   filterAdminData();
+}
+
+let _adminSearchTimer = null;
+function debounceAdminSearch() {
+  clearTimeout(_adminSearchTimer);
+  _adminSearchTimer = setTimeout(filterAdminData, 200);
 }
 
 function parseUsiaNum(usiaStr) {
