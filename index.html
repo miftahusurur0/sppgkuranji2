@@ -33,7 +33,7 @@
     // 1) GANTI URL INI dengan URL Web App hasil Deploy Apps Script kamu
     //    (Deploy > New deployment > Web app > Execute as: Me > Who has access: Anyone > /exec)
     //    Hanya dipakai saat file ini berjalan di LUAR Apps Script (Blogger/Netlify).
-    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxye1wxZoeyXvfnwNgJGEhmfyMsY8D5_bVbRipqMEm_et812-KJb-pH3numxmKJMf5r/exec';
+    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxP0Gkh-FcOUtPpNm_Kwa92Se_jjp0BkHmP_5mIiAwJB4XdeY7FxMR_Bvf7aBS7m-Qe/exec';
 
     // 2) Peta nama fungsi server -> urutan nama parameter,
     //    HARUS SAMA PERSIS dengan switch(action) di Code.gs (doPost)
@@ -737,28 +737,36 @@
         <!-- Identity Context -->
         <div class="modern-card mb-4" style="position: relative;">
           <div class="floating-badge"><i class="ph ph-user-circle me-1"></i>Identitas Pelapor</div>
-          <div class="row g-3 mt-1 p-3">
-            <div class="col-md-4">
-              <label class="fml req">Nama Instansi</label>
-              <input type="text" class="form-control" id="instansi" placeholder="Contoh: SDN 01 Kuranji" onchange="saveToLocal();onInstansiChange()">
-              <small id="instansiPicHint" class="text-primary d-none" style="font-size:.65rem"><i class="ph ph-magic-wand"></i> <span></span></small>
-            </div>
-            <div class="col-md-4">
-              <label class="fml req">Nama PIC Kader</label>
-              <input type="text" class="form-control" id="pic" placeholder="Nama Penanggung Jawab" onchange="saveToLocal();onPicChange()">
-            </div>
-            <div class="col-md-4">
-              <label class="fml req">No HP / WhatsApp</label>
-              <div class="input-group">
-                <span class="input-group-text" style="background:var(--input);border-color:var(--border);font-weight:700;color:var(--primary)">+62</span>
-                <input type="tel" class="form-control" id="noHp" placeholder="8xxxxxxxxxx" oninput="formatNoHp(this)" onchange="saveToLocal();autoFillFromNoHp();">
+          <div class="p-3 pt-4">
+            <!-- Baris 1: Instansi & PIC -->
+            <div class="row g-3 mb-2">
+              <div class="col-md-6">
+                <label class="fml req"><i class="ph ph-buildings me-1" style="color:var(--primary)"></i>Nama Instansi</label>
+                <input type="text" class="form-control" id="instansi" placeholder="Contoh: SDN 01 Kuranji" onchange="saveToLocal();onInstansiChange()" style="font-weight:600">
+                <small id="instansiPicHint" class="text-primary d-none" style="font-size:.65rem"><i class="ph ph-magic-wand"></i> <span></span></small>
               </div>
-              <small class="text-muted" style="font-size:.68rem">Format +62 otomatis. Ketik 8xx atau 62xx</small>
+              <div class="col-md-6">
+                <label class="fml req"><i class="ph ph-user-focus me-1" style="color:var(--primary)"></i>Nama PIC Kader</label>
+                <input type="text" class="form-control" id="pic" placeholder="Nama Penanggung Jawab" onchange="saveToLocal();onPicChange()" style="font-weight:600">
+              </div>
             </div>
-            <div class="col-md-4">
-              <label class="fml req">Email</label>
-              <input type="email" class="form-control" id="emailPelapor" placeholder="contoh@email.com" onchange="saveToLocal()">
-              <small class="text-muted" style="font-size:.68rem">Email wajib diisi untuk identitas pelapor</small>
+            <!-- Pemisah -->
+            <div style="height:1px;background:var(--border);margin:10px 0;opacity:.5"></div>
+            <!-- Baris 2: No HP & Email -->
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="fml req"><i class="ph ph-whatsapp-logo me-1" style="color:#25d366"></i>No HP / WhatsApp <small class="text-muted fw-normal" style="font-size:.6rem">(otomatis terisi)</small></label>
+                <div class="input-group">
+                  <span class="input-group-text" style="background:var(--input);border-color:var(--border);font-weight:700;color:var(--primary)">+62</span>
+                  <input type="tel" class="form-control" id="noHp" placeholder="8xxxxxxxxxx" oninput="formatNoHp(this)" onchange="saveToLocal();autoFillFromNoHp();">
+                </div>
+                <small id="noHpAutoStatus" class="text-muted d-none" style="font-size:.65rem"><i class="ph ph-check-circle" style="color:var(--success)"></i> <span></span></small>
+              </div>
+              <div class="col-md-6">
+                <label class="fml req"><i class="ph ph-envelope me-1" style="color:var(--primary)"></i>Email <small class="text-muted fw-normal" style="font-size:.6rem">(otomatis terisi)</small></label>
+                <input type="email" class="form-control" id="emailPelapor" placeholder="contoh@email.com" onchange="saveToLocal()">
+                <small id="emailAutoStatus" class="text-muted d-none" style="font-size:.65rem"><i class="ph ph-check-circle" style="color:var(--success)"></i> <span></span></small>
+              </div>
             </div>
           </div>
         </div>
@@ -2271,29 +2279,25 @@ function applyInstansiPicMapping(mappingData, instansi) {
     // Auto-fill PIC jika kosong
     if (!currentPic) {
       picEl.value = matched.pic || '';
-      picEl.style.transition = 'all 0.4s ease';
-      picEl.style.background = 'linear-gradient(135deg, var(--primary-l), rgba(139,92,246,0.05))';
-      picEl.style.borderColor = 'var(--border-f)';
-      setTimeout(() => { picEl.style.background = ''; picEl.style.borderColor = ''; }, 2000);
+      _flashField(picEl);
     }
 
-    // Auto-fill No HP jika kosong
-    if (!noHpEl.value.trim() && matched.noHp) {
+    // Auto-fill No HP SELALU ketika instansi+PIC cocok
+    if (matched.noHp) {
       let rawHp = matched.noHp.replace(/[^0-9]/g, '');
       if (rawHp.startsWith('62') && rawHp.length > 10) rawHp = rawHp.substring(2);
       else if (rawHp.startsWith('0')) rawHp = rawHp.substring(1);
       if (rawHp.length >= 8) {
         _applyNoHpAutofill(noHpEl, rawHp, 'server');
+        _showAutoStatus('noHpAutoStatus', 'No HP otomatis dari data ' + esc(instansi));
       }
     }
 
-    // Auto-fill email jika kosong
-    if (!emailEl.value.trim() && matched.email) {
+    // Auto-fill Email SELALU ketika instansi+PIC cocok
+    if (matched.email) {
       emailEl.value = matched.email;
-      emailEl.style.transition = 'all 0.4s ease';
-      emailEl.style.background = 'linear-gradient(135deg, var(--primary-l), rgba(139,92,246,0.05))';
-      emailEl.style.borderColor = 'var(--border-f)';
-      setTimeout(() => { emailEl.style.background = ''; emailEl.style.borderColor = ''; }, 2000);
+      _flashField(emailEl);
+      _showAutoStatus('emailAutoStatus', 'Email otomatis dari data ' + esc(instansi));
     }
 
     saveToLocal();
@@ -2327,18 +2331,22 @@ function onPicChange() {
   const noHpEl = document.getElementById('noHp');
   const emailEl = document.getElementById('emailPelapor');
 
-  if (!noHpEl.value.trim() && matched.noHp) {
+  // SELALU auto-fill No HP ketika instansi+PIC cocok
+  if (matched.noHp) {
     let rawHp = matched.noHp.replace(/[^0-9]/g, '');
     if (rawHp.startsWith('62') && rawHp.length > 10) rawHp = rawHp.substring(2);
     else if (rawHp.startsWith('0')) rawHp = rawHp.substring(1);
-    if (rawHp.length >= 8) _applyNoHpAutofill(noHpEl, rawHp, 'cache');
+    if (rawHp.length >= 8) {
+      _applyNoHpAutofill(noHpEl, rawHp, 'cache');
+      _showAutoStatus('noHpAutoStatus', 'No HP otomatis dari data ' + esc(instansi));
+    }
   }
 
-  if (!emailEl.value.trim() && matched.email) {
+  // SELALU auto-fill Email ketika instansi+PIC cocok
+  if (matched.email) {
     emailEl.value = matched.email;
-    emailEl.style.transition = 'all 0.4s ease';
-    emailEl.style.background = 'linear-gradient(135deg, var(--primary-l), rgba(139,92,246,0.05))';
-    setTimeout(() => { emailEl.style.background = ''; }, 2000);
+    _flashField(emailEl);
+    _showAutoStatus('emailAutoStatus', 'Email otomatis dari data ' + esc(instansi));
   }
 
   saveToLocal();
@@ -2347,6 +2355,24 @@ function onPicChange() {
 function hideInstansiPicHint() {
   const hintEl = document.getElementById('instansiPicHint');
   if (hintEl) hintEl.classList.add('d-none');
+  // Sembunyikan juga status auto No HP & Email
+  const s1 = document.getElementById('noHpAutoStatus');
+  const s2 = document.getElementById('emailAutoStatus');
+  if (s1) s1.classList.add('d-none');
+  if (s2) s2.classList.add('d-none');
+}
+function _flashField(el) {
+  el.style.transition = 'all 0.4s ease';
+  el.style.background = 'linear-gradient(135deg, var(--primary-l), rgba(139,92,246,0.08))';
+  el.style.borderColor = 'var(--border-f)';
+  setTimeout(() => { el.style.background = ''; el.style.borderColor = ''; }, 2000);
+}
+function _showAutoStatus(elId, msg) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  el.classList.remove('d-none');
+  el.querySelector('span').textContent = msg;
+  setTimeout(() => el.classList.add('d-none'), 4000);
 }
 function autoFillFromNoHp() {
   const noHpVal = document.getElementById('noHp').value.trim();
