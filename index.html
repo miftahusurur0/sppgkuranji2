@@ -33,7 +33,7 @@
     // 1) GANTI URL INI dengan URL Web App hasil Deploy Apps Script kamu
     //    (Deploy > New deployment > Web app > Execute as: Me > Who has access: Anyone > /exec)
     //    Hanya dipakai saat file ini berjalan di LUAR Apps Script (Blogger/Netlify).
-    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxWejsv2jCW78pDiaQf3y-6n5ZGm2qLwZi8RZ-Pl77dvHiUS5QzyQp2HtrRNlKe0Bie/exec';
+    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzf0nF48PV_5bk7ehXZirxqgAZaPNKW0f6cFQUq9TtHThSSJKOFZARq-PWqqBFCxB6M/exec';
 
     // 2) Peta nama fungsi server -> urutan nama parameter,
     //    HARUS SAMA PERSIS dengan switch(action) di Code.gs (doPost)
@@ -454,12 +454,54 @@
     .asc-num{font-size:2.3rem;font-weight:800;color:var(--primary);font-family:'Poppins',sans-serif;line-height:1.1;letter-spacing:-.02em}
     .asc-lbl{font-size:.73rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:5px}
     .asc-icon{position:absolute;top:18px;right:18px;width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;opacity:.15}
-    .adm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:20px;align-items:start}
+    .adm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:20px;align-items:stretch}
+    .adm-grid>.modern-card{display:flex;flex-direction:column;height:100%}
+    .adm-grid>.modern-card>.data-list-modern{flex:1 1 auto;max-height:none;min-height:120px}
     @media(max-width:768px){.adm-grid{grid-template-columns:1fr;align-items:stretch}}
+    @media(min-width:769px) and (max-width:1100px){.adm-grid{grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}}
     .adm-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh-sm);transition:all .4s;position:relative}
     .adm-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--primary-grad);opacity:0;transition:opacity .3s}
     .adm-card:hover{transform:translateY(-7px);box-shadow:var(--sh-lg),var(--sh-glow)}
     .adm-card:hover::before{opacity:1}
+    .rekap-pivot-scroll{overflow:auto;max-height:520px;border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--sh-sm)}
+    .rekap-pivot-table{border-collapse:separate;border-spacing:0;white-space:nowrap;margin:0;width:100%}
+    .rekap-pivot-table thead th{background:var(--primary-grad);color:#fff;border:none;border-bottom:2px solid rgba(255,255,255,.18);font-weight:700;position:sticky;top:0;z-index:2}
+    .rekap-pivot-table thead tr:first-child th{padding:10px 10px;font-size:.68rem;text-transform:uppercase;letter-spacing:.4px;border-right:1px solid rgba(255,255,255,.16)}
+    .rekap-pivot-table thead tr:last-child th{padding:6px 8px;font-size:.62rem;background:rgba(0,0,0,.12);top:33px;border-right:1px solid rgba(255,255,255,.12)}
+    .rekap-pivot-table thead tr:last-child th.pv-l{color:#bfdbfe}
+    .rekap-pivot-table thead tr:last-child th.pv-p{color:#fbcfe8}
+    .rekap-pivot-table th.pv-corner{position:sticky;left:0;z-index:4;background:var(--primary-grad)}
+    .rekap-pivot-table td{padding:8px 10px;text-align:center;border-bottom:1px solid var(--border);font-size:.78rem;color:var(--text)}
+    .rekap-pivot-table td.pv-no{color:var(--muted);font-weight:600;font-size:.72rem}
+    .rekap-pivot-table td.pv-nama{text-align:left;font-weight:700;white-space:normal;min-width:190px;position:sticky;left:0;z-index:1;background:var(--card);border-right:2px solid var(--border)}
+    .rekap-pivot-table tbody tr:nth-child(even){background:var(--input)}
+    .rekap-pivot-table tbody tr:nth-child(even) td.pv-nama{background:var(--input)}
+    .rekap-pivot-table tbody tr{transition:background .15s ease}
+    .rekap-pivot-table tbody tr:hover{background:var(--primary-l)!important}
+    .rekap-pivot-table tbody tr:hover td.pv-nama{background:var(--primary-l)!important}
+    .rekap-pivot-table td.pv-l{color:#2563eb;font-weight:700}
+    .rekap-pivot-table td.pv-p{color:#db2777;font-weight:700}
+    .rekap-pivot-table td.pv-zero{color:var(--muted);opacity:.3;font-weight:400}
+    .rekap-pivot-table td.pv-total{font-weight:800;color:var(--primary);background:var(--primary-l);border-left:2px solid var(--border)}
+    .rekap-pivot-table tbody tr:hover td.pv-total{background:var(--primary-l)!important}
+    .rekap-pivot-table tfoot td{background:linear-gradient(135deg,#fde047,#facc15);color:#78350f;font-weight:800;border-top:2px solid #eab308;padding:10px;font-size:.78rem;position:sticky;bottom:0;z-index:2}
+    .rekap-pivot-table tfoot td.pv-nama{position:sticky;left:0;bottom:0;z-index:3;background:#fde047;border-right:2px solid #eab308}
+    [data-theme="dark"] .rekap-pivot-table tfoot td{background:linear-gradient(135deg,#a16207,#854d0e);color:#fef3c7}
+    [data-theme="dark"] .rekap-pivot-table tfoot td.pv-nama{background:#854d0e}
+    .pv-legend{display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:.72rem;color:var(--muted);margin-bottom:10px}
+    .pv-legend span{display:inline-flex;align-items:center;gap:5px}
+    .pv-legend i.pv-dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+    @media print{
+      body *{visibility:hidden!important}
+      #modalInvoice, #modalInvoice *{visibility:visible!important}
+      #modalInvoice{position:fixed!important;inset:0!important;display:block!important;background:#fff!important;z-index:99999;margin:0!important}
+      #modalInvoice .modal-dialog{max-width:100%!important;width:100%!important;margin:0!important}
+      #modalInvoice .modal-content{border:none!important;box-shadow:none!important;border-radius:0!important;background:#fff!important}
+      #modalInvoice .modal-header,#modalInvoice .modal-footer{display:none!important}
+      #modalInvoice .modal-body{padding:0!important;background:#fff!important}
+      .modal-backdrop{display:none!important}
+      @page{margin:12mm}
+    }
     .adm-hd{background:var(--primary-grad);color:#fff;padding:18px 20px;display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;position:relative;overflow:hidden}
     .adm-hd::before{content:'';position:absolute;top:-50%;right:-20%;width:180px;height:180px;background:rgba(255,255,255,.07);border-radius:50%}
     .adm-info{flex:1;min-width:180px;position:relative;z-index:1}
@@ -1415,6 +1457,25 @@
              </table>
           </div>
         </div>
+
+        <!-- Rekap Silang Kelompok x Kategori (data terbaru tambahan PM) -->
+        <div class="modern-card p-4 mb-4">
+          <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2">
+              <div class="icon-box-modern" style="width:38px;height:38px;"><i class="ph ph-grid-four"></i></div>
+              <div>
+                <h6 class="fw-bold mb-0" style="font-size:.95rem">Rekap Silang Kelompok &amp; Kategori</h6>
+                <small class="text-muted">Total Laki-laki (L) &amp; Perempuan (P) per instansi/kelompok dan kategori</small>
+              </div>
+            </div>
+            <button class="btn btn-sm btn-prim modern-btn" onclick="cetakRekapPivot()">
+              <i class="ph ph-printer me-1"></i>Cetak Rekap Silang
+            </button>
+          </div>
+          <div id="rekapPivotWrap">
+            <div class="text-center text-muted py-4">Memuat...</div>
+          </div>
+        </div>
       </div>
 
       <!-- TAB: Riwayat -->
@@ -1467,7 +1528,7 @@
             </div>
 
             <div class="row g-3 mb-4">
-              <div class="col-md-6">
+              <div class="col-12">
                 <label class="form-label small fw-bold text-muted mb-1">Rentang Periode</label>
                 <div class="input-group">
                   <input type="date" id="periodeStart" class="form-control border-end-0 shadow-none" onchange="updatePeriodeInfo()">
@@ -1475,19 +1536,15 @@
                   <input type="date" id="periodeEnd" class="form-control border-start-0 shadow-none" onchange="updatePeriodeInfo()">
                 </div>
               </div>
-              <div class="col-md-6">
-                <label class="form-label small fw-bold text-muted mb-1">Pilih Instansi</label>
-                <div class="position-relative">
-                  <select id="invoiceInstansiSelect" class="form-select shadow-none" onchange="showInstansiDetail()">
-                    <option value="">-- Semua Instansi --</option>
-                  </select>
-                </div>
-              </div>
             </div>
 
             <div class="p-3 rounded-3 mb-4 border border-dashed text-center" style="background: rgba(var(--bs-primary-rgb), 0.02)">
               <div class="small text-muted mb-0" id="periodeInfo">
                 <i class="ph ph-info me-1"></i> Pilih periode tanggal untuk menghitung insentif otomatis.
+              </div>
+              <div class="small mt-2 pt-2 border-top" style="border-style:dashed!important">
+                <i class="ph ph-buildings me-1 text-primary"></i>Instansi terpilih: <strong id="selectedInstansiBadge">Semua Instansi</strong>
+                <span class="text-muted"> &middot; pilih instansi di bagian <a href="javascript:void(0)" onclick="document.getElementById('dbInstansiSection').scrollIntoView({behavior:'smooth',block:'start'})">Database Instansi <i class="ph ph-arrow-down"></i></a></span>
               </div>
             </div>
 
@@ -1661,7 +1718,7 @@
         </div>
 
         <!-- Search & DB -->
-        <div class="modern-card mb-4">
+        <div class="modern-card mb-4" id="dbInstansiSection">
           <div class="section-header-modern">
             <div class="icon-box-modern">
               <i class="ph ph-database"></i>
@@ -1681,7 +1738,23 @@
                   <input type="text" class="form-control search-modern ps-5" id="adminSearchInput" oninput="debounceAdminSearch()" placeholder="Nama, Instansi, PIC, NIK...">
                 </div>
               </div>
-              <div class="col-6 col-md-2">
+              <div class="col-6 col-md-4">
+                <label class="form-label small fw-semibold text-muted mb-1"><i class="ph ph-buildings"></i> Pilih Instansi</label>
+                <select class="form-select form-select-sm" id="invoiceInstansiSelect" onchange="showInstansiDetail()" style="border-color:var(--border);background:var(--input);color:var(--text)">
+                  <option value="">-- Semua Instansi --</option>
+                </select>
+              </div>
+              <div class="col-6 col-md-4">
+                <label class="form-label small fw-semibold text-muted mb-1"><i class="ph ph-sort-ascending"></i> Urutkan</label>
+                <select class="form-select form-select-sm" id="sortAdminData" onchange="filterAdminData()" style="border-color:var(--border);background:var(--input);color:var(--text)">
+                  <option value="instansi">Per Instansi</option>
+                  <option value="kategori">Per Kategori</option>
+                  <option value="usia_asc">Usia ↑ Muda</option>
+                  <option value="usia_desc">Usia ↓ Tua</option>
+                  <option value="nama">Nama A–Z</option>
+                </select>
+              </div>
+              <div class="col-6 col-md-4">
                 <label class="form-label small fw-semibold text-muted mb-1"><i class="ph ph-identification-card"></i> Filter ID</label>
                 <select class="form-select form-select-sm" id="filterNikType" onchange="filterAdminData()" style="border-color:var(--border);background:var(--input);color:var(--text)">
                   <option value="">Semua ID</option>
@@ -1692,7 +1765,7 @@
                   <option value="nip">NIP (18)</option>
                 </select>
               </div>
-              <div class="col-6 col-md-2">
+              <div class="col-6 col-md-4">
                 <label class="form-label small fw-semibold text-muted mb-1"><i class="ph ph-cake"></i> Usia</label>
                 <select class="form-select form-select-sm" id="filterUsia" onchange="filterAdminData()" style="border-color:var(--border);background:var(--input);color:var(--text)">
                   <option value="">Semua Usia</option>
@@ -1704,22 +1777,12 @@
                   <option value="41+">41+ tahun</option>
                 </select>
               </div>
-              <div class="col-6 col-md-2">
+              <div class="col-6 col-md-4">
                 <label class="form-label small fw-semibold text-muted mb-1"><i class="ph ph-gender-intersex"></i> Jenis Kelamin</label>
                 <select class="form-select form-select-sm" id="filterJK" onchange="filterAdminData()" style="border-color:var(--border);background:var(--input);color:var(--text)">
                   <option value="">Semua</option>
                   <option value="PRIA">Laki-laki</option>
                   <option value="WANITA">Perempuan</option>
-                </select>
-              </div>
-              <div class="col-6 col-md-2">
-                <label class="form-label small fw-semibold text-muted mb-1"><i class="ph ph-sort-ascending"></i> Urutkan</label>
-                <select class="form-select form-select-sm" id="sortAdminData" onchange="filterAdminData()" style="border-color:var(--border);background:var(--input);color:var(--text)">
-                  <option value="instansi">Per Instansi</option>
-                  <option value="kategori">Per Kategori</option>
-                  <option value="usia_asc">Usia ↑ Muda</option>
-                  <option value="usia_desc">Usia ↓ Tua</option>
-                  <option value="nama">Nama A–Z</option>
                 </select>
               </div>
             </div>
@@ -1875,15 +1938,15 @@
 
 <div class="modal fade" id="modalInvoice" tabindex="-1">
   <div class="modal-dialog modal-xl">
-    <div class="modal-content border-0 shadow-lg" style="background:var(--card)">
-      <div class="modal-header border-bottom" style="background:var(--input)">
-        <h5 class="modal-title fw-bold text-primary"><i class="ph ph-receipt me-2"></i>Invoice Honor PIC</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <div class="modal-content border-0 shadow-lg" style="background:var(--card);border-radius:var(--r-xl);overflow:hidden">
+      <div class="modal-header border-0" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff">
+        <h5 class="modal-title fw-bold text-white"><i class="ph ph-receipt me-2"></i>Invoice Honor PIC</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body p-0"><div id="invoiceContent" class="p-4"></div></div>
-      <div class="modal-footer border-top">
-        <button class="btn btn-light" data-bs-dismiss="modal">Tutup</button>
-        <button class="btn btn-prim" onclick="window.print()"><i class="ph ph-printer me-1"></i>Cetak</button>
+      <div class="modal-body p-0" style="background:#eef0f4"><div id="invoiceContent" class="p-4"></div></div>
+      <div class="modal-footer border-0" style="background:var(--input)">
+        <button class="btn btn-light modern-btn" data-bs-dismiss="modal">Tutup</button>
+        <button class="btn btn-prim modern-btn" onclick="window.print()"><i class="ph ph-printer me-1"></i>Cetak</button>
       </div>
     </div>
   </div>
@@ -4836,7 +4899,9 @@ function resetAdminFilter() {
   document.getElementById('filterUsia').value = '';
   document.getElementById('filterJK').value = '';
   document.getElementById('sortAdminData').value = 'instansi';
-  filterAdminData();
+  const instSel = document.getElementById('invoiceInstansiSelect');
+  if (instSel) instSel.value = '';
+  showInstansiDetail();
 }
 
 let _adminSearchTimer = null;
@@ -5094,6 +5159,8 @@ function renderCategoryChart(data) {
 function showInstansiDetail() {
   const v = document.getElementById('invoiceInstansiSelect').value;
   document.getElementById('btnCetakPerInstansi').disabled = !v;
+  const badge = document.getElementById('selectedInstansiBadge');
+  if (badge) badge.textContent = v || 'Semua Instansi';
   filterAdminData();
 }
 function cetakInvoicePerInstansi() { const v = document.getElementById('invoiceInstansiSelect').value; if(!v){Swal.fire('Info','Pilih instansi','info');return;} cetakInvoiceByName(v); }
@@ -5129,35 +5196,112 @@ function buildInvoiceHTML(instansi, pic, data) {
   let sh = cSek <= 500 ? t1A : cSek <= 1000 ? t2A : t3A;
   const hSek = cSek > 0 ? sh * days : 0;
   const total = hPos + hSek;
-  const catRows = Object.keys(catDet).map(cat => `<tr><td style="padding:10px;border-bottom:1px solid #eee">${esc(cat)}</td><td style="padding:10px;text-align:center;border-bottom:1px solid #eee">${catDet[cat]}</td><td colspan="2" style="padding:10px;border-bottom:1px solid #eee">-</td>`).join('');
+  const rp = n => 'Rp' + (n||0).toLocaleString('id-ID');
+
+  const catChips = Object.keys(catDet).map(function(cat, i) {
+    const palette = ['#eef2ff,#4338ca','#ecfdf5,#047857','#fef3c7,#92400e','#fce7f3,#9d174d','#e0f2fe,#075985'];
+    const [bg, fg] = palette[i % palette.length].split(',');
+    return '<span style="display:inline-flex;align-items:center;gap:5px;background:' + bg + ';color:' + fg + ';font-weight:700;font-size:11.5px;padding:5px 12px;border-radius:20px;margin:0 6px 6px 0">' + esc(cat) + '<span style="background:rgba(255,255,255,.6);border-radius:10px;padding:1px 7px">' + catDet[cat] + '</span></span>';
+  }).join('');
+
+  const catRows = Object.keys(catDet).map(function(cat, i) {
+    const zebra = i % 2 === 0 ? '#ffffff' : '#f8fafc';
+    return '<tr style="background:' + zebra + '"><td style="padding:11px 14px;border-bottom:1px solid #eef2f7">' + esc(cat) + '</td>' +
+      '<td style="padding:11px 14px;text-align:center;border-bottom:1px solid #eef2f7"><span style="background:#eef2ff;color:#4338ca;font-weight:700;border-radius:20px;padding:2px 10px;font-size:12px">' + catDet[cat] + '</span></td>' +
+      '<td style="padding:11px 14px;border-bottom:1px solid #eef2f7;color:#64748b">&mdash;</td>' +
+      '<td style="padding:11px 14px;border-bottom:1px solid #eef2f7;text-align:right;color:#64748b">&mdash;</td></tr>';
+  }).join('');
+
   const s1 = document.getElementById('periodeStart').value, e1 = document.getElementById('periodeEnd').value;
-  const periodeText = s1&&e1 ? `${new Date(s1).toLocaleDateString('id-ID')} - ${new Date(e1).toLocaleDateString('id-ID')}` : new Date().toLocaleDateString('id-ID',{month:'long',year:'numeric'});
-  return `<div style="font-family:Arial,sans-serif;max-width:100%;padding:16px">
-    <div style="text-align:center;margin-bottom:24px;border-bottom:2px solid #4f46e5;padding-bottom:16px">
-      <h2 style="margin:0;color:#4f46e5">PROGRAM MAKAN BERGIZI GRATIS</h2>
-      <h3 style="margin:4px 0">${esc(SIG.instansiName||'SPPG TAKTAKAN')}</h3>
-      <p style="color:#666;font-size:13px;margin:2px 0">${esc(SIG.instansiAddress||'')}</p>
-      <h4 style="margin:12px 0 4px">INVOICE HONOR PENDATAAN</h4>
+  const periodeText = s1&&e1 ? `${new Date(s1).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'})} &ndash; ${new Date(e1).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'})}` : new Date().toLocaleDateString('id-ID',{month:'long',year:'numeric'});
+  const invNo = 'INV/' + (instansi||'SPPG').replace(/[^A-Za-z0-9]/g,'').substring(0,8).toUpperCase() + '/' + new Date().toISOString().slice(0,10).replace(/-/g,'');
+  const logoImg = SIG.logoBase64 ? '<img src="' + SIG.logoBase64 + '" style="width:52px;height:52px;border-radius:12px;object-fit:cover;margin-right:12px">' : '<div style="width:52px;height:52px;border-radius:12px;margin-right:12px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:20px;flex-shrink:0">' + esc((SIG.instansiName||'SP').trim().charAt(0)) + '</div>';
+  const contactLine = [SIG.instansiPhone ? ('&#9742; ' + esc(SIG.instansiPhone)) : '', SIG.instansiEmail ? ('&#9993; ' + esc(SIG.instansiEmail)) : ''].filter(Boolean).join('&nbsp;&nbsp;|&nbsp;&nbsp;');
+
+  return `<div style="font-family:'Segoe UI',Arial,sans-serif;max-width:820px;margin:0 auto;color:#1e293b;background:#fff">
+    <div style="height:6px;border-radius:6px 6px 0 0;background:linear-gradient(90deg,#6366f1,#8b5cf6,#ec4899)"></div>
+    <div style="padding:26px 30px 18px;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:14px;border-bottom:1px solid #e2e8f0">
+      <div style="display:flex;align-items:center">
+        ${logoImg}
+        <div>
+          <div style="font-weight:800;font-size:16px;color:#312e81;letter-spacing:.2px">${esc(SIG.instansiName||'SPPG TAKTAKAN')}</div>
+          ${SIG.yayasanName ? '<div style="font-size:11.5px;color:#8b5cf6;font-weight:700;text-transform:uppercase;letter-spacing:.4px">' + esc(SIG.yayasanName) + '</div>' : ''}
+          <div style="font-size:11.5px;color:#64748b;margin-top:2px">${esc(SIG.instansiAddress||'')}</div>
+          ${contactLine ? '<div style="font-size:11px;color:#94a3b8;margin-top:2px">' + contactLine + '</div>' : ''}
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div style="display:inline-block;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-weight:800;font-size:12.5px;letter-spacing:1px;padding:7px 16px;border-radius:8px">INVOICE HONOR</div>
+        <div style="font-size:11px;color:#94a3b8;margin-top:8px;font-family:monospace">${esc(invNo)}</div>
+      </div>
     </div>
-    <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:16px">
-      <div><strong>Instansi:</strong> ${esc(instansi)}<br><strong>PIC:</strong> ${esc(pic)}</div>
-      <div style="text-align:right"><strong>Periode:</strong> ${periodeText}<br><strong>Cetak:</strong> ${new Date().toLocaleDateString('id-ID')}</div>
+
+    <div style="padding:20px 30px 0;display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div style="background:#f8fafc;border:1px solid #eef2f7;border-radius:12px;padding:14px 16px">
+        <div style="font-size:10.5px;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:6px">Ditagihkan Kepada</div>
+        <div style="font-weight:700;font-size:14px;color:#1e293b">${esc(instansi)}</div>
+        <div style="font-size:12px;color:#64748b;margin-top:2px">PIC: ${esc(pic)}</div>
+      </div>
+      <div style="background:#f8fafc;border:1px solid #eef2f7;border-radius:12px;padding:14px 16px">
+        <div style="font-size:10.5px;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:6px">Detail Periode</div>
+        <div style="font-size:12.5px;color:#1e293b"><strong>Periode:</strong> ${periodeText} (${days} Hari)</div>
+        <div style="font-size:12px;color:#64748b;margin-top:2px">Tanggal Cetak: ${new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'})}</div>
+      </div>
     </div>
-    <table style="width:100%;border-collapse:collapse;font-size:13px">
-      <thead><tr style="background:#f1f5f9;border-bottom:2px solid #cbd5e1"><th style="padding:10px;text-align:left">Kategori</th><th style="padding:10px;text-align:center">Jumlah</th><th style="padding:10px">Perhitungan</th><th style="padding:10px;text-align:right">Total</th></tr></thead>
-      <tbody>${catRows}
-        ${cPos>0?`<tr style="background:#f0fdf4"><td style="padding:10px"><strong>Posyandu</strong></td><td style="padding:10px;text-align:center">${cPos}</td><td style="padding:10px">(Rp${rPos.toLocaleString('id-ID')} × ${days} hari) × ${cPos}</td><td style="padding:10px;text-align:right;font-weight:700">Rp${hPos.toLocaleString('id-ID')}</td></tr>`:''}
-        ${cSek>0?`<tr style="background:#fefce8"><td style="padding:10px"><strong>Sekolah</strong></td><td style="padding:10px;text-align:center">${cSek}</td><td style="padding:10px">Tier (${cSek} jiwa) × ${days} hari</td><td style="padding:10px;text-align:right;font-weight:700">Rp${hSek.toLocaleString('id-ID')}</td></tr>`:''}
-      </tbody>
-      <tfoot><tr style="background:#f8fafc;border-top:2px solid #cbd5e1"><td colspan="3" style="padding:10px;text-align:right;font-weight:700">GRAND TOTAL</td><td style="padding:10px;text-align:right;font-size:1.1rem;font-weight:800;color:#4f46e5">Rp${total.toLocaleString('id-ID')}</td></tr></tfoot>
-    </table>
-    <div style="margin:16px 0;padding:12px;background:#fffbeb;border-radius:8px;border-left:4px solid #f59e0b;font-size:13px"><strong>Terbilang:</strong> ${numToWords(total)} Rupiah</div>
-    <div style="display:flex;justify-content:space-between;margin-top:40px;font-size:13px">
-      <div style="text-align:center;width:30%"><div style="margin-bottom:56px">Mengetahui,<br>Kepala SPPG</div><strong>${esc(SIG.kepalaName||'_________________')}</strong><br>NIP. ${esc(SIG.kepalaNip||'_______________')}</div>
-      <div style="text-align:center;width:30%"><div style="margin-bottom:56px">Menyetujui,<br>Akuntan</div><strong>${esc(SIG.akuntanName||'_________________')}</strong><br>NIP. ${esc(SIG.akuntanNip||'_______________')}</div>
-      <div style="text-align:center;width:30%"><div style="margin-bottom:56px">Penerima,<br>PIC Kader</div><strong>${esc(pic)}</strong><br>___________________</div>
+
+    <div style="padding:18px 30px 0">
+      <div style="font-size:10.5px;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:8px">Kategori Penerima</div>
+      <div>${catChips}</div>
     </div>
-    <div style="margin-top:32px;text-align:center;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;padding-top:8px">Dicetak: ${new Date().toLocaleString('id-ID')}</div>
+
+    <div style="padding:16px 30px 0">
+      <div style="border:1px solid #eef2f7;border-radius:12px;overflow:hidden">
+        <table style="width:100%;border-collapse:collapse;font-size:12.5px">
+          <thead>
+            <tr style="background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff">
+              <th style="padding:11px 14px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px">Kategori</th>
+              <th style="padding:11px 14px;text-align:center;font-size:11px;text-transform:uppercase;letter-spacing:.4px">Jumlah</th>
+              <th style="padding:11px 14px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px">Perhitungan</th>
+              <th style="padding:11px 14px;text-align:right;font-size:11px;text-transform:uppercase;letter-spacing:.4px">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>${catRows}
+            ${cPos>0?`<tr style="background:#f0fdf4"><td style="padding:11px 14px;font-weight:700;color:#047857"><i style="font-style:normal">&#9679;</i>&nbsp; Kelompok Posyandu</td><td style="padding:11px 14px;text-align:center;font-weight:700">${cPos}</td><td style="padding:11px 14px;color:#475569;font-size:11.5px">(${rp(rPos)} &times; ${days} hari) &times; ${cPos} jiwa</td><td style="padding:11px 14px;text-align:right;font-weight:800;color:#047857">${rp(hPos)}</td></tr>`:''}
+            ${cSek>0?`<tr style="background:#fefce8"><td style="padding:11px 14px;font-weight:700;color:#92400e"><i style="font-style:normal">&#9679;</i>&nbsp; Kelompok Sekolah/Ponpes</td><td style="padding:11px 14px;text-align:center;font-weight:700">${cSek}</td><td style="padding:11px 14px;color:#475569;font-size:11.5px">Tarif Tier (${cSek} jiwa) &times; ${days} hari</td><td style="padding:11px 14px;text-align:right;font-weight:800;color:#92400e">${rp(hSek)}</td></tr>`:''}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div style="padding:16px 30px 0;display:flex;justify-content:flex-end">
+      <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);border-radius:12px;padding:16px 26px;min-width:260px;text-align:right;box-shadow:0 8px 20px -8px rgba(79,70,229,.45)">
+        <div style="color:#e0e7ff;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px">Grand Total Honor</div>
+        <div style="color:#fff;font-size:24px;font-weight:800;margin-top:4px">${rp(total)}</div>
+      </div>
+    </div>
+
+    <div style="margin:18px 30px 0;padding:13px 16px;background:#fffbeb;border-radius:10px;border:1px dashed #f59e0b;font-size:12.5px;color:#78350f">
+      <strong>Terbilang:</strong> <em>${numToWords(total)} Rupiah</em>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;margin:38px 30px 0;font-size:12px;gap:10px">
+      <div style="text-align:center;width:31%">
+        <div style="color:#64748b;margin-bottom:52px">Mengetahui,<br>Kepala SPPG</div>
+        <div style="border-top:1.5px solid #cbd5e1;padding-top:6px"><strong>${esc(SIG.kepalaName||'_________________')}</strong><br><span style="color:#94a3b8;font-size:11px">NIP. ${esc(SIG.kepalaNip||'_______________')}</span></div>
+      </div>
+      <div style="text-align:center;width:31%">
+        <div style="color:#64748b;margin-bottom:52px">Menyetujui,<br>Akuntan</div>
+        <div style="border-top:1.5px solid #cbd5e1;padding-top:6px"><strong>${esc(SIG.akuntanName||'_________________')}</strong><br><span style="color:#94a3b8;font-size:11px">NIP. ${esc(SIG.akuntanNip||'_______________')}</span></div>
+      </div>
+      <div style="text-align:center;width:31%">
+        <div style="color:#64748b;margin-bottom:52px">Penerima,<br>PIC Kader</div>
+        <div style="border-top:1.5px solid #cbd5e1;padding-top:6px"><strong>${esc(pic)}</strong><br><span style="color:#94a3b8;font-size:11px">&nbsp;</span></div>
+      </div>
+    </div>
+
+    <div style="margin-top:26px;padding:12px 30px;text-align:center;font-size:10.5px;color:#94a3b8;border-top:1px solid #e2e8f0">
+      Dokumen dicetak otomatis oleh Sistem Pendataan MBG &bull; ${new Date().toLocaleString('id-ID')}
+    </div>
   </div>`;
 }
 
@@ -5728,6 +5872,7 @@ function renderRekapTable() {
 
   renderRekapStats(data);
   renderRekapUsiaTable(data);
+  renderRekapPivotTable(data);
 }
 
 function rekapChangePage(delta) {
@@ -5866,6 +6011,156 @@ function resetRekapFilter() {
   document.getElementById('rekapFilterKategori').value = '';
   document.getElementById('rekapSort').value = 'nama';
   filterRekapAndReset();
+}
+
+// ============================================================
+// REKAP SILANG (PIVOT): Kelompok/Instansi x Kategori (L/P)
+// ============================================================
+function buildRekapPivotData(data) {
+  const kats = [...new Set(data.map(d => d.kategori || d.ket || 'Lainnya'))].sort((a,b)=>a.localeCompare(b));
+  const instList = [...new Set(data.map(d => d.instansi || '-'))].sort((a,b)=>a.localeCompare(b));
+
+  const counts = {};
+  instList.forEach(inst => {
+    counts[inst] = {};
+    kats.forEach(k => counts[inst][k] = { L: 0, P: 0 });
+  });
+  data.forEach(d => {
+    const inst = d.instansi || '-';
+    const k = d.kategori || d.ket || 'Lainnya';
+    if (!counts[inst]) counts[inst] = {};
+    if (!counts[inst][k]) counts[inst][k] = { L: 0, P: 0 };
+    const jk = (d.jk || '').toUpperCase();
+    if (jk === 'PRIA') counts[inst][k].L++;
+    else if (jk === 'WANITA') counts[inst][k].P++;
+  });
+
+  const grandPerKat = {};
+  kats.forEach(k => grandPerKat[k] = { L: 0, P: 0 });
+  let grandTotal = 0;
+  const rows = instList.map(inst => {
+    let rowTotal = 0;
+    const cells = kats.map(k => {
+      const c = counts[inst][k] || { L: 0, P: 0 };
+      rowTotal += c.L + c.P;
+      grandPerKat[k].L += c.L;
+      grandPerKat[k].P += c.P;
+      return c;
+    });
+    grandTotal += rowTotal;
+    return { instansi: inst, cells: cells, total: rowTotal };
+  });
+
+  return { kats, rows, grandPerKat, grandTotal };
+}
+
+function renderRekapPivotTable(data) {
+  const wrap = document.getElementById('rekapPivotWrap');
+  if (!wrap) return;
+  if (!data || !data.length) {
+    wrap.innerHTML = '<div class="text-center text-muted py-4"><i class="ph ph-magnifying-glass d-block mb-2" style="font-size:1.6rem;opacity:.4"></i>Tidak ada data yang sesuai filter</div>';
+    return;
+  }
+  const pv = buildRekapPivotData(data);
+  const cell = function(v, cls) { return '<td class="' + cls + (v ? '' : ' pv-zero') + '">' + (v || '\u2013') + '</td>'; };
+
+  let thead = '<tr>' +
+    '<th rowspan="2" class="pv-corner" style="min-width:36px">No</th>' +
+    '<th rowspan="2" class="pv-corner pv-nama" style="min-width:190px;text-align:left">Nama Kelompok / Instansi</th>' +
+    pv.kats.map(function(k){ return '<th colspan="2">' + esc(k) + '</th>'; }).join('') +
+    '<th rowspan="2" style="min-width:64px">Total</th>' +
+    '</tr><tr>' +
+    pv.kats.map(function(){ return '<th class="pv-l" style="min-width:38px">L</th><th class="pv-p" style="min-width:38px">P</th>'; }).join('') +
+    '</tr>';
+
+  const tbody = pv.rows.map(function(r, idx) {
+    const cells = r.cells.map(function(c) {
+      return cell(c.L, 'pv-l') + cell(c.P, 'pv-p');
+    }).join('');
+    return '<tr><td class="pv-no">' + (idx + 1) + '</td><td class="pv-nama">' + esc(r.instansi) + '</td>' + cells + '<td class="pv-total">' + r.total + '</td></tr>';
+  }).join('');
+
+  let grandL = 0, grandP = 0;
+  const footCells = pv.kats.map(function(k) {
+    grandL += pv.grandPerKat[k].L;
+    grandP += pv.grandPerKat[k].P;
+    return '<td>' + (pv.grandPerKat[k].L || 0) + '</td><td>' + (pv.grandPerKat[k].P || 0) + '</td>';
+  }).join('');
+  const tfoot = '<tr><td colspan="2" class="pv-nama" style="text-align:center">GRAND TOTAL</td>' + footCells + '<td>' + pv.grandTotal + '</td></tr>';
+
+  const minWidth = 260 + pv.kats.length * 68;
+  wrap.innerHTML =
+    '<div class="pv-legend">' +
+      '<span><i class="ph ph-buildings text-primary"></i> ' + pv.rows.length + ' Kelompok/Instansi</span>' +
+      '<span><i class="ph ph-tag text-primary"></i> ' + pv.kats.length + ' Kategori</span>' +
+      '<span><i class="pv-dot" style="background:#2563eb"></i> Laki-laki (L)</span>' +
+      '<span><i class="pv-dot" style="background:#db2777"></i> Perempuan (P)</span>' +
+      '<span><i class="ph ph-users-three text-primary"></i> Total ' + pv.grandTotal + ' Jiwa</span>' +
+    '</div>' +
+    '<div class="rekap-pivot-scroll"><table class="rekap-pivot-table" style="min-width:' + minWidth + 'px">' +
+    '<thead>' + thead + '</thead>' +
+    '<tbody>' + tbody + '</tbody>' +
+    '<tfoot>' + tfoot + '</tfoot>' +
+    '</table></div>';
+
+  // Align sticky sub-header row exactly under the first header row (heights vary by theme/zoom)
+  const scrollBox = wrap.querySelector('.rekap-pivot-scroll');
+  const firstRow = wrap.querySelector('thead tr:first-child');
+  const secondRowThs = wrap.querySelectorAll('thead tr:last-child th');
+  if (scrollBox && firstRow && secondRowThs.length) {
+    requestAnimationFrame(function() {
+      const h = firstRow.offsetHeight;
+      secondRowThs.forEach(function(th) { th.style.top = h + 'px'; });
+    });
+  }
+}
+
+function cetakRekapPivot() {
+  const data = getRekapFiltered();
+  if (!data.length) { Swal.fire('Info', 'Tidak ada data untuk dicetak', 'info'); return; }
+  const pv = buildRekapPivotData(data);
+
+  const periodeStart = (document.getElementById('periodeStart') || {}).value || '';
+  const periodeEnd   = (document.getElementById('periodeEnd') || {}).value || '';
+  const periodeLabel = (periodeStart && periodeEnd)
+    ? new Date(periodeStart).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'}) + ' s/d ' + new Date(periodeEnd).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'})
+    : 'Semua Periode';
+
+  const theadRow1 = '<th rowspan="2">No</th><th rowspan="2" style="text-align:left">Nama Kelompok / Instansi</th>' +
+    pv.kats.map(k => '<th colspan="2">' + esc(k) + '</th>').join('') + '<th rowspan="2">Total</th>';
+  const theadRow2 = pv.kats.map(function(){ return '<th>L</th><th>P</th>'; }).join('');
+
+  const bodyRows = pv.rows.map(function(r, idx) {
+    const cells = r.cells.map(function(c) { return '<td>' + (c.L || '') + '</td><td>' + (c.P || '') + '</td>'; }).join('');
+    return '<tr><td>' + (idx + 1) + '</td><td style="text-align:left;font-weight:600">' + esc(r.instansi) + '</td>' + cells + '<td style="font-weight:700">' + r.total + '</td></tr>';
+  }).join('');
+
+  let grandL = 0, grandP = 0;
+  const footCells = pv.kats.map(function(k) {
+    grandL += pv.grandPerKat[k].L; grandP += pv.grandPerKat[k].P;
+    return '<td>' + (pv.grandPerKat[k].L || '') + '</td><td>' + (pv.grandPerKat[k].P || '') + '</td>';
+  }).join('');
+
+  const html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Rekap Silang Kelompok &amp; Kategori</title><style>' +
+    '*{box-sizing:border-box}body{font-family:Arial,sans-serif;margin:16px;color:#1e293b}' +
+    '.hdr{text-align:center;margin-bottom:10px}.hdr h1{font-size:15px;margin:0}.hdr h2{font-size:12px;margin:2px 0 0;color:#475569;font-weight:600}' +
+    'table{width:100%;border-collapse:collapse;font-size:10px}th,td{border:1px solid #94a3b8;padding:4px 6px;text-align:center}' +
+    'th{background:#475569;color:#fff;text-transform:uppercase;font-size:9px}' +
+    'tfoot td{background:#fde047;font-weight:800}' +
+    '@media print{body{margin:0}@page{margin:10mm;size:landscape}}' +
+    '</style></head><body>' +
+    '<div class="hdr"><h1>DATA TERBARU TAMBAHAN PM</h1><h2>PERIODE: ' + esc(periodeLabel).toUpperCase() + '</h2></div>' +
+    '<table><thead><tr>' + theadRow1 + '</tr><tr>' + theadRow2 + '</tr></thead>' +
+    '<tbody>' + bodyRows + '</tbody>' +
+    '<tfoot><tr><td colspan="2">GRAND TOTAL</td>' + footCells + '<td>' + pv.grandTotal + '</td></tr></tfoot>' +
+    '</table>' +
+    '<p style="margin-top:14px;text-align:center;font-size:9px;color:#94a3b8">Dicetak: ' + new Date().toLocaleString('id-ID') + ' &bull; Sistem Pendataan MBG</p>' +
+    '</body></html>';
+
+  const w = window.open('', '_blank');
+  w.document.write(html);
+  w.document.close();
+  setTimeout(function() { try { w.print(); } catch (e) {} }, 1200);
 }
 
 function cetakRekap() {
