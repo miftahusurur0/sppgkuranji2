@@ -33,7 +33,7 @@
     // 1) GANTI URL INI dengan URL Web App hasil Deploy Apps Script kamu
     //    (Deploy > New deployment > Web app > Execute as: Me > Who has access: Anyone > /exec)
     //    Hanya dipakai saat file ini berjalan di LUAR Apps Script (Blogger/Netlify).
-    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyihK3PN_3IWISDYV63R9u21vCJts-1RrgdxnQ_Xi7OtsMGEVBtSxzOAabpb6iueZ53/exec';
+    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxWejsv2jCW78pDiaQf3y-6n5ZGm2qLwZi8RZ-Pl77dvHiUS5QzyQp2HtrRNlKe0Bie/exec';
 
     // 2) Peta nama fungsi server -> urutan nama parameter,
     //    HARUS SAMA PERSIS dengan switch(action) di Code.gs (doPost)
@@ -56,6 +56,7 @@
       hapusDataBaris: ['rowIndex', 'adminPassword'],
       hapusDataBarisUser: ['rowIndex', 'instansi', 'pic'],
       hapusSemuaDataInstansi: ['instansi', 'adminPassword'],
+      bulkRenameInstansiPic: ['oldInstansi', 'oldPic', 'newInstansi', 'newPic', 'adminPassword'],
       getAllDataForAdmin: ['adminPassword'],
       scanAllNIKDuplicates: [],
       cekNikGanda: ['id', 'excludeRow', 'excludeId', 'currentInstansi'],
@@ -542,9 +543,10 @@
     #modalLogin .login-modal-sub{position:relative;z-index:1;font-size:.78rem;opacity:.9;margin:0}
     #modalLogin .login-modal-close{position:absolute;top:16px;right:16px;z-index:2}
     #modalLogin .modal-body{background:var(--card);padding:28px 28px 24px!important}
-    @media(max-width:768px){.header-logo{width:36px;height:36px;border-radius:10px}.header-title h2{font-size:1rem}.header-sub{font-size:.68rem}.scroll-body{padding:12px 14px;padding-bottom:80px}.cat-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}.data-grid{grid-template-columns:1fr;gap:14px}.instansi-grid{grid-template-columns:1fr;gap:14px}.adm-grid{grid-template-columns:1fr;gap:14px}.adm-cat-grid{grid-template-columns:1fr;gap:12px}.cat-stats{grid-template-columns:repeat(3,1fr);gap:8px}}
-    @media(max-width:480px){.cat-grid{grid-template-columns:1fr 1fr;gap:10px}.cat-card-hd{padding:10px 12px}.cat-card-title{font-size:.8rem}.cs-val{font-size:1.1rem}.summary-banner{padding:16px}.stat-val-w{font-size:1.5rem}.stat-item{flex-direction:column;align-items:flex-start;gap:10px}.stat-trend{width:100%;flex-direction:row;justify-content:space-between}.adm-sgrid{grid-template-columns:1fr 1fr;gap:10px}}
-    @media(max-width:360px){.cat-grid{grid-template-columns:1fr;gap:10px}}
+    @media(max-width:768px) and (min-width:481px){.row .col-sm-4.col-md-4{width:33.333%!important}}
+    @media(max-width:768px){.header-logo{width:36px;height:36px;border-radius:10px}.header-title h2{font-size:1rem}.header-sub{font-size:.68rem}.scroll-body{padding:12px 14px;padding-bottom:80px}.cat-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}.data-grid{grid-template-columns:1fr;gap:14px}.instansi-grid{grid-template-columns:1fr;gap:14px}.adm-grid{grid-template-columns:1fr;gap:14px}.adm-cat-grid{grid-template-columns:1fr;gap:12px}.cat-stats{grid-template-columns:repeat(3,1fr);gap:8px}.upload-actions{flex-direction:column;width:100%}.upload-actions .btn{width:100%;justify-content:center}.data-toolbar-btns{flex-wrap:wrap;gap:6px!important}.data-toolbar-btns .btn-outline-success,.data-toolbar-btns .btn-success{flex:1;min-width:0;font-size:.78rem;padding:8px 10px}.data-toolbar-btns .btn-outline-success span.btn-label,.data-toolbar-btns .btn-success span.btn-label{display:none}.data-toolbar-btns .btn-outline-warning,.data-toolbar-btns .btn-outline-secondary{width:38px;height:38px;padding:0;justify-content:center}}
+    @media(max-width:480px){.cat-grid{grid-template-columns:1fr 1fr;gap:10px}.cat-card-hd{padding:10px 12px}.cat-card-title{font-size:.8rem}.cs-val{font-size:1.1rem}.summary-banner{padding:16px}.stat-val-w{font-size:1.5rem}.stat-item{flex-direction:column;align-items:flex-start;gap:10px}.stat-trend{width:100%;flex-direction:row;justify-content:space-between}.adm-sgrid{grid-template-columns:1fr 1fr;gap:10px}.list-li{padding:10px 12px;gap:8px}.avatar{width:36px;height:36px;font-size:.85rem;margin-right:10px;border-radius:10px}.pname{font-size:.83rem}.pmeta{font-size:.68rem;gap:4px}.act-grp{gap:6px}.act-grp .btn{width:30px;height:30px;font-size:.85rem}.dc-head{padding:12px 14px}.dc-title{font-size:.78rem}.dc-badge{font-size:.68rem;padding:3px 9px}.form-control,.form-select{font-size:.9rem;padding:10px 12px}.fml{font-size:.74rem}.upload-card-inner{flex-direction:column;align-items:flex-start!important}.upload-card-inner>div:last-child{width:100%}.upload-card-inner .d-flex.gap-2{flex-wrap:wrap}}
+    @media(max-width:360px){.cat-grid{grid-template-columns:1fr;gap:10px}.avatar{width:32px;height:32px;font-size:.8rem;margin-right:8px}.pname{font-size:.8rem}.act-grp .btn{width:28px;height:28px;font-size:.8rem}}
     ::selection{background:var(--primary);color:#fff}
     .glass-card{background:rgba(255,255,255,.7);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:1px solid rgba(255,255,255,.3);box-shadow:0 8px 32px rgba(31,38,135,.07),inset 0 1px 0 rgba(255,255,255,.6);color:var(--text)}
     [data-theme="dark"] .glass-card{background:rgba(30,41,59,.7);border:1px solid rgba(255,255,255,.08);box-shadow:0 8px 32px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.05);color:#f1f5f9}
@@ -738,15 +740,15 @@
         <!-- Identity Context -->
         <div class="modern-card mb-4" style="position: relative;">
           <div class="floating-badge"><i class="ph ph-user-circle me-1"></i>Identitas Pelapor</div>
-          <div class="p-3 pt-4">
+          <div class="p-3 pt-4 p-md-3">
             <!-- Baris 1: Instansi & PIC -->
-            <div class="row g-3 mb-2">
-              <div class="col-md-6">
+            <div class="row g-3 g-md-3 mb-2">
+              <div class="col-sm-6 col-md-6">
                 <label class="fml req"><i class="ph ph-buildings me-1" style="color:var(--primary)"></i>Nama Instansi</label>
                 <input type="text" class="form-control" id="instansi" placeholder="Contoh: SDN 01 Kuranji" onchange="saveToLocal();onInstansiChange()" style="font-weight:600">
                 <small id="instansiPicHint" class="text-primary d-none" style="font-size:.65rem"><i class="ph ph-magic-wand"></i> <span></span></small>
               </div>
-              <div class="col-md-6">
+              <div class="col-sm-6 col-md-6">
                 <label class="fml req"><i class="ph ph-user-focus me-1" style="color:var(--primary)"></i>Nama PIC Kader</label>
                 <input type="text" class="form-control" id="pic" placeholder="Nama Penanggung Jawab" onchange="saveToLocal();onPicChange()" style="font-weight:600">
               </div>
@@ -754,8 +756,8 @@
             <!-- Pemisah -->
             <div style="height:1px;background:var(--border);margin:10px 0;opacity:.5"></div>
             <!-- Baris 2: No HP & Email -->
-            <div class="row g-3">
-              <div class="col-md-6">
+            <div class="row g-3 g-md-3">
+              <div class="col-sm-6 col-md-6">
                 <label class="fml req"><i class="ph ph-whatsapp-logo me-1" style="color:#25d366"></i>No HP / WhatsApp <small class="text-muted fw-normal" style="font-size:.6rem">(otomatis terisi)</small></label>
                 <div class="input-group">
                   <span class="input-group-text" style="background:var(--input);border-color:var(--border);font-weight:700;color:var(--primary)">+62</span>
@@ -763,7 +765,7 @@
                 </div>
                 <small id="noHpAutoStatus" class="text-muted d-none" style="font-size:.65rem"><i class="ph ph-check-circle" style="color:var(--success)"></i> <span></span></small>
               </div>
-              <div class="col-md-6">
+              <div class="col-sm-6 col-md-6">
                 <label class="fml req"><i class="ph ph-envelope me-1" style="color:var(--primary)"></i>Email <small class="text-muted fw-normal" style="font-size:.6rem">(otomatis terisi)</small></label>
                 <input type="email" class="form-control" id="emailPelapor" placeholder="contoh@email.com" onchange="saveToLocal()">
                 <small id="emailAutoStatus" class="text-muted d-none" style="font-size:.65rem"><i class="ph ph-check-circle" style="color:var(--success)"></i> <span></span></small>
@@ -850,25 +852,25 @@
 
           <!-- UPLOAD DATA VIA TEMPLATE EXCEL -->
           <div class="modern-card p-3 mb-3">
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-              <div class="d-flex align-items-center gap-2">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 upload-card-inner">
+              <div class="d-flex align-items-center gap-2" style="min-width:0">
                 <div style="width:36px;height:36px;border-radius:10px;background:#10b981;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                   <i class="ph ph-file-xls text-white" style="font-size:1.1rem;"></i>
                 </div>
-                <div>
+                <div style="min-width:0">
                   <h6 class="mb-0 fw-bold" style="font-size:.9rem;">Upload Data Massal via Template Excel</h6>
                   <small class="text-muted" style="font-size:.75rem;">Unduh template, isi data, lalu upload. NIK duplikat otomatis dilewati, data baru langsung tersimpan.</small>
                 </div>
               </div>
-              <div class="d-flex gap-2 flex-shrink-0">
-                <button type="button" class="btn btn-outline-primary btn-sm fw-bold rounded-pill" onclick="downloadTemplateExcel()"><i class="ph ph-download-simple me-1"></i>Unduh Template</button>
-                <button type="button" class="btn btn-success btn-sm fw-bold rounded-pill" onclick="document.getElementById('uploadTemplateFile').click()"><i class="ph ph-upload-simple me-1"></i>Upload Data</button>
+              <div class="d-flex gap-2 flex-shrink-0 upload-actions">
+                <button type="button" class="btn btn-outline-primary btn-sm fw-bold rounded-pill" onclick="downloadTemplateExcel()"><i class="ph ph-download-simple me-1"></i><span class="btn-label">Unduh Template</span></button>
+                <button type="button" class="btn btn-success btn-sm fw-bold rounded-pill" onclick="document.getElementById('uploadTemplateFile').click()"><i class="ph ph-upload-simple me-1"></i><span class="btn-label">Upload Data</span></button>
                 <input type="file" id="uploadTemplateFile" accept=".xlsx,.xls" style="display:none" onchange="handleTemplateUpload(event)">
               </div>
             </div>
           </div>
 
-          <div class="modern-card p-4">
+          <div class="modern-card p-3 p-md-4">
 
             <!-- NIK / NIP -->
             <div class="mb-3">
@@ -882,17 +884,17 @@
 
             <!-- ROW 1 -->
             <div class="row g-3 mb-3">
-              <div class="col-md-6">
+              <div class="col-sm-6 col-md-6">
                 <label class="fml req">Nama Lengkap</label>
                 <input type="text" class="form-control" id="nama" placeholder="Sesuai KTP/KK" oninput="this.value=this.value.replace(/[^a-zA-Z\s'\-\.\,]/g,'');" title="Hanya huruf (A-Z, a-z), spasi, tanda petik ('), tanda hubung (-), titik (.), dan koma (,) yang diperbolehkan">
               </div>
 
-              <div class="col-md-3">
+              <div class="col-sm-6 col-md-3">
                 <label class="fml req">Tgl Lahir</label>
                 <input type="date" class="form-control" id="tglLahir" onchange="hitungUsia()" oninput="hitungUsia()">
               </div>
 
-              <div class="col-md-3">
+              <div class="col-sm-12 col-md-3">
                 <label class="fml"><i class="ph ph-birthday-cake me-1" style="opacity:.5"></i>Usia <small class="text-muted" style="font-weight:400">(otomatis)</small></label>
                 <input type="text" class="form-control" id="usia" readonly style="background:#f8fafc;">
               </div>
@@ -900,7 +902,7 @@
 
             <!-- ROW 2 -->
             <div class="row g-3 mb-3">
-              <div class="col-md-4">
+              <div class="col-sm-4 col-md-4">
                 <label class="fml req">Jenis Kelamin</label>
                 <select class="form-select" id="jk" onchange="syncJumlah()">
                   <option value="">Pilih Jenis Kelamin</option>
@@ -909,14 +911,14 @@
                 </select>
               </div>
 
-              <div class="col-md-4">
+              <div class="col-sm-4 col-md-4">
                 <label class="fml req">Kategori</label>
                 <select class="form-select" id="ket" onchange="toggleForm()">
                   <option value="">-- Pilih Kategori --</option>
                 </select>
               </div>
 
-              <div class="col-md-4">
+              <div class="col-sm-4 col-md-4">
                 <label class="fml">Nama Orang Tua</label>
                 <input type="text" class="form-control" id="namaOrangTua" oninput="this.value=this.value.replace(/[^a-zA-Z\s'\-\.\,]/g,'');" title="Hanya huruf (A-Z, a-z), spasi, tanda petik ('), tanda hubung (-), titik (.), dan koma (,) yang diperbolehkan">
               </div>
@@ -971,11 +973,11 @@
                 <i class="ph ph-magnifying-glass position-absolute top-50 start-0 translate-middle-y ms-3 text-muted" style="z-index:2"></i>
                 <input type="text" class="form-control search-modern ps-5" id="searchInput" oninput="filterData()" placeholder="Cari Nama atau NIK...">
               </div>
-              <div class="d-flex gap-2 flex-shrink-0">
+              <div class="d-flex gap-2 flex-shrink-0 data-toolbar-btns">
                 <button class="btn btn-outline-warning rounded-circle d-flex align-items-center justify-content-center modern-btn" style="width:42px;height:42px" onclick="scanNIKDuplicates()" title="Cek Duplikat"><i class="ph ph-radar"></i></button>
                 <button class="btn btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center modern-btn" style="width:42px;height:42px" onclick="refreshData()" title="Refresh"><i class="ph ph-arrows-clockwise"></i></button>
-                <button class="btn btn-outline-success px-4 fw-bold rounded-pill d-flex align-items-center gap-2 modern-btn" onclick="downloadExcelDataMasuk()" title="Unduh data ini sebagai file Excel (.xlsx)"><i class="ph ph-file-xls"></i>Unduh Excel</button>
-                <button class="btn btn-success px-4 fw-bold rounded-pill d-flex align-items-center gap-2 modern-btn" onclick="cetakPDF()"><i class="ph ph-printer"></i>Cetak</button>
+                <button class="btn btn-outline-success px-4 fw-bold rounded-pill d-flex align-items-center gap-2 modern-btn" onclick="downloadExcelDataMasuk()" title="Unduh data ini sebagai file Excel (.xlsx)"><i class="ph ph-file-xls"></i><span class="btn-label">Unduh Excel</span></button>
+                <button class="btn btn-success px-4 fw-bold rounded-pill d-flex align-items-center gap-2 modern-btn" onclick="cetakPDF()"><i class="ph ph-printer"></i><span class="btn-label">Cetak</span></button>
               </div>
             </div>
           </div>
@@ -1836,6 +1838,13 @@
           <div class="col-md-5">
             <label class="form-label small fw-semibold text-muted mb-1">Kategori</label>
             <select class="form-select shadow-sm" id="edit_ket"></select>
+          </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-12">
+            <label class="form-label small fw-semibold text-muted mb-1"><i class="ph ph-buildings me-1" style="opacity:.5"></i>Nama Instansi <small style="font-weight:400;color:var(--muted)">(bisa diubah jika salah)</small></label>
+            <input type="text" class="form-control shadow-sm" id="edit_instansi" placeholder="Nama instansi" style="text-transform:uppercase">
           </div>
         </div>
 
@@ -4040,6 +4049,7 @@ function bukaModalEdit(rowIndex) {
       editKetSel.value = ketVal;
     })();
     document.getElementById('edit_namaOrangTua').value = data.namaOrangTua || '';
+    document.getElementById('edit_instansi').value = data.instansi || '';
     document.getElementById('edit_alamat').value = data.alamat || '';
     document.getElementById('edit_alergiNote').value = '';
     const parts = (data.alergi||'').split(',').map(s=>s.trim()).filter(s=>s&&s!=='-');
@@ -4073,10 +4083,15 @@ function simpanEdit() {
     return;
   }
 
-  const originalData = allAdminData.find(d => d.rowIndex == rowIndex || d.row == rowIndex);
+  // Cari data asli dari admin cache ATAU user cache untuk preserve field yang tidak ada di modal
+  const originalData = allAdminData.find(d => d.rowIndex == rowIndex || d.row == rowIndex)
+                    || allDataCache.find(d => (d.rowIndex || d.row) == rowIndex);
   const originalInstansi = originalData ? (originalData.instansi || '') : document.getElementById('instansi').value.trim();
   const originalPic = originalData ? (originalData.pic || '') : document.getElementById('pic').value.trim();
+  const originalNoHp = originalData ? (originalData.noHp || '') : '';
+  const originalEmail = originalData ? (originalData.email || '') : '';
   
+  const editInstansi = document.getElementById('edit_instansi').value.trim().toUpperCase();
   const editAlamat = document.getElementById('edit_alamat').value.trim();
   const editTglLahir = document.getElementById('edit_tglLahir').value;
   const editJk = document.getElementById('edit_jk').value;
@@ -4094,8 +4109,10 @@ function simpanEdit() {
     kategori: ket, 
     alamat: editAlamat, 
     alergi: editAlergi, 
-    instansi: originalInstansi, 
-    pic: originalPic 
+    instansi: editInstansi || originalInstansi, 
+    pic: originalPic,
+    noHp: originalNoHp,
+    email: originalEmail
   };
 
   // Deteksi perubahan
@@ -4109,6 +4126,7 @@ function simpanEdit() {
     const origOrtu = originalData.namaOrangTua || '';
     const origAlergi = originalData.alergi || '';
     const origTgl = originalData.tglLahir || '';
+    const origInst = (originalData.instansi || '').toUpperCase();
     
     const newNama = nama.toUpperCase();
     const newNik = nikEdit;
@@ -4119,6 +4137,7 @@ function simpanEdit() {
     if (origJk !== editJk) diffs.push('JK: ' + origJk + ' > ' + (editJk || '-'));
     if (origOrtu !== editOrtu) diffs.push('Ortu diubah');
     if (origAlergi !== editAlergi) diffs.push('Alergi diubah');
+    if (origInst !== (editInstansi || originalInstansi).toUpperCase()) diffs.push('Instansi: ' + origInst + ' > ' + (editInstansi || originalInstansi).toUpperCase());
     changeLog = diffs.length > 0 ? diffs.join(' | ') : '';
   }
   
@@ -4722,14 +4741,16 @@ function renderInstansiCatCards(data) {
           </div>
         </div>`;
     }).join('');
+    const comboKeySafe = (inst + '|' + d.pic).replace(/'/g, "\\'");
     html += `<div class="ic-card shadow-sm" style="background:${grad};">
         <div class="ic-hd">
           <div style="flex:1;min-width:0">
             <div class="ic-title" title="${esc(inst)}">${esc(inst)}</div>
             <div class="ic-pic" title="${esc(d.pic)}"><i class="ph ph-user"></i> PIC: ${esc(d.pic)}</div>
           </div>
-          <div style="text-align:right">
-            <div class="fw-bold mb-1" style="color:#fff;">${d.total} <small style="font-size:0.6rem; opacity:0.8;">TOTAL</small></div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <button class="btn btn-sm text-white px-2" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);border-radius:8px" onclick="bulkRenameInstansiPic('${comboKeySafe}')" title="Ubah Nama Instansi/PIC"><i class="ph ph-pencil-simple"></i></button>
+            <div class="fw-bold" style="color:#fff;">${d.total} <small style="font-size:0.6rem; opacity:0.8;">TOTAL</small></div>
           </div>
         </div>
         ${actBadges ? `<div style="padding:0 14px 8px">${actBadges}</div>` : ''}
@@ -5030,6 +5051,7 @@ function renderAdminGrid(data, sortBy) {
           '</div>' +
           '<div class="d-flex gap-1 flex-shrink-0">' +
             '<button class="btn btn-sm text-white px-2" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25)" onclick="cetakInvoiceByGroup(\'' + safeKey2 + '\')"><i class="ph ph-printer"></i></button>' +
+            '<button class="btn btn-sm text-white px-2" style="background:rgba(251,191,36,.3);border:1px solid rgba(255,255,255,.25)" onclick="bulkRenameInstansiPic(\'' + safeKey2 + '\')" title="Ubah Nama Instansi/PIC"><i class="ph ph-pencil-simple"></i></button>' +
             '<button class="btn btn-sm text-white px-2" style="background:rgba(239,68,68,.25);border:1px solid rgba(255,255,255,.2)" onclick="hapusSatuGrup(\'' + safeKey2 + '\')"><i class="ph ph-trash"></i></button>' +
           '</div>' +
         '</div>' +
@@ -5295,6 +5317,72 @@ function hapusSemuaInstansi(instansi) {
       if(res.success){Swal.fire({icon:'success',title:'Terhapus!',text:res.message,timer:1500,showConfirmButton:false});loadAdminData();refreshData();}
       else Swal.fire('Gagal',res.message,'error');
     }).hapusSemuaDataInstansi(instansi, currentPass);
+  });
+}
+
+// ============================================================
+// BULK RENAME INSTANSI & PIC (Admin)
+// ============================================================
+function bulkRenameInstansiPic(groupKey) {
+  if (!groupKey || !groupKey.includes('|')) { Swal.fire('Error', 'Data grup tidak valid', 'error'); return; }
+  const parts = groupKey.split('|');
+  const oldInstansi = parts[0] || '';
+  const oldPic = parts.slice(1).join('|') || '';
+  const countData = allAdminData.filter(d => d.instansi === oldInstansi && (d.pic||'-') === oldPic).length;
+
+  Swal.fire({
+    title: '<i class="ph ph-pencil-simple me-2"></i>Ubah Nama Instansi / PIC',
+    html: `
+      <div style="text-align:left;font-size:.85rem;color:#64748b;margin-bottom:12px">
+        <div style="background:#f1f5f9;padding:10px 14px;border-radius:8px;margin-bottom:14px">
+          <div style="font-weight:600;color:#334155">Grup saat ini:</div>
+          <div style="margin-top:4px"><b>Instansi:</b> ${esc(oldInstansi)}</div>
+          <div><b>PIC:</b> ${esc(oldPic)}</div>
+          <div style="margin-top:4px;font-weight:600;color:#6366f1">${countData} data akan diperbarui</div>
+        </div>
+        <label style="display:block;margin-bottom:4px;font-weight:600;color:#334155">Nama Instansi Baru <small style="color:#94a3b8;font-weight:400">(kosongkan jika tidak diubah)</small></label>
+        <input id="swal-newInstansi" class="swal2-input" value="${esc(oldInstansi)}" style="text-transform:uppercase;margin:0 0 14px 0">
+        <label style="display:block;margin-bottom:4px;font-weight:600;color:#334155">Nama PIC Baru <small style="color:#94a3b8;font-weight:400">(kosongkan jika tidak diubah)</small></label>
+        <input id="swal-newPic" class="swal2-input" value="${esc(oldPic)}" style="text-transform:uppercase;margin:0">
+      </div>`,
+    showCancelButton: true,
+    confirmButtonText: '<i class="ph ph-check-circle me-1"></i>Perbarui Semua Data',
+    cancelButtonText: 'Batal',
+    confirmButtonColor: '#6366f1',
+    showCloseButton: true,
+    preConfirm: () => {
+      const newInstansi = (document.getElementById('swal-newInstansi').value || '').trim().toUpperCase();
+      const newPic = (document.getElementById('swal-newPic').value || '').trim().toUpperCase();
+      if (!newInstansi && !newPic) {
+        Swal.showValidationMessage('Minimal isi Instansi baru atau PIC baru!');
+        return false;
+      }
+      if (newInstansi === oldInstansi.toUpperCase() && newPic === oldPic.toUpperCase()) {
+        Swal.showValidationMessage('Tidak ada perubahan dari nama sebelumnya.');
+        return false;
+      }
+      return { newInstansi, newPic };
+    }
+  }).then(result => {
+    if (!result.isConfirmed || !result.value) return;
+    const { newInstansi, newPic } = result.value;
+    Swal.fire({ title: 'Memperbarui...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    google.script.run.withSuccessHandler(res => {
+      Swal.close();
+      if (res.success) {
+        Swal.fire({ icon: 'success', title: 'Berhasil!', text: res.message, timer: 2000, showConfirmButton: false });
+        loadAdminData();
+        refreshData();
+        setTimeout(() => {
+          if (typeof renderInstansiCatCards === 'function' && allAdminData && allAdminData.length) renderInstansiCatCards(allAdminData);
+        }, 1500);
+      } else {
+        Swal.fire('Gagal', res.message, 'error');
+      }
+    }).withFailureHandler(err => {
+      Swal.close();
+      Swal.fire('Error', 'Gagal memperbarui: ' + err.message, 'error');
+    }).bulkRenameInstansiPic(oldInstansi, oldPic, newInstansi || '', newPic || '', currentPass);
   });
 }
 
