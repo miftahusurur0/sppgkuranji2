@@ -33,7 +33,7 @@
     // 1) GANTI URL INI dengan URL Web App hasil Deploy Apps Script kamu
     //    (Deploy > New deployment > Web app > Execute as: Me > Who has access: Anyone > /exec)
     //    Hanya dipakai saat file ini berjalan di LUAR Apps Script (Blogger/Netlify).
-    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzf0nF48PV_5bk7ehXZirxqgAZaPNKW0f6cFQUq9TtHThSSJKOFZARq-PWqqBFCxB6M/exec';
+    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzB7YQFWt4q9Hud7PDHA3cZrPuqaDLkC-A7kFHhyt7WCF1wAJBnUL-1ilhywcYMzcg/exec';
 
     // 2) Peta nama fungsi server -> urutan nama parameter,
     //    HARUS SAMA PERSIS dengan switch(action) di Code.gs (doPost)
@@ -750,7 +750,6 @@
 
     <!-- USER APP -->
     <div id="userApp">
-      <div class="mnt-wrap" id="mntWrap">
 
         <!-- Broadcast -->
         <div class="broadcast-bar hidden" id="broadcastBar">
@@ -816,6 +815,17 @@
           </div>
         </div>
 
+        <!-- Tabs -->
+        <div class="modern-card mb-4 p-2">
+          <div class="tabs-bar" style="border-bottom: none; margin-bottom: 0; gap: 4px;">
+            <div class="ti"><button class="tab-btn active" id="tabForm" onclick="switchTab('form')" style="border-radius: var(--r-md);"><i class="ph ph-pencil-simple-line me-1"></i>Input Data</button></div>
+            <div class="ti"><button class="tab-btn" id="tabData" onclick="switchTab('data')" style="border-radius: var(--r-md);"><i class="ph ph-squares-four me-1"></i>Data Masuk</button></div>
+          </div>
+        </div>
+
+        <!-- PANEL FORM (dibungkus mnt-wrap: HANYA panel Input Data yang terkena overlay Maintenance) -->
+        <div class="mnt-wrap" id="mntWrap">
+
         <!-- Maintenance msg -->
         <div class="mnt-msg" id="mntMsg">
           <i class="ph ph-gear-six" style="font-size:46px;color:var(--primary);display:block;margin-bottom:14px"></i>
@@ -845,13 +855,8 @@
             </div>
           </div>
           <span class="badge border text-secondary mt-2">Silakan coba lagi nanti</span>
-        </div>
-
-        <!-- Tabs -->
-        <div class="modern-card mb-4 p-2">
-          <div class="tabs-bar" style="border-bottom: none; margin-bottom: 0; gap: 4px;">
-            <div class="ti"><button class="tab-btn active" id="tabForm" onclick="switchTab('form')" style="border-radius: var(--r-md);"><i class="ph ph-pencil-simple-line me-1"></i>Input Data</button></div>
-            <div class="ti"><button class="tab-btn" id="tabData" onclick="switchTab('data')" style="border-radius: var(--r-md);"><i class="ph ph-squares-four me-1"></i>Data Masuk</button></div>
+          <div class="mt-2">
+            <small class="text-muted"><i class="ph ph-info me-1"></i>Anda tetap bisa membuka tab <strong>Data Masuk</strong> untuk melihat data yang sudah tersimpan.</small>
           </div>
         </div>
 
@@ -1004,6 +1009,7 @@
 
           </div>
         </div>
+        </div><!-- end mntWrap -->
 
         <!-- PANEL DATA -->
         <div id="panelData" style="display:none">
@@ -1030,7 +1036,6 @@
           <div id="dataListContainer"></div>
         </div>
 
-      </div><!-- end mntWrap -->
     </div><!-- end userApp -->
 
     <!-- ADMIN DASHBOARD -->
@@ -3151,7 +3156,9 @@ function resetSession() { lastActivity = Date.now(); }
 // USER TABS & SUMMARY
 // ============================================================
 function switchTab(t) {
-  document.getElementById('panelForm').style.display = t === 'form' ? 'block' : 'none';
+  // Sembunyikan/tampilkan mntWrap (bungkus panelForm + overlay maintenance)
+  // agar overlay Maintenance TIDAK muncul di tab Data Masuk
+  document.getElementById('mntWrap').style.display = t === 'form' ? '' : 'none';
   document.getElementById('panelData').style.display = t === 'data' ? 'block' : 'none';
   document.getElementById('tabForm').classList.toggle('active', t === 'form');
   document.getElementById('tabData').classList.toggle('active', t === 'data');
@@ -3634,12 +3641,17 @@ function processTemplateRows(rows, instansi, pic, noHp) {
     if (!kategori || (kategoriValid.length && kategoriValid.indexOf(kategori) === -1)) rowErrors.push('Kategori tidak dikenali: "' + (kategori || '-') + '"');
     if (!alamat) rowErrors.push('Alamat kosong');
 
+    const usia = tglLahir ? (calcUsiaStr(tglLahir) || '') : '';
+    if (!rowErrors.length && kategori) {
+      const usiaKatErr = validateUsiaKategori(kategori, usia);
+      if (usiaKatErr) rowErrors.push(usiaKatErr);
+    }
+
     if (rowErrors.length) {
       errors.push({ row: rowNo, nama: nama || '(tanpa nama)', pesan: rowErrors.join(', '), isDuplicate: false });
       return;
     }
 
-    const usia = calcUsiaStr(tglLahir) || '';
     // Kode JK (PRIA=392, WANITA=64) ditangani otomatis di server berdasarkan jk
     dataToSend.push({
       nama, nik, tglLahir, usia, jk,
@@ -3822,26 +3834,114 @@ function _showUploadConfirmation(dataToSend, dupErrorsPre, otherErrorsPre, insta
   });
 }
 
+// ============================================================
+// ATURAN USIA vs KATEGORI (BALITA, ATS < 9, PAUD, TK, RA)
+// ============================================================
+// Rentang usia dalam bulan. min & max inklusif.
+const KATEGORI_AGE_RULES = {
+  'BALITA':  { minBln: 24, maxBln: 71  }, // 2 Thn 0 Bln - 5 Thn 11 Bln
+  'ATS < 9': { minBln: 72, maxBln: 108 }, // 6 Thn 0 Bln - 9 Thn 0 Bln
+  'PAUD':    { minBln: 0,  maxBln: 72  }, // 0 - 6 Tahun
+  'TK':      { minBln: 48, maxBln: 72  }, // 4 - 6 Tahun (TK A 4-5, TK B 5-6)
+  'RA':      { minBln: 48, maxBln: 72  }  // 4 - 6 Tahun
+};
+
+function usiaStrToBulanForm(usiaStr) {
+  if (!usiaStr) return -1;
+  const s = String(usiaStr);
+  const th = s.match(/(\d+)\s*Thn/i);
+  const bl = s.match(/(\d+)\s*Bln/i);
+  if (th || bl) return (th ? parseInt(th[1]) : 0) * 12 + (bl ? parseInt(bl[1]) : 0);
+  if (/Hari/i.test(s)) return 0; // bayi baru lahir, hitung sbg 0 bulan
+  return -1;
+}
+
+function formatBulanUsia(bln) {
+  const th = Math.floor(bln / 12), bl = bln % 12;
+  if (th > 0 && bl > 0) return th + ' Thn ' + bl + ' Bln';
+  if (th > 0) return th + ' Thn';
+  return bl + ' Bln';
+}
+
+// Apakah kategori masih aktif/tersedia di daftar pilihan (belum dimatikan admin)
+function isKategoriAktif(kategoriValue, selectId) {
+  const sel = document.getElementById(selectId || 'ket');
+  if (!sel) return true;
+  return Array.from(sel.options).some(function(o) { return o.value === kategoriValue; });
+}
+
+// Mengembalikan null jika valid, atau pesan error string jika usia tidak sesuai aturan kategori.
+function validateUsiaKategori(kategoriRaw, usiaStr, selectId) {
+  const kategori = (kategoriRaw || '').trim().toUpperCase();
+  const rule = KATEGORI_AGE_RULES[kategori];
+  if (!rule) return null; // kategori tanpa aturan usia khusus, tidak dibatasi
+  if (!isKategoriAktif(kategoriRaw, selectId)) {
+    return 'Kategori "' + kategoriRaw + '" sudah dinonaktifkan oleh admin dan tidak boleh digunakan lagi.';
+  }
+  const bln = usiaStrToBulanForm(usiaStr);
+  if (bln < 0) return null; // usia belum bisa dihitung, lewati pengecekan
+  if (bln < rule.minBln || bln > rule.maxBln) {
+    return 'Kategori "' + kategoriRaw + '" hanya untuk usia ' + formatBulanUsia(rule.minBln) + ' s/d ' + formatBulanUsia(rule.maxBln) + '. Usia data ini: ' + usiaStr + '.';
+  }
+  return null;
+}
+
 function checkAgeCategoryRule() {
   const ageStr = document.getElementById('usia').value;
-  const match = ageStr.match(/(\d+)\s*Thn/);
-  const years = match ? parseInt(match[1]) : 0;
-  const monthsMatch = ageStr.match(/(\d+)\s*Bln/);
-  const months = monthsMatch ? parseInt(monthsMatch[1]) : 0;
-  const totalMonths = years * 12 + months;
+  const totalMonths = usiaStrToBulanForm(ageStr);
   const catSelect = document.getElementById('ket');
   const currentCat = catSelect.value;
-  if (currentCat === 'BALITA' && totalMonths > 71) {
-    const hasATS = Array.from(catSelect.options).some(opt => opt.value === 'ATS < 9');
-    if (hasATS) {
+  const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 4500, timerProgressBar: true });
+
+  if (totalMonths < 0) return;
+
+  // BALITA -> otomatis pindah ke ATS < 9 bila usia sudah di atas 5 Thn 11 Bln, selama usia masih <= 9 Tahun dan ATS aktif
+  if (currentCat === 'BALITA' && totalMonths > KATEGORI_AGE_RULES['BALITA'].maxBln) {
+    const atsAktif = isKategoriAktif('ATS < 9');
+    if (atsAktif && totalMonths <= KATEGORI_AGE_RULES['ATS < 9'].maxBln) {
       catSelect.value = 'ATS < 9';
-      Swal.fire({ icon: 'info', title: 'Kategori Disesuaikan', text: 'Usia >5 tahun 11 bulan → kategori diganti ATS < 9.', toast: true, position: 'top-end', timer: 4000, showConfirmButton: false });
+      Toast.fire({ icon: 'info', title: 'Kategori Disesuaikan', text: 'Usia > 5 Thn 11 Bln → kategori diganti ke ATS < 9.' });
+      toggleForm();
+    } else {
+      catSelect.value = '';
+      Toast.fire({ icon: 'warning', title: 'Kategori Tidak Sesuai', text: 'Usia ' + ageStr + ' sudah di luar rentang BALITA' + (atsAktif ? ' maupun ATS < 9' : ' dan kategori ATS < 9 sedang nonaktif') + '. Silakan pilih kategori lain secara manual.' });
       toggleForm();
     }
+    return;
   }
-  if (currentCat === 'PONPES' && years > 18) {
+
+  // ATS < 9 -> otomatis kembali ke BALITA bila usia turun ke bawah 6 Tahun (mis. tanggal lahir diperbaiki)
+  if (currentCat === 'ATS < 9' && totalMonths < KATEGORI_AGE_RULES['ATS < 9'].minBln) {
+    const balitaAktif = isKategoriAktif('BALITA');
+    if (balitaAktif && totalMonths >= KATEGORI_AGE_RULES['BALITA'].minBln) {
+      catSelect.value = 'BALITA';
+      Toast.fire({ icon: 'info', title: 'Kategori Disesuaikan', text: 'Usia < 6 Tahun → kategori diganti ke BALITA.' });
+      toggleForm();
+    } else {
+      catSelect.value = '';
+      Toast.fire({ icon: 'warning', title: 'Kategori Tidak Sesuai', text: 'Usia ' + ageStr + ' berada di luar rentang ATS < 9 maupun BALITA. Silakan pilih kategori lain secara manual.' });
+      toggleForm();
+    }
+    return;
+  }
+
+  // ATS < 9 -> usia melebihi 9 Tahun, tidak boleh tetap di ATS
+  if (currentCat === 'ATS < 9' && totalMonths > KATEGORI_AGE_RULES['ATS < 9'].maxBln) {
+    catSelect.value = '';
+    Toast.fire({ icon: 'warning', title: 'Kategori Tidak Sesuai', text: 'Usia ' + ageStr + ' sudah melebihi batas maksimal ATS < 9 (9 Tahun). Silakan pilih kategori lain.' });
+    toggleForm();
+    return;
+  }
+
+  // Validasi umum untuk kategori lain yang punya aturan usia (PAUD, TK, RA, dst.)
+  const genericMsg = validateUsiaKategori(currentCat, ageStr);
+  if (genericMsg) {
+    Toast.fire({ icon: 'warning', title: 'Periksa Kembali Usia/Kategori', text: genericMsg });
+  }
+
+  if (currentCat === 'PONPES' && Math.floor(totalMonths / 12) > 18) {
     const hasGuru = Array.from(catSelect.options).some(opt => opt.value === 'GURU');
-    if (hasGuru) { catSelect.value = 'GURU'; Swal.fire({ icon: 'info', title: 'Usia > 18 Tahun', text: 'Kategori otomatis diubah ke GURU.', toast: true, position: 'top-end', timer: 4000, showConfirmButton: false }); toggleForm(); }
+    if (hasGuru) { catSelect.value = 'GURU'; Toast.fire({ icon: 'info', title: 'Usia > 18 Tahun', text: 'Kategori otomatis diubah ke GURU.' }); toggleForm(); }
   }
 }
 function checkDup(nik, excludeRow, excludeId, instansi) {
@@ -3987,6 +4087,8 @@ function simpan() {
   if(!data.nama) { Swal.fire('Info','Nama wajib diisi','info'); return; }
   if(!data.ket) { Swal.fire('Info','Kategori wajib dipilih','info'); return; }
   if(!data.nik) { Swal.fire({ icon: 'error', title: 'Data Belum Lengkap', text: 'NIK / NISN / NIP WAJIB diisi untuk semua Kategori!', confirmButtonColor: '#ef4444', showCloseButton: true }); document.getElementById('nik').focus(); return; }
+  const usiaKatErr = validateUsiaKategori(data.ket, data.usia);
+  if (usiaKatErr) { Swal.fire({ icon: 'error', title: 'Usia Tidak Sesuai Kategori', text: usiaKatErr, confirmButtonColor: '#ef4444', showCloseButton: true }); return; }
   
   const originalBtnHtml = btn.innerHTML;
   btn.disabled = true;
@@ -4145,6 +4247,8 @@ function simpanEdit() {
     Swal.fire('Format ID Salah', 'Panjang ID tidak dikenal.<br><b>NISN:</b> 10 digit<br><b>NIK:</b> 16 digit<br><b>NIP:</b> 18 digit', 'warning');
     return;
   }
+  const editUsiaErr = validateUsiaKategori(ket, document.getElementById('edit_usia').value, 'edit_ket');
+  if (editUsiaErr) { Swal.fire({ icon: 'error', title: 'Usia Tidak Sesuai Kategori', text: editUsiaErr, confirmButtonColor: '#ef4444', showCloseButton: true }); return; }
 
   // Cari data asli dari admin cache ATAU user cache untuk preserve field yang tidak ada di modal
   const originalData = allAdminData.find(d => d.rowIndex == rowIndex || d.row == rowIndex)
