@@ -33,7 +33,7 @@
     // 1) GANTI URL INI dengan URL Web App hasil Deploy Apps Script kamu
     //    (Deploy > New deployment > Web app > Execute as: Me > Who has access: Anyone > /exec)
     //    Hanya dipakai saat file ini berjalan di LUAR Apps Script (Blogger/Netlify).
-    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwC63unoBYfpCyVev5TnhgAzRRFnuvZZq2LzoBUsWtP60ki6AfEiLswhpsxcyuNZ9Hr/exec';
+    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxL1fdeBzha5VC_ZKkNslZmIinoLfL2u8WxAn-FxCpUtNq2iSIM2WBxZoLl1-NZMwdV/exec';
 
     // 2) Peta nama fungsi server -> urutan nama parameter,
     //    HARUS SAMA PERSIS dengan switch(action) di Code.gs (doPost)
@@ -787,13 +787,13 @@
             <div class="row g-3 g-md-3 mb-2">
               <div class="col-sm-6 col-md-6">
                 <label class="fml req"><i class="ph ph-buildings me-1" style="color:var(--primary)"></i>Nama Instansi</label>
-                <input type="text" class="form-control" id="instansi" placeholder="Contoh: SDN 01 Kuranji" onchange="saveToLocal();onInstansiChange()" style="font-weight:600">
+                <input type="text" class="form-control" id="instansi" placeholder="Contoh: SDN 01 Kuranji" onchange="clearTimeout(_debounceInstansiTimer);saveToLocal();onInstansiChange()" oninput="saveToLocal();debouncedInstansiCheck()" style="font-weight:600">
                 <small id="instansiPicHint" class="text-primary d-none" style="font-size:.65rem"><i class="ph ph-magic-wand"></i> <span></span></small>
                 <div id="instansiValidFeedback" class="d-none mt-1" style="font-size:.72rem;display:flex;align-items:center;gap:4px"></div>
               </div>
               <div class="col-sm-6 col-md-6">
                 <label class="fml req"><i class="ph ph-user-focus me-1" style="color:var(--primary)"></i>Nama PIC Kader</label>
-                <input type="text" class="form-control" id="pic" placeholder="Nama Penanggung Jawab" onchange="saveToLocal();onPicChange()" style="font-weight:600">
+                <input type="text" class="form-control" id="pic" placeholder="Nama Penanggung Jawab" onchange="clearTimeout(_debouncePicTimer);saveToLocal();onPicChange()" oninput="saveToLocal();debouncedPicCheck()" style="font-weight:600">
                 <div id="picValidFeedback" class="d-none mt-1" style="font-size:.72rem;display:flex;align-items:center;gap:4px"></div>
               </div>
             </div>
@@ -2314,8 +2314,19 @@ function formatNoHp(el) {
 // ============================================================
 let _instansiPicCache = {}; // cache: instansi_uppercase => [{pic, noHp, email}]
 let _instansiPicTimer = null;
-let _instansiValidTimer = null;
 let _instansiPicValidState = { instansiValid: null, picValid: null, checking: false };
+
+/* Debounced oninput check — hanya trigger validasi saat user selesai mengetik */
+let _debounceInstansiTimer = null;
+let _debouncePicTimer = null;
+function debouncedInstansiCheck() {
+  clearTimeout(_debounceInstansiTimer);
+  _debounceInstansiTimer = setTimeout(onInstansiChange, 600);
+}
+function debouncedPicCheck() {
+  clearTimeout(_debouncePicTimer);
+  _debouncePicTimer = setTimeout(onPicChange, 600);
+}
 
 function onInstansiChange() {
   const instansi = document.getElementById('instansi').value.trim();
@@ -2338,8 +2349,8 @@ function onInstansiChange() {
       if (pic) _triggerPicValidation(instansi, pic);
     } else {
       hideInstansiPicHint();
-      _instansiPicValidState.instansiValid = false;
-      setInstansiValidFeedback(false, 'Instansi tidak ditemukan');
+      _instansiPicValidState.instansiValid = 'warning';
+      setInstansiValidFeedback('warning', 'Instansi belum terdaftar — periksa kembali atau lanjutkan jika data baru');
     }
     return;
   }
@@ -2359,8 +2370,8 @@ function onInstansiChange() {
           if (pic) _triggerPicValidation(instansi, pic);
         } else {
           hideInstansiPicHint();
-          _instansiPicValidState.instansiValid = false;
-          setInstansiValidFeedback(false, 'Instansi tidak ditemukan dalam database');
+          _instansiPicValidState.instansiValid = 'warning';
+          setInstansiValidFeedback('warning', 'Instansi belum terdaftar — periksa kembali atau lanjutkan jika data baru');
         }
       })
       .withFailureHandler(function() { setInstansiValidFeedback(null); hideInstansiPicHint(); })
@@ -2430,8 +2441,8 @@ function applyInstansiPicMapping(mappingData, instansi) {
       _instansiPicValidState.picValid = true;
       setPicValidFeedback(true);
     } else {
-      _instansiPicValidState.picValid = false;
-      setPicValidFeedback(false, 'Nama PIC Kader tidak terdaftar di instansi ini');
+      _instansiPicValidState.picValid = 'warning';
+      setPicValidFeedback('warning', 'Nama PIC Kader belum terdaftar di instansi ini — periksa kembali atau lanjutkan jika data baru');
     }
   } else if (mappingData.length === 1 && matched) {
     // Auto-filled satu PIC → valid
@@ -2452,6 +2463,7 @@ function onPicChange() {
   if (!instansi || !pic) return;
 
   // Jika instansi belum tervalidasi, trigger dulu
+  // (Jika instansi 'warning' = cache kosong, _triggerPicValidation akan menangani)
   if (_instansiPicValidState.instansiValid === null) {
     onInstansiChange();
     return;
@@ -2509,18 +2521,23 @@ function _triggerPicValidation(instansi, pic) {
   const instKey = instansi.toUpperCase();
   const cached = _instansiPicCache[instKey];
 
-  // Cache ada tapi kosong = instansi tidak dikenal, PIC tidak bisa valid
+  // Cache ada tapi kosong = instansi tidak dikenal, PIC tidak bisa diverifikasi → warning
   if (cached !== undefined && cached.length === 0) {
-    _instansiPicValidState.picValid = false;
-    setPicValidFeedback(false, 'Instansi tidak ditemukan, PIC tidak bisa diverifikasi');
+    _instansiPicValidState.picValid = 'warning';
+    setPicValidFeedback('warning', 'Instansi belum terdaftar — PIC tidak bisa diverifikasi, lanjutkan jika data baru');
     return;
   }
 
   // Cache ada dan berisi data = cek langsung
   if (cached && cached.length > 0) {
     const matched = cached.find(m => m.pic.toUpperCase() === pic.toUpperCase());
-    _instansiPicValidState.picValid = !!matched;
-    setPicValidFeedback(!!matched, matched ? null : 'Nama PIC Kader tidak ditemukan di instansi ini');
+    if (matched) {
+      _instansiPicValidState.picValid = true;
+      setPicValidFeedback(true);
+    } else {
+      _instansiPicValidState.picValid = 'warning';
+      setPicValidFeedback('warning', 'Nama PIC Kader belum terdaftar di instansi ini — periksa kembali atau lanjutkan jika data baru');
+    }
     return;
   }
 
@@ -2529,7 +2546,7 @@ function _triggerPicValidation(instansi, pic) {
 
 /**
  * Tampilkan feedback visual di bawah field Instansi.
- * state: true=valid, false=invalid, 'loading'=checking, null=reset
+ * state: true=valid, false=invalid, 'warning'=peringatan (data belum terdaftar tapi tetap bisa lanjut), 'loading'=checking, null=reset
  */
 function setInstansiValidFeedback(state, msg) {
   const el = document.getElementById('instansiValidFeedback');
@@ -2552,15 +2569,18 @@ function setInstansiValidFeedback(state, msg) {
   } else if (state === true) {
     el.innerHTML = '<i class="ph ph-check-circle" style="color:#16a34a"></i><span style="color:#16a34a">Instansi terdaftar</span>';
     input.style.borderColor = '#16a34a';
+  } else if (state === 'warning') {
+    el.innerHTML = '<i class="ph ph-warning" style="color:#d97706"></i><span style="color:#d97706">' + (msg || 'Instansi belum terdaftar') + '</span>';
+    input.style.borderColor = '#d97706';
   } else {
-    el.innerHTML = `<i class="ph ph-x-circle" style="color:#dc2626"></i><span style="color:#dc2626">${msg || 'Instansi tidak ditemukan'}</span>`;
+    el.innerHTML = '<i class="ph ph-x-circle" style="color:#dc2626"></i><span style="color:#dc2626">' + (msg || 'Instansi tidak ditemukan') + '</span>';
     input.style.borderColor = '#dc2626';
   }
 }
 
 /**
  * Tampilkan feedback visual di bawah field PIC.
- * state: true=valid, false=invalid, null=reset
+ * state: true=valid, false=invalid, 'warning'=peringatan (data belum terdaftar tapi tetap bisa lanjut), null=reset
  */
 function setPicValidFeedback(state, msg) {
   const el = document.getElementById('picValidFeedback');
@@ -2580,8 +2600,11 @@ function setPicValidFeedback(state, msg) {
   if (state === true) {
     el.innerHTML = '<i class="ph ph-check-circle" style="color:#16a34a"></i><span style="color:#16a34a">PIC Kader terdaftar</span>';
     input.style.borderColor = '#16a34a';
+  } else if (state === 'warning') {
+    el.innerHTML = '<i class="ph ph-warning" style="color:#d97706"></i><span style="color:#d97706">' + (msg || 'PIC belum terdaftar') + '</span>';
+    input.style.borderColor = '#d97706';
   } else {
-    el.innerHTML = `<i class="ph ph-x-circle" style="color:#dc2626"></i><span style="color:#dc2626">${msg || 'PIC tidak ditemukan'}</span>`;
+    el.innerHTML = '<i class="ph ph-x-circle" style="color:#dc2626"></i><span style="color:#dc2626">' + (msg || 'PIC tidak ditemukan') + '</span>';
     input.style.borderColor = '#dc2626';
   }
 }
@@ -2599,10 +2622,10 @@ function _checkInstansiPicBeforeSimpan(instansi, pic) {
 
   if (cached.length === 0) {
     return {
-      ok: false,
+      ok: 'warning', // warning: user tetap bisa lanjut, tapi data belum terdaftar
       instansiExists: false,
       picExists: false,
-      msg: `Nama Instansi <strong>"${esc(instansi)}"</strong> tidak ditemukan dalam database.<br><br>Pastikan nama instansi sudah benar atau hubungi admin jika lupa.`
+      msg: `Nama Instansi <strong>"${esc(instansi)}"</strong> belum terdaftar dalam database.<br><br>Pastikan nama instansi sudah benar. Jika ini data baru, Anda bisa melanjutkan penyimpanan.`
     };
   }
 
@@ -2610,17 +2633,18 @@ function _checkInstansiPicBeforeSimpan(instansi, pic) {
   if (!matched) {
     const picList = cached.map(m => `<li>${esc(m.pic)}</li>`).join('');
     return {
-      ok: false,
+      ok: 'warning', // warning: user tetap bisa lanjut, tapi PIC belum terdaftar
       instansiExists: true,
       picExists: false,
-      msg: `Nama PIC Kader <strong>"${esc(pic)}"</strong> tidak ditemukan di instansi <strong>"${esc(instansi)}"</strong>.<br><br>` +
+      msg: `Nama PIC Kader <strong>"${esc(pic)}"</strong> belum terdaftar di instansi <strong>"${esc(instansi)}"</strong>.<br><br>` +
            `PIC terdaftar untuk instansi ini:<ul style="text-align:left;margin-top:6px">${picList}</ul>` +
-           `Periksa kembali nama PIC atau hubungi admin jika lupa.`
+           `Periksa kembali nama PIC. Jika ini data baru, Anda bisa melanjutkan penyimpanan.`
     };
   }
 
   return { ok: true };
 }
+
 function _flashField(el) {
   el.style.transition = 'all 0.4s ease';
   el.style.background = 'linear-gradient(135deg, var(--primary-l), rgba(139,92,246,0.08))';
@@ -3765,6 +3789,36 @@ function handleTemplateUpload(event) {
     event.target.value = '';
     return;
   }
+
+  // Periksa apakah instansi/PIC belum terdaftar — tampilkan peringatan tapi tetap izinkan upload
+  const validCheck = _checkInstansiPicBeforeSimpan(instansi, pic);
+  if (validCheck.ok === 'warning') {
+    Swal.fire({
+      icon: 'warning',
+      title: '<i class="ph ph-warning"></i> Peringatan: Data Belum Terdaftar',
+      html: `<div style="font-size:.93rem;line-height:1.6">${validCheck.msg}</div>` +
+            `<div style="margin-top:12px;font-size:.8rem;color:#6b7280">` +
+            `<i class="ph ph-info me-1"></i>Data batch upload akan tetap disimpan meskipun Nama Instansi/PIC belum terdaftar.</div>`,
+      showCancelButton: true,
+      confirmButtonText: 'Lanjutkan Upload',
+      cancelButtonText: 'Batal',
+      confirmButtonColor: '#d97706',
+      cancelButtonColor: '#6366f1',
+      showCloseButton: true
+    }).then(result => {
+      if (!result.isConfirmed) { event.target.value = ''; return; }
+      // Update feedback visual ke warning (amber)
+      if (!validCheck.instansiExists) { setInstansiValidFeedback('warning', 'Instansi belum terdaftar — data tetap disimpan'); }
+      else { setInstansiValidFeedback(true); setPicValidFeedback('warning', 'PIC belum terdaftar — data tetap disimpan'); }
+      _proceedTemplateUpload(event, instansi, pic);
+    });
+    return;
+  }
+  // validCheck.ok === true atau null → lanjut upload langsung
+  _proceedTemplateUpload(event, instansi, pic);
+}
+
+function _proceedTemplateUpload(event, instansi, pic) {
   if (typeof XLSX === 'undefined') { Swal.fire('Error', 'Pustaka Excel belum termuat. Coba refresh halaman lalu ulangi.', 'error'); event.target.value = ''; return; }
 
   const noHp = (typeof getFormattedNoHp === 'function') ? getFormattedNoHp() : (document.getElementById('noHp').value || '');
@@ -4206,7 +4260,7 @@ function prosesNIK_Edit() {
   const s = document.getElementById('edit_nikStatus');
   const nik = document.getElementById('edit_nik');
   const rowIndex = currentEditingRow || document.getElementById('edit_rowIndex').value;
-  const instansi = document.getElementById('instansi').value.trim();
+  const instansi = (document.getElementById('edit_instansi') && document.getElementById('edit_instansi').value.trim()) || document.getElementById('instansi').value.trim();
   s.innerHTML = ''; nik.classList.remove('is-invalid');
   if (!n) return;
   const nikStr = n.replace(/[^0-9]/g, '');
@@ -4249,21 +4303,27 @@ function simpan() {
 
   // === VALIDASI INSTANSI + PIC ===
   const validCheck = _checkInstansiPicBeforeSimpan(instansi, pic);
-  if (validCheck.ok === false) {
-    // Sudah ada di cache, langsung tampilkan error
+  if (validCheck.ok === 'warning') {
+    // Data instansi/PIC belum terdaftar — tampilkan peringatan tapi tetap izinkan simpan
     Swal.fire({
-      icon: 'error',
-      title: '<i class="ph ph-shield-warning"></i> Verifikasi Gagal',
+      icon: 'warning',
+      title: '<i class="ph ph-warning"></i> Peringatan: Data Belum Terdaftar',
       html: `<div style="font-size:.93rem;line-height:1.6">${validCheck.msg}</div>` +
             `<div style="margin-top:12px;font-size:.8rem;color:#6b7280">` +
-            `<i class="ph ph-envelope me-1"></i>Hubungi admin jika Anda merasa ini keliru.</div>`,
-      confirmButtonText: 'Mengerti',
-      confirmButtonColor: '#ef4444',
+            `<i class="ph ph-info me-1"></i>Data akan tetap disimpan meskipun Nama Instansi/PIC belum terdaftar.</div>`,
+      showCancelButton: true,
+      confirmButtonText: 'Lanjutkan Simpan',
+      cancelButtonText: 'Batal',
+      confirmButtonColor: '#d97706',
+      cancelButtonColor: '#6366f1',
       showCloseButton: true
+    }).then(result => {
+      if (!result.isConfirmed) return;
+      // Update feedback visual ke warning (amber)
+      if (!validCheck.instansiExists) { setInstansiValidFeedback('warning', 'Instansi belum terdaftar — data tetap disimpan'); }
+      else { setInstansiValidFeedback(true); setPicValidFeedback('warning', 'PIC belum terdaftar — data tetap disimpan'); }
+      _proceedSimpan(instansi, pic, noHp, email, btn);
     });
-    // Update feedback visual
-    if (!validCheck.instansiExists) { setInstansiValidFeedback(false, 'Instansi tidak ditemukan'); }
-    else { setInstansiValidFeedback(true); setPicValidFeedback(false, 'PIC tidak ditemukan di instansi ini'); }
     return;
   }
   if (validCheck.ok === null) {
@@ -4283,9 +4343,9 @@ function simpan() {
           setPicValidFeedback(true);
           _instansiPicValidState.instansiValid = true;
           _instansiPicValidState.picValid = true;
-          simpan(); // rekursi: sekarang cache sudah ada
+          _proceedSimpan(instansi, pic, noHp, email, btn); // cache sudah ada, langsung simpan
         } else {
-          // Set cache kosong/partial supaya _checkInstansiPicBeforeSimpan bisa return false
+          // Set cache kosong/partial supaya _checkInstansiPicBeforeSimpan bisa return warning
           if (res && !res.instansiExists) {
             _instansiPicCache[instKey] = [];
           } else if (res && res.instansiExists && !res.picExists) {
@@ -4301,21 +4361,27 @@ function simpan() {
           const picExists = res ? res.picExists : false;
           let htmlMsg = '';
           if (!instansiExists) {
-            htmlMsg = `Nama Instansi <strong>"${esc(instansi)}"</strong> tidak ditemukan dalam database.<br><br>Pastikan nama instansi sudah benar atau hubungi admin jika lupa.`;
-            setInstansiValidFeedback(false, 'Instansi tidak ditemukan');
+            htmlMsg = `Nama Instansi <strong>"${esc(instansi)}"</strong> belum terdaftar dalam database.<br><br>Pastikan nama instansi sudah benar. Jika ini data baru, Anda bisa melanjutkan penyimpanan.`;
+            setInstansiValidFeedback('warning', 'Instansi belum terdaftar — periksa kembali atau lanjutkan jika data baru');
           } else {
-            htmlMsg = `Nama PIC Kader <strong>"${esc(pic)}"</strong> tidak terdaftar di instansi <strong>"${esc(instansi)}"</strong>.<br><br>Periksa kembali nama PIC atau hubungi admin jika lupa.`;
+            htmlMsg = `Nama PIC Kader <strong>"${esc(pic)}"</strong> belum terdaftar di instansi <strong>"${esc(instansi)}"</strong>.<br><br>Periksa kembali nama PIC. Jika ini data baru, Anda bisa melanjutkan penyimpanan.`;
             setInstansiValidFeedback(true);
-            setPicValidFeedback(false, 'PIC tidak ditemukan di instansi ini');
+            setPicValidFeedback('warning', 'PIC belum terdaftar — periksa kembali atau lanjutkan jika data baru');
           }
           Swal.fire({
-            icon: 'error',
-            title: '<i class="ph ph-shield-warning"></i> Verifikasi Gagal',
+            icon: 'warning',
+            title: '<i class="ph ph-warning"></i> Peringatan: Data Belum Terdaftar',
             html: `<div style="font-size:.93rem;line-height:1.6">${htmlMsg}</div>` +
-                  `<div style="margin-top:12px;font-size:.8rem;color:#6b7280"><i class="ph ph-envelope me-1"></i>Hubungi admin jika Anda merasa ini keliru.</div>`,
-            confirmButtonText: 'Mengerti',
-            confirmButtonColor: '#ef4444',
+                  `<div style="margin-top:12px;font-size:.8rem;color:#6b7280"><i class="ph ph-info me-1"></i>Data akan tetap disimpan meskipun Nama Instansi/PIC belum terdaftar.</div>`,
+            showCancelButton: true,
+            confirmButtonText: 'Lanjutkan Simpan',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#d97706',
+            cancelButtonColor: '#6366f1',
             showCloseButton: true
+          }).then(result => {
+            if (!result.isConfirmed) return;
+            _proceedSimpan(instansi, pic, noHp, email, btn);
           });
         }
       })
@@ -4323,13 +4389,20 @@ function simpan() {
         btn.disabled = false;
         btn.innerHTML = '<i class="ph ph-upload-simple me-2"></i>SIMPAN DATA PENDATAAN';
         // Jika gagal verifikasi karena error jaringan, tetap izinkan simpan
-        simpan();
+        _proceedSimpan(instansi, pic, noHp, email, btn);
       })
       .validateInstansiPic(instansi, pic);
     return;
   }
   // validCheck.ok === true → lanjut proses simpan
+  _proceedSimpan(instansi, pic, noHp, email, btn);
+}
 
+/**
+ * Proses simpan data setelah validasi instansi+PIC selesai (baik valid maupun warning).
+ * Dipanggil oleh simpan() jika valid, atau oleh Swal.then() jika user memilih "Lanjutkan Simpan".
+ */
+function _proceedSimpan(instansi, pic, noHp, email, btn) {
   if(!email) { Swal.fire('Info','Email wajib diisi','info'); document.getElementById('emailPelapor').focus(); return; }
   // Validasi format email sederhana
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { Swal.fire('Info','Format email tidak valid','info'); document.getElementById('emailPelapor').focus(); return; }
@@ -4358,7 +4431,7 @@ function simpan() {
   
   const originalBtnHtml = btn.innerHTML;
   btn.disabled = true;
-  btn.innerHTML = `<i class="ph ph-spinner-gap"></i> Sedang Menyimpan...`;
+  btn.innerHTML = '<i class="ph ph-spinner-gap"></i> Sedang Menyimpan...';
   Swal.fire({title:'Menyimpan...',allowOutsideClick:false,didOpen:()=>Swal.showLoading()});
   
   google.script.run.withSuccessHandler(r => {
@@ -4372,7 +4445,7 @@ function simpan() {
       if (typeof _riwayatCache !== 'undefined') { _riwayatCache.push(histEntry); }
       Swal.fire({icon:'success',title:'Berhasil!',text:r.message,timer:1500,showConfirmButton:false});
       const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true });
-      Toast.fire({ icon: 'success', title: `✅ Data ${data.nama} berhasil ditambahkan` });
+      Toast.fire({ icon: 'success', title: '✅ Data ' + data.nama + ' berhasil ditambahkan' });
       // Reset form
       document.getElementById('nik').value = ''; document.getElementById('nama').value = ''; document.getElementById('tglLahir').value = ''; document.getElementById('usia').value = ''; document.getElementById('jk').value = ''; document.getElementById('ket').value = ''; document.getElementById('namaOrangTua').value = ''; document.getElementById('alamat').value = ''; document.getElementById('nikStatus').innerHTML = ''; document.getElementById('jumlahSection').classList.add('d-none'); document.querySelectorAll('.al-chk').forEach(c => c.checked = false); document.getElementById('alergiNote').value = '';
       refreshSummary();
