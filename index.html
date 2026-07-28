@@ -33,7 +33,7 @@
     // 1) GANTI URL INI dengan URL Web App hasil Deploy Apps Script kamu
     //    (Deploy > New deployment > Web app > Execute as: Me > Who has access: Anyone > /exec)
     //    Hanya dipakai saat file ini berjalan di LUAR Apps Script (Blogger/Netlify).
-    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzB7YQFWt4q9Hud7PDHA3cZrPuqaDLkC-A7kFHhyt7WCF1wAJBnUL-1ilhywcYMzcg/exec';
+    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwC63unoBYfpCyVev5TnhgAzRRFnuvZZq2LzoBUsWtP60ki6AfEiLswhpsxcyuNZ9Hr/exec';
 
     // 2) Peta nama fungsi server -> urutan nama parameter,
     //    HARUS SAMA PERSIS dengan switch(action) di Code.gs (doPost)
@@ -48,6 +48,7 @@
       getInstansiSummary: ['instansi', 'pic'],
       getTodayInputs: ['instansi', 'pic'],
       getInstansiPicMapping: ['instansi'],
+      validateInstansiPic: ['instansi', 'pic'],
       getDataByRow: ['rowIndex'],
       simpanData: ['data'],
       simpanDataBatch: ['dataArray'],
@@ -788,10 +789,12 @@
                 <label class="fml req"><i class="ph ph-buildings me-1" style="color:var(--primary)"></i>Nama Instansi</label>
                 <input type="text" class="form-control" id="instansi" placeholder="Contoh: SDN 01 Kuranji" onchange="saveToLocal();onInstansiChange()" style="font-weight:600">
                 <small id="instansiPicHint" class="text-primary d-none" style="font-size:.65rem"><i class="ph ph-magic-wand"></i> <span></span></small>
+                <div id="instansiValidFeedback" class="d-none mt-1" style="font-size:.72rem;display:flex;align-items:center;gap:4px"></div>
               </div>
               <div class="col-sm-6 col-md-6">
                 <label class="fml req"><i class="ph ph-user-focus me-1" style="color:var(--primary)"></i>Nama PIC Kader</label>
                 <input type="text" class="form-control" id="pic" placeholder="Nama Penanggung Jawab" onchange="saveToLocal();onPicChange()" style="font-weight:600">
+                <div id="picValidFeedback" class="d-none mt-1" style="font-size:.72rem;display:flex;align-items:center;gap:4px"></div>
               </div>
             </div>
             <!-- Pemisah -->
@@ -2294,6 +2297,10 @@ function loadFromLocal() {
        document.getElementById('pic').value.trim()) {
     setTimeout(autoFillNoHp, 1500);
   }
+  // Trigger validasi otomatis jika instansi sudah terisi dari localStorage
+  if (document.getElementById('instansi').value.trim()) {
+    setTimeout(onInstansiChange, 800);
+  }
 }
 function formatNoHp(el) {
   let val = el.value.replace(/[^0-9]/g, '');
@@ -2307,33 +2314,58 @@ function formatNoHp(el) {
 // ============================================================
 let _instansiPicCache = {}; // cache: instansi_uppercase => [{pic, noHp, email}]
 let _instansiPicTimer = null;
+let _instansiValidTimer = null;
+let _instansiPicValidState = { instansiValid: null, picValid: null, checking: false };
 
 function onInstansiChange() {
   const instansi = document.getElementById('instansi').value.trim();
+  // Reset validasi PIC juga karena instansi berubah
+  _instansiPicValidState = { instansiValid: null, picValid: null, checking: false };
+  setInstansiValidFeedback(null);
+  setPicValidFeedback(null);
+
   if (!instansi) { hideInstansiPicHint(); return; }
   const instKey = instansi.toUpperCase();
 
   // Cek cache dulu
-  if (_instansiPicCache[instKey] && _instansiPicCache[instKey].length > 0) {
-    applyInstansiPicMapping(_instansiPicCache[instKey], instansi);
+  if (_instansiPicCache[instKey] !== undefined) {
+    if (_instansiPicCache[instKey].length > 0) {
+      applyInstansiPicMapping(_instansiPicCache[instKey], instansi);
+      _instansiPicValidState.instansiValid = true;
+      setInstansiValidFeedback(true);
+      // Jika PIC sudah diisi, cek juga validitasnya
+      const pic = document.getElementById('pic').value.trim();
+      if (pic) _triggerPicValidation(instansi, pic);
+    } else {
+      hideInstansiPicHint();
+      _instansiPicValidState.instansiValid = false;
+      setInstansiValidFeedback(false, 'Instansi tidak ditemukan');
+    }
     return;
   }
 
   // Debounce server call
   clearTimeout(_instansiPicTimer);
+  setInstansiValidFeedback('loading');
   _instansiPicTimer = setTimeout(() => {
     google.script.run
       .withSuccessHandler(function(mappingData) {
         _instansiPicCache[instKey] = mappingData || [];
         if (mappingData && mappingData.length > 0) {
           applyInstansiPicMapping(mappingData, instansi);
+          _instansiPicValidState.instansiValid = true;
+          setInstansiValidFeedback(true);
+          const pic = document.getElementById('pic').value.trim();
+          if (pic) _triggerPicValidation(instansi, pic);
         } else {
           hideInstansiPicHint();
+          _instansiPicValidState.instansiValid = false;
+          setInstansiValidFeedback(false, 'Instansi tidak ditemukan dalam database');
         }
       })
-      .withFailureHandler(function() { hideInstansiPicHint(); })
+      .withFailureHandler(function() { setInstansiValidFeedback(null); hideInstansiPicHint(); })
       .getInstansiPicMapping(instansi);
-  }, 500);
+  }, 600);
 }
 
 function applyInstansiPicMapping(mappingData, instansi) {
@@ -2391,13 +2423,41 @@ function applyInstansiPicMapping(mappingData, instansi) {
   } else {
     hideInstansiPicHint();
   }
+
+  // Update feedback PIC jika sudah diisi
+  if (currentPic) {
+    if (matched) {
+      _instansiPicValidState.picValid = true;
+      setPicValidFeedback(true);
+    } else {
+      _instansiPicValidState.picValid = false;
+      setPicValidFeedback(false, 'Nama PIC Kader tidak terdaftar di instansi ini');
+    }
+  } else if (mappingData.length === 1 && matched) {
+    // Auto-filled satu PIC → valid
+    _instansiPicValidState.picValid = true;
+    setPicValidFeedback(true);
+  }
 }
 
 function onPicChange() {
   // Ketika PIC berubah, coba auto-fill No HP & Email dari cache
   const instansi = document.getElementById('instansi').value.trim();
   const pic = document.getElementById('pic').value.trim();
+
+  // Reset feedback PIC dulu
+  setPicValidFeedback(null);
+  _instansiPicValidState.picValid = null;
+
   if (!instansi || !pic) return;
+
+  // Jika instansi belum tervalidasi, trigger dulu
+  if (_instansiPicValidState.instansiValid === null) {
+    onInstansiChange();
+    return;
+  }
+
+  _triggerPicValidation(instansi, pic);
 
   const instKey = instansi.toUpperCase();
   const cached = _instansiPicCache[instKey];
@@ -2438,6 +2498,128 @@ function hideInstansiPicHint() {
   const s2 = document.getElementById('emailAutoStatus');
   if (s1) s1.classList.add('d-none');
   if (s2) s2.classList.add('d-none');
+}
+
+/**
+ * Trigger validasi PIC terhadap cache instansi yang sudah ada.
+ * Jika cache tidak punya data (instansi tidak dikenal), langsung tandai invalid.
+ */
+function _triggerPicValidation(instansi, pic) {
+  if (!instansi || !pic) return;
+  const instKey = instansi.toUpperCase();
+  const cached = _instansiPicCache[instKey];
+
+  // Cache ada tapi kosong = instansi tidak dikenal, PIC tidak bisa valid
+  if (cached !== undefined && cached.length === 0) {
+    _instansiPicValidState.picValid = false;
+    setPicValidFeedback(false, 'Instansi tidak ditemukan, PIC tidak bisa diverifikasi');
+    return;
+  }
+
+  // Cache ada dan berisi data = cek langsung
+  if (cached && cached.length > 0) {
+    const matched = cached.find(m => m.pic.toUpperCase() === pic.toUpperCase());
+    _instansiPicValidState.picValid = !!matched;
+    setPicValidFeedback(!!matched, matched ? null : 'Nama PIC Kader tidak ditemukan di instansi ini');
+    return;
+  }
+
+  // Cache belum ada = tunggu instansi selesai dulu (onInstansiChange akan memanggil kembali)
+}
+
+/**
+ * Tampilkan feedback visual di bawah field Instansi.
+ * state: true=valid, false=invalid, 'loading'=checking, null=reset
+ */
+function setInstansiValidFeedback(state, msg) {
+  const el = document.getElementById('instansiValidFeedback');
+  const input = document.getElementById('instansi');
+  if (!el || !input) return;
+  if (state === null) {
+    el.className = 'd-none mt-1';
+    el.innerHTML = '';
+    input.style.borderColor = '';
+    return;
+  }
+  el.className = 'mt-1';
+  el.style.display = 'flex';
+  el.style.alignItems = 'center';
+  el.style.gap = '4px';
+  el.style.fontSize = '.72rem';
+  if (state === 'loading') {
+    el.innerHTML = '<i class="ph ph-spinner-gap" style="animation:spin .8s linear infinite;color:var(--primary)"></i><span style="color:var(--primary)">Memeriksa instansi...</span>';
+    input.style.borderColor = 'var(--border)';
+  } else if (state === true) {
+    el.innerHTML = '<i class="ph ph-check-circle" style="color:#16a34a"></i><span style="color:#16a34a">Instansi terdaftar</span>';
+    input.style.borderColor = '#16a34a';
+  } else {
+    el.innerHTML = `<i class="ph ph-x-circle" style="color:#dc2626"></i><span style="color:#dc2626">${msg || 'Instansi tidak ditemukan'}</span>`;
+    input.style.borderColor = '#dc2626';
+  }
+}
+
+/**
+ * Tampilkan feedback visual di bawah field PIC.
+ * state: true=valid, false=invalid, null=reset
+ */
+function setPicValidFeedback(state, msg) {
+  const el = document.getElementById('picValidFeedback');
+  const input = document.getElementById('pic');
+  if (!el || !input) return;
+  if (state === null) {
+    el.className = 'd-none mt-1';
+    el.innerHTML = '';
+    input.style.borderColor = '';
+    return;
+  }
+  el.className = 'mt-1';
+  el.style.display = 'flex';
+  el.style.alignItems = 'center';
+  el.style.gap = '4px';
+  el.style.fontSize = '.72rem';
+  if (state === true) {
+    el.innerHTML = '<i class="ph ph-check-circle" style="color:#16a34a"></i><span style="color:#16a34a">PIC Kader terdaftar</span>';
+    input.style.borderColor = '#16a34a';
+  } else {
+    el.innerHTML = `<i class="ph ph-x-circle" style="color:#dc2626"></i><span style="color:#dc2626">${msg || 'PIC tidak ditemukan'}</span>`;
+    input.style.borderColor = '#dc2626';
+  }
+}
+
+/**
+ * Validasi instansi+PIC sebelum simpan — gunakan cache yang sudah ada.
+ * Return: { ok: bool, msg: string }
+ */
+function _checkInstansiPicBeforeSimpan(instansi, pic) {
+  const instKey = instansi.toUpperCase();
+  const cached = _instansiPicCache[instKey];
+
+  // Cache belum ada = belum pernah dicek (user tidak trigger onchange)
+  if (cached === undefined) return { ok: null }; // perlu async check
+
+  if (cached.length === 0) {
+    return {
+      ok: false,
+      instansiExists: false,
+      picExists: false,
+      msg: `Nama Instansi <strong>"${esc(instansi)}"</strong> tidak ditemukan dalam database.<br><br>Pastikan nama instansi sudah benar atau hubungi admin jika lupa.`
+    };
+  }
+
+  const matched = cached.find(m => m.pic.toUpperCase() === pic.toUpperCase());
+  if (!matched) {
+    const picList = cached.map(m => `<li>${esc(m.pic)}</li>`).join('');
+    return {
+      ok: false,
+      instansiExists: true,
+      picExists: false,
+      msg: `Nama PIC Kader <strong>"${esc(pic)}"</strong> tidak ditemukan di instansi <strong>"${esc(instansi)}"</strong>.<br><br>` +
+           `PIC terdaftar untuk instansi ini:<ul style="text-align:left;margin-top:6px">${picList}</ul>` +
+           `Periksa kembali nama PIC atau hubungi admin jika lupa.`
+    };
+  }
+
+  return { ok: true };
 }
 function _flashField(el) {
   el.style.transition = 'all 0.4s ease';
@@ -4064,6 +4246,90 @@ function simpan() {
   const email = document.getElementById('emailPelapor').value.trim();
   const btn = document.getElementById('btnSimpanData');
   if(!instansi || !pic) { Swal.fire('Info','Isi Nama Instansi dan PIC Kader terlebih dahulu','info'); return; }
+
+  // === VALIDASI INSTANSI + PIC ===
+  const validCheck = _checkInstansiPicBeforeSimpan(instansi, pic);
+  if (validCheck.ok === false) {
+    // Sudah ada di cache, langsung tampilkan error
+    Swal.fire({
+      icon: 'error',
+      title: '<i class="ph ph-shield-warning"></i> Verifikasi Gagal',
+      html: `<div style="font-size:.93rem;line-height:1.6">${validCheck.msg}</div>` +
+            `<div style="margin-top:12px;font-size:.8rem;color:#6b7280">` +
+            `<i class="ph ph-envelope me-1"></i>Hubungi admin jika Anda merasa ini keliru.</div>`,
+      confirmButtonText: 'Mengerti',
+      confirmButtonColor: '#ef4444',
+      showCloseButton: true
+    });
+    // Update feedback visual
+    if (!validCheck.instansiExists) { setInstansiValidFeedback(false, 'Instansi tidak ditemukan'); }
+    else { setInstansiValidFeedback(true); setPicValidFeedback(false, 'PIC tidak ditemukan di instansi ini'); }
+    return;
+  }
+  if (validCheck.ok === null) {
+    // Cache belum ada, lakukan async check dulu
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ph ph-spinner-gap"></i> Memverifikasi...';
+    google.script.run
+      .withSuccessHandler(function(res) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="ph ph-upload-simple me-2"></i>SIMPAN DATA PENDATAAN';
+        // Simpan hasil ke cache agar berikutnya tidak perlu server lagi
+        const instKey = instansi.toUpperCase();
+        if (res && res.valid) {
+          // Anggap instansi valid, re-trigger mapping untuk mengisi cache lengkap
+          if (!_instansiPicCache[instKey]) _instansiPicCache[instKey] = [];
+          setInstansiValidFeedback(true);
+          setPicValidFeedback(true);
+          _instansiPicValidState.instansiValid = true;
+          _instansiPicValidState.picValid = true;
+          simpan(); // rekursi: sekarang cache sudah ada
+        } else {
+          // Set cache kosong/partial supaya _checkInstansiPicBeforeSimpan bisa return false
+          if (res && !res.instansiExists) {
+            _instansiPicCache[instKey] = [];
+          } else if (res && res.instansiExists && !res.picExists) {
+            // Isi cache dengan mapping dari server jika instansi ada tapi PIC tidak
+            if (!_instansiPicCache[instKey]) {
+              google.script.run
+                .withSuccessHandler(function(mappingData) {
+                  _instansiPicCache[instKey] = mappingData || [];
+                }).getInstansiPicMapping(instansi);
+            }
+          }
+          const instansiExists = res ? res.instansiExists : false;
+          const picExists = res ? res.picExists : false;
+          let htmlMsg = '';
+          if (!instansiExists) {
+            htmlMsg = `Nama Instansi <strong>"${esc(instansi)}"</strong> tidak ditemukan dalam database.<br><br>Pastikan nama instansi sudah benar atau hubungi admin jika lupa.`;
+            setInstansiValidFeedback(false, 'Instansi tidak ditemukan');
+          } else {
+            htmlMsg = `Nama PIC Kader <strong>"${esc(pic)}"</strong> tidak terdaftar di instansi <strong>"${esc(instansi)}"</strong>.<br><br>Periksa kembali nama PIC atau hubungi admin jika lupa.`;
+            setInstansiValidFeedback(true);
+            setPicValidFeedback(false, 'PIC tidak ditemukan di instansi ini');
+          }
+          Swal.fire({
+            icon: 'error',
+            title: '<i class="ph ph-shield-warning"></i> Verifikasi Gagal',
+            html: `<div style="font-size:.93rem;line-height:1.6">${htmlMsg}</div>` +
+                  `<div style="margin-top:12px;font-size:.8rem;color:#6b7280"><i class="ph ph-envelope me-1"></i>Hubungi admin jika Anda merasa ini keliru.</div>`,
+            confirmButtonText: 'Mengerti',
+            confirmButtonColor: '#ef4444',
+            showCloseButton: true
+          });
+        }
+      })
+      .withFailureHandler(function() {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="ph ph-upload-simple me-2"></i>SIMPAN DATA PENDATAAN';
+        // Jika gagal verifikasi karena error jaringan, tetap izinkan simpan
+        simpan();
+      })
+      .validateInstansiPic(instansi, pic);
+    return;
+  }
+  // validCheck.ok === true → lanjut proses simpan
+
   if(!email) { Swal.fire('Info','Email wajib diisi','info'); document.getElementById('emailPelapor').focus(); return; }
   // Validasi format email sederhana
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { Swal.fire('Info','Format email tidak valid','info'); document.getElementById('emailPelapor').focus(); return; }
