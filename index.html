@@ -63,7 +63,7 @@
     // 1) GANTI URL INI dengan URL Web App hasil Deploy Apps Script kamu
     //    (Deploy > New deployment > Web app > Execute as: Me > Who has access: Anyone > /exec)
     //    Hanya dipakai saat file ini berjalan di LUAR Apps Script (Blogger/Netlify).
-    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxEFzq_AuEV0qxmZO623Hb8Y1xENrcMxs6z8t_PeBiijVSeIS2ErWC37bni2B5chnVt/exec';
+    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyEZrZOEa3j849FgtwGRCYxnJyDxuLGXZGJW4hWNBrhPSwRetpeKv2ZRVnF2OiwaWJT/exec';
 
     // 2) Peta nama fungsi server -> urutan nama parameter,
     //    HARUS SAMA PERSIS dengan switch(action) di Code.gs (doPost)
@@ -153,7 +153,6 @@
     // host/url tidak dipakai di file ini (sudah dicek), tapi disiapkan agar tidak error jika terpanggil
     window.google.script.host = { close: function () {}, setHeight: function () {}, setWidth: function () {} };
   })();
-  <script>
 
 /* =========================================================
    HELPER: safeEl(id) — null-safe DOM access (avoid user-side TypeError)
