@@ -5,6 +5,36 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Sistem Pendataan MBG</title>
+  <meta name="theme-color" content="#6366f1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="MBG Pendataan">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="application-name" content="MBG Pendataan">
+  <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlNpc3RlbSBQZW5kYXRhYW4gTUJHIiwKICAic2hvcnRfbmFtZSI6ICJNQkciLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiI2ZmZmZmZiIsCiAgInRoZW1lX2NvbG9yIjogIiM2MzY2ZjEiLAogICJvcmllbnRhdGlvbiI6ICJhbnkiCn0=">
+  <style>
+    @keyframes fadeInUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes slideInRight { from { opacity:0; transform:translateX(30px); } to { opacity:1; transform:translateX(0); } }
+    @keyframes pulseGlow { 0%,100% { box-shadow:0 0 5px rgba(99,102,241,0.3); } 50% { box-shadow:0 0 20px rgba(99,102,241,0.6); } }
+    @keyframes shakeX { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+    @keyframes bounceIn { 0%{opacity:0;transform:scale(0.3)} 50%{opacity:1;transform:scale(1.05)} 70%{transform:scale(0.9)} 100%{transform:scale(1)} }
+    @keyframes iconBounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+    .nik-warning-popup { animation: fadeInUp 0.4s ease-out !important; }
+    .nik-warning-popup .swal2-icon { animation: bounceIn 0.5s ease-out !important; }
+    .nik-warning-popup .swal2-title { animation: fadeInUp 0.4s ease-out 0.1s both !important; }
+    .nik-warning-popup .swal2-html-container { animation: fadeInUp 0.4s ease-out 0.2s both !important; }
+    .nik-warning-popup .swal2-confirm { animation: slideInRight 0.3s ease-out 0.3s both !important; }
+    .nik-duplikat-popup { animation: fadeInUp 0.4s ease-out !important; }
+    .nik-duplikat-popup .swal2-icon { animation: bounceIn 0.5s ease-out !important; }
+    .nik-duplikat-popup .swal2-title { animation: fadeInUp 0.4s ease-out 0.1s both !important; }
+    .nik-duplikat-popup .swal2-html-container { animation: fadeInUp 0.4s ease-out 0.2s both !important; }
+    .nik-problem-popup { animation: fadeInUp 0.4s ease-out !important; }
+    .nik-problem-popup .swal2-icon { animation: bounceIn 0.5s ease-out !important; }
+    .nik-problem-popup .swal2-title { animation: fadeInUp 0.4s ease-out 0.1s both !important; }
+    .nik-problem-popup .swal2-html-container { animation: fadeInUp 0.4s ease-out 0.2s both !important; }
+    .swal2-popup { border-radius: 16px !important; }
+    .swal2-icon { border-radius: 50% !important; }
+  </style>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -33,7 +63,7 @@
     // 1) GANTI URL INI dengan URL Web App hasil Deploy Apps Script kamu
     //    (Deploy > New deployment > Web app > Execute as: Me > Who has access: Anyone > /exec)
     //    Hanya dipakai saat file ini berjalan di LUAR Apps Script (Blogger/Netlify).
-    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxL1fdeBzha5VC_ZKkNslZmIinoLfL2u8WxAn-FxCpUtNq2iSIM2WBxZoLl1-NZMwdV/exec';
+    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxEFzq_AuEV0qxmZO623Hb8Y1xENrcMxs6z8t_PeBiijVSeIS2ErWC37bni2B5chnVt/exec';
 
     // 2) Peta nama fungsi server -> urutan nama parameter,
     //    HARUS SAMA PERSIS dengan switch(action) di Code.gs (doPost)
@@ -69,7 +99,8 @@
       saveMaintenanceScheduleToDB: ['schedule', 'adminPassword'],
       getMaintenanceScheduleFromDB: ['adminPassword'],
       getMaintenanceSchedulePublic: [],
-      clearMaintenanceScheduleFromDB: ['adminPassword']
+      clearMaintenanceScheduleFromDB: ['adminPassword'],
+      saveInstansiContact: ['instansi', 'pic', 'noHp', 'email']
     };
 
     function callServer(action, args, successCb, failureCb) {
@@ -122,7 +153,116 @@
     // host/url tidak dipakai di file ini (sudah dicek), tapi disiapkan agar tidak error jika terpanggil
     window.google.script.host = { close: function () {}, setHeight: function () {}, setWidth: function () {} };
   })();
-  </script>
+  <script>
+
+/* =========================================================
+   HELPER: safeEl(id) — null-safe DOM access (avoid user-side TypeError)
+   ========================================================= */
+function safeEl(id) {
+  try { return document.getElementById(id); } catch(e) { return null; }
+}
+function safeVal(id, fallback) {
+  var el = safeEl(id);
+  return (el && 'value' in el) ? el.value : (fallback !== undefined ? fallback : '');
+}
+function safeCheck(id) {
+  var el = safeEl(id);
+  return el && el.checked ? true : false;
+}
+function adminOnly(fn) {
+  try {
+    if (window.isAdmin !== true) return;
+    fn();
+  } catch(e) { console.warn('adminOnly skipped:', e); }
+}
+
+/* =========================================================
+   HELPER: notify() — notifikasi terpusat dengan gaya profesional
+   - notify.success(msg), .error(msg), .info(msg), .warn(msg)
+   - notify.toast(msg, type) untuk toast pojok-kanan-atas
+   - notify.confirm(opts) untuk dialog konfirmasi
+   ========================================================= */
+const notify = {
+  success: function(msg, opts){
+    opts = opts || {};
+    return Swal.fire({
+      icon: 'success',
+      title: '<i class="ph ph-check-circle"></i> Berhasil',
+      text: msg,
+      timer: opts.timer || 1800,
+      timerProgressBar: true,
+      showConfirmButton: false,
+      position: 'top-end',
+      toast: true,
+      background: getComputedStyle(document.body).getPropertyValue('--card').trim() || '#fff',
+      color: getComputedStyle(document.body).getPropertyValue('--text').trim() || '#1f2937',
+    });
+  },
+  error: function(msg, opts){
+    opts = opts || {};
+    return Swal.fire({
+      icon: 'error',
+      title: '<i class="ph ph-x-circle"></i> Gagal',
+      text: msg,
+      showConfirmButton: true,
+      confirmButtonText: 'Mengerti',
+      confirmButtonColor: '#ef4444',
+      showCloseButton: true,
+      position: 'center',
+    });
+  },
+  info: function(msg, opts){
+    opts = opts || {};
+    return Swal.fire({
+      icon: 'info',
+      title: '<i class="ph ph-info"></i> Informasi',
+      text: msg,
+      timer: opts.timer || 2200,
+      timerProgressBar: true,
+      showConfirmButton: false,
+      position: 'top-end',
+      toast: true,
+    });
+  },
+  warn: function(msg, opts){
+    opts = opts || {};
+    return Swal.fire({
+      icon: 'warning',
+      title: '<i class="ph ph-warning"></i> Peringatan',
+      text: msg,
+      showConfirmButton: true,
+      confirmButtonText: 'Lanjutkan',
+      confirmButtonColor: '#d97706',
+      showCancelButton: opts.ask !== false,
+      cancelButtonText: 'Batal',
+      cancelButtonColor: '#6b7280',
+      showCloseButton: true,
+    });
+  },
+  toast: function(msg, type){
+    return Swal.fire({
+      toast: true,
+      position: 'top-end',
+      icon: type || 'info',
+      title: msg,
+      showConfirmButton: false,
+      timer: 2400,
+      timerProgressBar: true,
+    });
+  },
+  confirm: function(opts){
+    return Swal.fire(Object.assign({
+      showCancelButton: true,
+      confirmButtonColor: '#6366f1',
+      cancelButtonColor: '#6b7280',
+      showCloseButton: true,
+      reverseButtons: true,
+    }, opts));
+  }
+};
+
+</script>
+</script>
   <style>
     /* SEMUA CSS SAMA PERSIS SEPERTI VERSI ASLI - TIDAK ADA PERUBAHAN */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700&display=swap');
@@ -397,7 +537,7 @@
     .riwayat-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);transition:background .15s}
     .riwayat-item:last-child{border-bottom:none}
     .riwayat-item:hover{background:var(--input)}
-    .riwayat-icon{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+    .riwayat-icon{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;margin-top:1px}
     .riwayat-icon.add{background:#d1fae5;color:#059669}
     .riwayat-icon.del{background:#fee2e2;color:#dc2626}
     .riwayat-icon.mod{background:#fef3c7;color:#d97706}
@@ -405,12 +545,29 @@
     [data-theme="dark"] .riwayat-icon.del{background:rgba(220,38,38,.2);color:#f87171}
     [data-theme="dark"] .riwayat-icon.mod{background:rgba(217,119,6,.2);color:#fbbf24}
     .riwayat-body{flex:1;min-width:0}
-    .riwayat-label{font-size:.8rem;font-weight:700;line-height:1.2}
+    .riwayat-main{font-size:.8rem;line-height:1.6;word-break:break-word}
+    .riwayat-main .rw-name{font-weight:700;color:var(--text)}
+    .riwayat-main .rw-name-old{font-weight:700;color:var(--muted);text-decoration:line-through;opacity:.6}
+    .riwayat-main .rw-arrow{color:var(--muted);margin:0 4px;font-weight:400}
+    .riwayat-main .rw-nik{color:var(--muted);font-weight:500}
+    .riwayat-main .rw-kat{font-weight:600}
+    .riwayat-main .rw-kat.add{color:#059669}
+    .riwayat-main .rw-kat.del{color:#dc2626}
+    .riwayat-main .rw-kat.mod{color:#d97706}
+    [data-theme="dark"] .riwayat-main .rw-kat.add{color:#34d399}
+    [data-theme="dark"] .riwayat-main .rw-kat.del{color:#f87171}
+    [data-theme="dark"] .riwayat-main .rw-kat.mod{color:#fbbf24}
+    .riwayat-main .rw-ctx{color:var(--muted);font-weight:400}
+    .riwayat-main .rw-time{color:var(--light);font-weight:400}
+    .riwayat-main .rw-sep{color:var(--light);margin:0 4px}
+    .riwayat-label{font-size:.82rem;font-weight:700;line-height:1.5;white-space:normal;word-break:break-word}
     .riwayat-label.add{color:#059669}
     .riwayat-label.del{color:#dc2626}
     .riwayat-label.mod{color:#d97706}
-    .riwayat-detail{font-size:.78rem;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .riwayat-time{font-size:.7rem;color:var(--light);margin-top:3px}
+    .riwayat-meta{font-size:.75rem;color:var(--muted);margin-top:3px;white-space:normal;line-height:1.5;word-break:break-word}
+    .riwayat-time-tag{font-size:.7rem;color:var(--light);display:inline-flex;align-items:center;gap:3px;margin-top:2px}
+    .riwayat-detail{font-size:.72rem;color:var(--muted);margin-top:2px;background:var(--input);border-radius:6px;padding:4px 8px;line-height:1.6;border-left:3px solid var(--border-f);word-break:break-word}
+    .riwayat-detail .chg{color:var(--text);font-weight:600}
     .riwayat-empty{text-align:center;padding:32px;color:var(--muted);font-size:.85rem}
     .riwayat-filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
     .riwayat-filter button{border:none;border-radius:20px;padding:4px 12px;font-size:.75rem;font-weight:600;cursor:pointer;transition:all .2s}
@@ -590,6 +747,153 @@
     @media(max-width:768px){.header-logo{width:36px;height:36px;border-radius:10px}.header-title h2{font-size:1rem}.header-sub{font-size:.68rem}.scroll-body{padding:12px 14px;padding-bottom:80px}.cat-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}.data-grid{grid-template-columns:1fr;gap:14px}.instansi-grid{grid-template-columns:1fr;gap:14px}.adm-grid{grid-template-columns:1fr;gap:14px}.adm-cat-grid{grid-template-columns:1fr;gap:12px}.cat-stats{grid-template-columns:repeat(3,1fr);gap:8px}.upload-actions{flex-direction:column;width:100%}.upload-actions .btn{width:100%;justify-content:center}.data-toolbar-btns{flex-wrap:wrap;gap:6px!important}.data-toolbar-btns .btn-outline-success,.data-toolbar-btns .btn-success{flex:1;min-width:0;font-size:.78rem;padding:8px 10px}.data-toolbar-btns .btn-outline-success span.btn-label,.data-toolbar-btns .btn-success span.btn-label{display:none}.data-toolbar-btns .btn-outline-warning,.data-toolbar-btns .btn-outline-secondary{width:38px;height:38px;padding:0;justify-content:center}}
     @media(max-width:480px){.cat-grid{grid-template-columns:1fr 1fr;gap:10px}.cat-card-hd{padding:10px 12px}.cat-card-title{font-size:.8rem}.cs-val{font-size:1.1rem}.summary-banner{padding:16px}.stat-val-w{font-size:1.5rem}.stat-item{flex-direction:column;align-items:flex-start;gap:10px}.stat-trend{width:100%;flex-direction:row;justify-content:space-between}.adm-sgrid{grid-template-columns:1fr 1fr;gap:10px}.list-li{padding:10px 12px;gap:8px}.avatar{width:36px;height:36px;font-size:.85rem;margin-right:10px;border-radius:10px}.pname{font-size:.83rem}.pmeta{font-size:.68rem;gap:4px}.act-grp{gap:6px}.act-grp .btn{width:30px;height:30px;font-size:.85rem}.dc-head{padding:12px 14px}.dc-title{font-size:.78rem}.dc-badge{font-size:.68rem;padding:3px 9px}.form-control,.form-select{font-size:.9rem;padding:10px 12px}.fml{font-size:.74rem}.upload-card-inner{flex-direction:column;align-items:flex-start!important}.upload-card-inner>div:last-child{width:100%}.upload-card-inner .d-flex.gap-2{flex-wrap:wrap}}
     @media(max-width:360px){.cat-grid{grid-template-columns:1fr;gap:10px}.avatar{width:32px;height:32px;font-size:.8rem;margin-right:8px}.pname{font-size:.8rem}.act-grp .btn{width:28px;height:28px;font-size:.8rem}}
+    /* ========== DOKUMEN PAGE MODERN STYLES ========== */
+    @keyframes docSlideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes docFadeIn{from{opacity:0}to{opacity:1}}
+    @keyframes docShimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+    @keyframes docFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+    @keyframes docScaleIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+    .doc-page{animation:docSlideUp .5s ease-out both}
+    .doc-page:nth-child(2){animation-delay:.08s}
+    .doc-page:nth-child(3){animation-delay:.16s}
+    .doc-hero{background:var(--primary-grad);color:#fff;border-radius:var(--r-xl);padding:28px 24px;margin-bottom:20px;position:relative;overflow:hidden}
+    .doc-hero::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:rgba(255,255,255,.08);border-radius:50%}
+    .doc-hero::after{content:'';position:absolute;bottom:-40px;left:-40px;width:140px;height:140px;background:rgba(255,255,255,.05);border-radius:50%}
+    .doc-hero-title{font-family:'Poppins',sans-serif;font-size:1.25rem;font-weight:700;margin-bottom:4px;position:relative;z-index:2}
+    .doc-hero-sub{font-size:.82rem;opacity:.85;position:relative;z-index:2}
+    .doc-hero-icon{position:absolute;top:20px;right:24px;font-size:3rem;opacity:.12;z-index:1}
+    .doc-section{background:var(--card);border-radius:var(--r-xl);border:1px solid var(--border);box-shadow:var(--sh-sm);margin-bottom:20px;overflow:hidden;animation:docSlideUp .5s ease-out both}
+    .doc-section:nth-child(3){animation-delay:.1s}
+    .doc-section:nth-child(4){animation-delay:.15s}
+    .doc-section:nth-child(5){animation-delay:.2s}
+    .doc-section:nth-child(6){animation-delay:.25s}
+    .doc-section-hd{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;cursor:pointer;transition:background .2s;user-select:none}
+    .doc-section-hd:hover{background:var(--primary-l)}
+    .doc-section-hd .doc-sec-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+    .doc-section-hd .doc-sec-title{font-weight:700;font-size:.88rem;flex:1}
+    .doc-section-hd .doc-sec-badge{font-size:.65rem;padding:3px 10px;border-radius:20px;font-weight:600;background:var(--primary-l);color:var(--primary)}
+    .doc-section-hd .doc-sec-arrow{transition:transform .3s;color:var(--muted);font-size:1.1rem}
+    .doc-section-hd.collapsed .doc-sec-arrow{transform:rotate(-90deg)}
+    .doc-section-bd{padding:20px;transition:max-height .4s ease,opacity .3s ease,padding .3s ease;overflow:hidden}
+    .doc-section-bd.collapsed{max-height:0!important;padding-top:0;padding-bottom:0;opacity:0}
+    .doc-field{margin-bottom:16px}
+    .doc-field:last-child{margin-bottom:0}
+    .doc-field label{display:flex;align-items:center;gap:6px;font-size:.76rem;font-weight:600;color:var(--muted);letter-spacing:.3px;margin-bottom:6px;text-transform:uppercase}
+    .doc-field label i{font-size:.85rem;color:var(--primary)}
+    .doc-field .form-control,.doc-field .form-select{border-radius:var(--r-md);padding:11px 14px;font-size:.9rem}
+    .doc-field .form-control:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(99,102,241,.12)}
+    .doc-field .field-hint{font-size:.7rem;color:var(--light);margin-top:4px;display:flex;align-items:center;gap:4px}
+    .doc-logo-area{display:flex;align-items:flex-start;gap:16px;padding:16px;background:var(--input);border-radius:var(--r-lg);border:2px dashed var(--border);transition:all .3s}
+    .doc-logo-area:hover{border-color:var(--primary);background:var(--primary-l)}
+    .doc-logo-area.has-logo{border-style:solid;border-color:var(--secondary);background:var(--secondary-l)}
+    .doc-logo-box{width:80px;height:80px;border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;background:var(--card);border:2px solid var(--border);transition:all .3s}
+    .doc-logo-box img{width:100%;height:100%;object-fit:contain}
+    .doc-logo-box .doc-logo-placeholder{color:var(--light);font-size:1.8rem}
+    .doc-logo-info{flex:1;min-width:0}
+    .doc-logo-info .doc-logo-name{font-size:.78rem;font-weight:600;color:var(--text);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .doc-logo-actions{display:flex;gap:6px;flex-wrap:wrap}
+    .doc-preview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-top:8px}
+    .doc-preview-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;transition:all .3s;cursor:pointer}
+    .doc-preview-card:hover{transform:translateY(-4px);box-shadow:var(--sh-lg);border-color:var(--border-f)}
+    .doc-preview-thumb{height:180px;background:var(--input);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+    .doc-preview-thumb .doc-mock{width:88%;height:85%;background:#fff;border-radius:4px;box-shadow:0 2px 12px rgba(0,0,0,.1);padding:8px 10px;display:flex;flex-direction:column;gap:4px;position:relative}
+    [data-theme="dark"] .doc-preview-thumb .doc-mock{background:#334155;box-shadow:0 2px 12px rgba(0,0,0,.4)}
+    .doc-mock-header{height:14px;width:60%;border-radius:2px;background:var(--primary);opacity:.7}
+    .doc-mock-line{height:6px;border-radius:2px;background:var(--border)}
+    .doc-mock-line.w80{width:80%}
+    .doc-mock-line.w60{width:60%}
+    .doc-mock-line.w40{width:40%}
+    .doc-mock-line.w90{width:90%}
+    .doc-mock-block{height:20px;border-radius:2px;background:var(--input);border:1px solid var(--border)}
+    .doc-mock-sig{display:flex;justify-content:flex-end;gap:8px;margin-top:auto;padding-top:8px}
+    .doc-mock-sig-block{width:50px;height:24px;border-radius:2px;border-bottom:2px solid var(--muted)}
+    .doc-preview-info{padding:12px 14px}
+    .doc-preview-title{font-weight:700;font-size:.82rem;margin-bottom:3px}
+    .doc-preview-desc{font-size:.7rem;color:var(--muted);line-height:1.4}
+    .doc-preview-tag{display:inline-flex;align-items:center;gap:3px;font-size:.62rem;font-weight:600;padding:2px 8px;border-radius:10px;background:var(--primary-l);color:var(--primary);margin-top:6px}
+    .doc-2col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .doc-signer-card{background:var(--input);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;display:flex;align-items:flex-start;gap:12px;transition:all .3s}
+    .doc-signer-card:hover{border-color:var(--primary);box-shadow:var(--sh-sm)}
+    .doc-signer-avatar{width:44px;height:44px;border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
+    .doc-signer-avatar.kepala{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff}
+    .doc-signer-avatar.akuntan{background:linear-gradient(135deg,#10b981,#06b6d4);color:#fff}
+    .doc-signer-info{flex:1;min-width:0}
+    .doc-signer-role{font-size:.68rem;font-weight:600;color:var(--primary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+    .doc-save-bar{position:sticky;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:12px;z-index:50;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+    [data-theme="dark"] .doc-save-bar{background:rgba(30,41,59,.92)}
+    .doc-save-bar .btn-prim{flex:1;padding:13px 20px;font-size:.88rem}
+    .doc-save-bar .doc-save-status{font-size:.72rem;color:var(--muted);display:flex;align-items:center;gap:4px;white-space:nowrap}
+    .doc-save-bar .doc-save-status.saved{color:var(--success)}
+    .doc-tab-bar{display:flex;gap:4px;background:var(--input);border-radius:var(--r-md);padding:4px;margin-bottom:20px}
+    .doc-tab-btn{flex:1;padding:10px 8px;border:none;border-radius:var(--r-sm);font-size:.78rem;font-weight:600;color:var(--muted);background:transparent;cursor:pointer;transition:all .25s;display:flex;align-items:center;justify-content:center;gap:6px}
+    .doc-tab-btn.active{background:var(--card);color:var(--primary);box-shadow:var(--sh-xs)}
+    .doc-tab-btn:hover:not(.active){color:var(--text)}
+    .doc-tab-content{display:none;animation:docFadeIn .3s ease-out}
+    .doc-tab-content.active{display:block}
+    .doc-status-bar{display:flex;align-items:center;gap:8px;padding:10px 16px;background:var(--primary-l);border-radius:var(--r-md);margin-bottom:16px;font-size:.78rem;color:var(--primary);font-weight:500}
+    .doc-status-bar i{font-size:1rem}
+    .doc-status-bar.incomplete{background:rgba(245,158,11,.1);color:var(--warn)}
+    .doc-status-bar.complete{background:var(--secondary-l);color:var(--success)}
+    .doc-completion-ring{width:40px;height:40px;position:relative;flex-shrink:0}
+    .doc-completion-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+    .doc-completion-ring .ring-bg{fill:none;stroke:var(--border);stroke-width:3}
+    .doc-completion-ring .ring-fg{fill:none;stroke:var(--primary);stroke-width:3;stroke-linecap:round;transition:stroke-dashoffset .6s ease}
+    .doc-completion-pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:var(--primary)}
+    /* Document Preview Modal */
+    .doc-preview-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;animation:docFadeIn .25s ease-out}
+    .doc-preview-modal{background:var(--card);border-radius:var(--r-xl);box-shadow:var(--sh-xl);width:100%;max-width:500px;max-height:85vh;overflow:hidden;animation:docScaleIn .3s ease-out;display:flex;flex-direction:column}
+    .doc-preview-modal-hd{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .doc-preview-modal-hd h3{margin:0;font-size:.95rem;font-weight:700}
+    .doc-preview-modal-close{width:32px;height:32px;border-radius:8px;border:none;background:var(--input);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem;transition:all .2s}
+    .doc-preview-modal-close:hover{background:var(--danger);color:#fff}
+    .doc-preview-modal-bd{padding:20px;overflow-y:auto;flex:1}
+    .doc-preview-page{background:#fff;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.12);padding:24px 20px;min-height:360px;position:relative}
+    [data-theme="dark"] .doc-preview-page{background:#1e293b}
+    .doc-pp-header{text-align:center;margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid var(--primary)}
+    .doc-pp-logo{width:56px;height:56px;border-radius:10px;object-fit:contain;margin:0 auto 8px;display:block;background:var(--input)}
+    .doc-pp-instansi{font-family:'Poppins',sans-serif;font-size:.95rem;font-weight:700;color:var(--text)}
+    .doc-pp-alamat{font-size:.7rem;color:var(--muted);margin-top:2px}
+    .doc-pp-body{margin:16px 0}
+    .doc-pp-title{font-size:.85rem;font-weight:700;text-align:center;margin-bottom:14px;color:var(--text)}
+    .doc-pp-table{width:100%;border-collapse:collapse;font-size:.72rem}
+    .doc-pp-table th,.doc-pp-table td{border:1px solid var(--border);padding:6px 8px;text-align:left}
+    .doc-pp-table th{background:var(--primary-l);color:var(--primary);font-weight:600}
+    .doc-pp-table tr:nth-child(even){background:var(--input)}
+    .doc-pp-footer{display:flex;justify-content:space-between;margin-top:24px;padding-top:14px}
+    .doc-pp-sig{text-align:center;min-width:120px}
+    .doc-pp-sig-line{width:100px;height:1px;background:var(--text);margin:40px auto 4px}
+    .doc-pp-sig-name{font-size:.75rem;font-weight:600}
+    .doc-pp-sig-nip{font-size:.65rem;color:var(--muted)}
+    /* Responsive Dokumen */
+    @media(max-width:768px){
+      .doc-hero{padding:22px 18px;border-radius:var(--r-lg)}
+      .doc-hero-title{font-size:1.05rem}
+      .doc-hero-icon{font-size:2.4rem;top:14px;right:16px}
+      .doc-section-hd{padding:14px 16px}
+      .doc-section-bd{padding:16px}
+      .doc-2col{grid-template-columns:1fr;gap:12px}
+      .doc-preview-grid{grid-template-columns:1fr 1fr;gap:12px}
+      .doc-preview-thumb{height:140px}
+      .doc-logo-area{flex-direction:column;align-items:center;text-align:center}
+      .doc-logo-box{width:72px;height:72px}
+      .doc-logo-info{width:100%}
+      .doc-logo-actions{justify-content:center}
+      .doc-save-bar{padding:12px 16px}
+      .doc-tab-btn{font-size:.72rem;padding:9px 6px}
+    }
+    @media(max-width:480px){
+      .doc-hero{padding:18px 14px}
+      .doc-hero-title{font-size:.95rem}
+      .doc-hero-sub{font-size:.75rem}
+      .doc-preview-grid{grid-template-columns:1fr;gap:10px}
+      .doc-preview-thumb{height:130px}
+      .doc-section-hd .doc-sec-badge{display:none}
+      .doc-signer-card{padding:14px}
+      .doc-preview-modal{max-width:100%;border-radius:var(--r-lg);margin:10px}
+      .doc-pp-header{padding-bottom:10px}
+      .doc-pp-logo{width:44px;height:44px}
+      .doc-pp-instansi{font-size:.85rem}
+    }
     ::selection{background:var(--primary);color:#fff}
     .glass-card{background:rgba(255,255,255,.7);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:1px solid rgba(255,255,255,.3);box-shadow:0 8px 32px rgba(31,38,135,.07),inset 0 1px 0 rgba(255,255,255,.6);color:var(--text)}
     [data-theme="dark"] .glass-card{background:rgba(30,41,59,.7);border:1px solid rgba(255,255,255,.08);box-shadow:0 8px 32px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.05);color:#f1f5f9}
@@ -799,20 +1103,29 @@
             </div>
             <!-- Pemisah -->
             <div style="height:1px;background:var(--border);margin:10px 0;opacity:.5"></div>
-            <!-- Baris 2: No HP & Email -->
-            <div class="row g-3 g-md-3">
-              <div class="col-sm-6 col-md-6">
-                <label class="fml req"><i class="ph ph-whatsapp-logo me-1" style="color:#25d366"></i>No HP / WhatsApp <small class="text-muted fw-normal" style="font-size:.6rem">(otomatis terisi)</small></label>
+            <!-- Baris 2: No HP & Email (muncul setelah Instansi + PIC terisi) -->
+            <div id="contactSection" class="row g-3 g-md-3" style="display:none; animation: fadeInUp 0.4s ease-out;">
+              <div class="col-sm-6 col-md-4">
+                <label class="fml"><i class="ph ph-whatsapp-logo me-1" style="color:#25d366"></i>No HP / WhatsApp <small class="text-muted fw-normal" style="font-size:.6rem">(simpan ke DB)</small></label>
                 <div class="input-group">
                   <span class="input-group-text" style="background:var(--input);border-color:var(--border);font-weight:700;color:var(--primary)">+62</span>
-                  <input type="tel" class="form-control" id="noHp" placeholder="8xxxxxxxxxx" oninput="formatNoHp(this)" onchange="saveToLocal();autoFillFromNoHp();">
+                  <input type="tel" class="form-control" id="noHp" placeholder="8xxxxxxxxxx" oninput="formatNoHp(this);onContactFieldInput();" onchange="saveToLocal();autoFillFromNoHp();">
                 </div>
                 <small id="noHpAutoStatus" class="text-muted d-none" style="font-size:.65rem"><i class="ph ph-check-circle" style="color:var(--success)"></i> <span></span></small>
               </div>
-              <div class="col-sm-6 col-md-6">
-                <label class="fml req"><i class="ph ph-envelope me-1" style="color:var(--primary)"></i>Email <small class="text-muted fw-normal" style="font-size:.6rem">(otomatis terisi)</small></label>
-                <input type="email" class="form-control" id="emailPelapor" placeholder="contoh@email.com" onchange="saveToLocal()">
+              <div class="col-sm-6 col-md-4">
+                <label class="fml"><i class="ph ph-envelope me-1" style="color:var(--primary)"></i>Email <small class="text-muted fw-normal" style="font-size:.6rem">(simpan ke DB)</small></label>
+                <input type="email" class="form-control" id="emailPelapor" placeholder="contoh@email.com" onchange="saveToLocal();onContactFieldInput();" oninput="onContactFieldInput();">
                 <small id="emailAutoStatus" class="text-muted d-none" style="font-size:.65rem"><i class="ph ph-check-circle" style="color:var(--success)"></i> <span></span></small>
+              </div>
+              <div class="col-sm-12 col-md-4 d-flex flex-column justify-content-end">
+                <button type="button" id="btnSimpanKontak" class="btn btn-sm w-100 d-flex align-items-center justify-content-center gap-1 d-none"
+                  onclick="simpanKontakInstansi()"
+                  style="font-size:.8rem;padding:8px 12px;border-radius:var(--r-md);background:var(--secondary);border:none;color:#fff;font-weight:600;transition:all .2s">
+                  <i class="ph ph-floppy-disk-back"></i>
+                  <span id="btnSimpanKontakLabel">Simpan No HP & Email</span>
+                </button>
+                <small id="kontakSavedStatus" class="d-none mt-1 text-center" style="font-size:.65rem"></small>
               </div>
             </div>
           </div>
@@ -1264,39 +1577,227 @@
       </div>
 
       <div id="admSignature" class="d-none">
-        <div class="modern-card p-4 mb-4">
-          <div class="section-title"><i class="ph ph-file-text"></i>Konfigurasi Dokumen</div>
-          <div class="section-title" style="font-size:.85rem;color:var(--success)"><i class="ph ph-buildings"></i>Informasi Instansi</div>
-          <div class="row g-3 mb-4">
-            <div class="col-12"><label class="fml small fw-bold">Upload Logo Instansi</label>
-              <div class="d-flex align-items-start gap-3">
-                <div class="position-relative" style="flex-shrink:0">
-                  <img id="logoPreview" src="" alt="Logo Preview" style="width:80px;height:80px;border-radius:var(--r-md);object-fit:contain;border:2px dashed var(--border);background:var(--input);display:flex;align-items:center;justify-content:center">
-                  <div id="logoPlaceholder" class="d-flex align-items-center justify-content-center" style="width:80px;height:80px;border-radius:var(--r-md);border:2px dashed var(--border);background:var(--input);color:var(--muted);font-size:1.5rem"><i class="ph ph-image"></i></div>
+        <!-- Hero Banner -->
+        <div class="doc-hero doc-page">
+          <div class="doc-hero-title"><i class="ph ph-file-text me-2"></i>Konfigurasi Dokumen</div>
+          <div class="doc-hero-sub">Kelola informasi instansi, penandatangan, dan tampilan cetak dokumen resmi</div>
+          <i class="ph ph-files doc-hero-icon"></i>
+        </div>
+
+        <!-- Completion Status -->
+        <div class="doc-status-bar incomplete doc-page" id="docCompletionBar">
+          <div class="doc-completion-ring" id="docCompletionRing">
+            <svg viewBox="0 0 36 36"><circle class="ring-bg" cx="18" cy="18" r="15.5"/><circle class="ring-fg" cx="18" cy="18" r="15.5" stroke-dasharray="97.4" stroke-dashoffset="97.4" id="docRingFg"/></svg>
+            <div class="doc-completion-pct" id="docPctText">0%</div>
+          </div>
+          <span id="docStatusText"><i class="ph ph-info me-1"></i>Lengkapi profil instansi untuk mengaktifkan pratinjau dokumen</span>
+        </div>
+
+        <!-- Tab Bar: Konfigurasi / Pratinjau -->
+        <div class="doc-tab-bar doc-page">
+          <button class="doc-tab-btn active" onclick="switchDocTab('config')" id="docTabConfig"><i class="ph ph-gear-six"></i><span>Konfigurasi</span></button>
+          <button class="doc-tab-btn" onclick="switchDocTab('preview')" id="docTabPreview"><i class="ph ph-eye"></i><span>Pratinjau Dokumen</span></button>
+        </div>
+
+        <!-- TAB: Konfigurasi -->
+        <div class="doc-tab-content active" id="docTabContentConfig">
+
+          <!-- Section: Identitas Instansi -->
+          <div class="doc-section doc-page">
+            <div class="doc-section-hd" onclick="toggleDocSection(this)">
+              <div class="doc-sec-icon" style="background:var(--secondary-l);color:var(--secondary)"><i class="ph ph-buildings"></i></div>
+              <span class="doc-sec-title">Identitas Instansi</span>
+              <span class="doc-sec-badge" id="docBadgeInstansi">5 field</span>
+              <i class="ph ph-caret-down doc-sec-arrow"></i>
+            </div>
+            <div class="doc-section-bd" id="docSecInstansi">
+              <!-- Logo Upload -->
+              <div class="doc-field">
+                <label><i class="ph ph-image"></i>Logo Instansi</label>
+                <div class="doc-logo-area" id="docLogoArea">
+                  <div class="doc-logo-box">
+                    <img id="logoPreview" src="" alt="Logo" style="display:none">
+                    <div class="doc-logo-placeholder" id="logoPlaceholder"><i class="ph ph-image"></i></div>
+                  </div>
+                  <div class="doc-logo-info">
+                    <div class="doc-logo-name" id="docLogoFileName">Belum ada logo</div>
+                    <input type="file" id="logoInput" class="form-control form-control-sm" accept="image/*" onchange="handleLogoUpload(this)" style="margin-bottom:6px;font-size:.78rem">
+                    <div class="doc-field-hint"><i class="ph ph-info"></i>JPG, PNG, SVG. Maks 500KB. Tampil di header &amp; dokumen cetak.</div>
+                    <div class="doc-logo-actions" id="btnRemoveLogo" style="display:none">
+                      <button class="btn btn-sm btn-outline-danger" onclick="removeLogo()" style="font-size:.7rem"><i class="ph ph-trash me-1"></i>Hapus Logo</button>
+                    </div>
+                  </div>
                 </div>
-                <div class="flex-grow-1">
-                  <input type="file" id="logoInput" class="form-control form-control-sm" accept="image/*" onchange="handleLogoUpload(this)">
-                  <small class="text-muted" style="font-size:.7rem">Format: JPG, PNG, SVG. Maks 500KB. Logo akan tampil di header dan halaman publik.</small>
-                  <button class="btn btn-sm btn-outline-danger mt-1" onclick="removeLogo()" style="font-size:.72rem;display:none" id="btnRemoveLogo"><i class="ph ph-trash me-1"></i>Hapus Logo</button>
+              </div>
+              <div class="doc-field">
+                <label><i class="ph ph-buildings"></i>Nama SPPG</label>
+                <input type="text" id="instansiName" class="form-control" placeholder="Masukkan nama instansi/SPPG" oninput="updateDocCompletion()">
+              </div>
+              <div class="doc-field">
+                <label><i class="ph ph-identification-badge"></i>ID SPPG</label>
+                <input type="text" id="sppgId" class="form-control" placeholder="Contoh: SPPG-3602-001" oninput="updateDocCompletion()">
+                <div class="field-hint"><i class="ph ph-info"></i>ID unik yang digunakan dalam dokumen resmi</div>
+              </div>
+              <div class="doc-field">
+                <label><i class="ph ph-flag"></i>Nama Yayasan</label>
+                <input type="text" id="yayasanName" class="form-control" placeholder="Masukkan nama yayasan" oninput="updateDocCompletion()">
+              </div>
+              <div class="doc-field">
+                <label><i class="ph ph-map-pin"></i>Alamat Lengkap</label>
+                <textarea id="instansiAddress" class="form-control" rows="2" style="resize:vertical" placeholder="Jl. ..., Kec. ..., Kota ..." oninput="updateDocCompletion()"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section: Kontak Instansi -->
+          <div class="doc-section doc-page">
+            <div class="doc-section-hd" onclick="toggleDocSection(this)">
+              <div class="doc-sec-icon" style="background:rgba(59,130,246,.1);color:#3b82f6"><i class="ph ph-phone"></i></div>
+              <span class="doc-sec-title">Kontak Instansi</span>
+              <span class="doc-sec-badge" id="docBadgeKontak">2 field</span>
+              <i class="ph ph-caret-down doc-sec-arrow"></i>
+            </div>
+            <div class="doc-section-bd" id="docSecKontak">
+              <div class="doc-2col">
+                <div class="doc-field">
+                  <label><i class="ph ph-phone"></i>Telepon</label>
+                  <input type="text" id="instansiPhone" class="form-control" placeholder="08xx-xxxx-xxxx" oninput="updateDocCompletion()">
+                </div>
+                <div class="doc-field">
+                  <label><i class="ph ph-envelope-simple"></i>Email</label>
+                  <input type="email" id="instansiEmail" class="form-control" placeholder="email@instansi.id" oninput="updateDocCompletion()">
                 </div>
               </div>
             </div>
-            <div class="col-12"><label class="fml small fw-bold">Nama SPPG</label><input type="text" id="instansiName" class="form-control" placeholder="Nama Instansi/SPPG"></div>
-            <div class="col-12"><label class="fml small fw-bold">ID SPPG</label><input type="text" id="sppgId" class="form-control" placeholder="Contoh: SPPG-3602-001"></div>
-            <div class="col-12"><label class="fml small fw-bold">Nama Yayasan</label><input type="text" id="yayasanName" class="form-control" placeholder="Nama Yayasan"></div>
-            <div class="col-12"><label class="fml small fw-bold">Alamat Lengkap</label><textarea id="instansiAddress" class="form-control" rows="2" style="resize:vertical"></textarea></div>
-            <div class="col-md-6"><label class="fml small fw-bold">Telepon</label><input type="text" id="instansiPhone" class="form-control"></div>
-            <div class="col-md-6"><label class="fml small fw-bold">Email</label><input type="email" id="instansiEmail" class="form-control"></div>
           </div>
-          <div class="section-title" style="font-size:.85rem;color:var(--warn)"><i class="ph ph-signature"></i>Penandatangan</div>
-          <div class="row g-3">
-            <div class="col-md-6"><label class="fml small fw-bold">Nama Kepala SPPG</label><input type="text" id="kepalaName" class="form-control"></div>
-            <div class="col-md-6"><label class="fml small fw-bold">NIP Kepala</label><input type="text" id="kepalaNip" class="form-control"></div>
-            <div class="col-md-6"><label class="fml small fw-bold">Nama Akuntan</label><input type="text" id="akuntanName" class="form-control"></div>
-            <div class="col-md-6"><label class="fml small fw-bold">NIP Akuntan</label><input type="text" id="akuntanNip" class="form-control"></div>
+
+          <!-- Section: Penandatangan -->
+          <div class="doc-section doc-page">
+            <div class="doc-section-hd" onclick="toggleDocSection(this)">
+              <div class="doc-sec-icon" style="background:rgba(245,158,11,.1);color:var(--warn)"><i class="ph ph-signature"></i></div>
+              <span class="doc-sec-title">Penandatangan Dokumen</span>
+              <span class="doc-sec-badge" id="docBadgeSigner">4 field</span>
+              <i class="ph ph-caret-down doc-sec-arrow"></i>
+            </div>
+            <div class="doc-section-bd" id="docSecSigner">
+              <div class="doc-2col">
+                <div class="doc-signer-card">
+                  <div class="doc-signer-avatar kepala"><i class="ph ph-user-circle"></i></div>
+                  <div class="doc-signer-info">
+                    <div class="doc-signer-role">Kepala SPPG</div>
+                    <div class="doc-field" style="margin-bottom:8px">
+                      <input type="text" id="kepalaName" class="form-control" placeholder="Nama Lengkap" oninput="updateDocCompletion()">
+                    </div>
+                    <div class="doc-field" style="margin-bottom:0">
+                      <input type="text" id="kepalaNip" class="form-control" placeholder="NIP" oninput="updateDocCompletion()">
+                    </div>
+                  </div>
+                </div>
+                <div class="doc-signer-card">
+                  <div class="doc-signer-avatar akuntan"><i class="ph ph-calculator"></i></div>
+                  <div class="doc-signer-info">
+                    <div class="doc-signer-role" style="color:var(--success)">Akuntan</div>
+                    <div class="doc-field" style="margin-bottom:8px">
+                      <input type="text" id="akuntanName" class="form-control" placeholder="Nama Lengkap" oninput="updateDocCompletion()">
+                    </div>
+                    <div class="doc-field" style="margin-bottom:0">
+                      <input type="text" id="akuntanNip" class="form-control" placeholder="NIP" oninput="updateDocCompletion()">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <button class="btn btn-prim mt-4 w-100" onclick="saveSignatureSettings()">Simpan Konfigurasi</button>
+
+        </div><!-- /docTabContentConfig -->
+
+        <!-- TAB: Pratinjau Dokumen -->
+        <div class="doc-tab-content" id="docTabContentPreview">
+          <div class="doc-preview-grid">
+            <!-- Preview Card 1: Surat -->
+            <div class="doc-preview-card" onclick="openDocPreviewModal('surat')">
+              <div class="doc-preview-thumb">
+                <div class="doc-mock">
+                  <div style="text-align:center;margin-bottom:4px"><div class="doc-mock-header" style="margin:0 auto;width:50%"></div><div class="doc-mock-line w40" style="margin:2px auto 0"></div></div>
+                  <div class="doc-mock-line w90"></div>
+                  <div class="doc-mock-line w80"></div>
+                  <div class="doc-mock-block"></div>
+                  <div class="doc-mock-line w80"></div>
+                  <div class="doc-mock-line w60"></div>
+                  <div class="doc-mock-sig"><div class="doc-mock-sig-block"></div><div class="doc-mock-sig-block"></div></div>
+                </div>
+              </div>
+              <div class="doc-preview-info">
+                <div class="doc-preview-title">Surat Resmi</div>
+                <div class="doc-preview-desc">Kop surat instansi dengan header logo, informasi yayasan, dan area penandatangan</div>
+                <div class="doc-preview-tag"><i class="ph ph-file-text"></i>Template Surat</div>
+              </div>
+            </div>
+            <!-- Preview Card 2: Invoice -->
+            <div class="doc-preview-card" onclick="openDocPreviewModal('invoice')">
+              <div class="doc-preview-thumb">
+                <div class="doc-mock">
+                  <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:6px"><div class="doc-mock-header" style="width:45%"></div><div class="doc-mock-line w40" style="margin-top:4px"></div></div>
+                  <div class="doc-mock-line w90"></div>
+                  <div class="doc-mock-block"></div>
+                  <div class="doc-mock-block"></div>
+                  <div class="doc-mock-line w60" style="margin-top:4px"></div>
+                  <div class="doc-mock-sig"><div class="doc-mock-sig-block"></div></div>
+                </div>
+              </div>
+              <div class="doc-preview-info">
+                <div class="doc-preview-title">Invoice / Kwitansi</div>
+                <div class="doc-preview-desc">Dokumen tagihan dengan detail penerimaan, rincian biaya, dan tanda tangan</div>
+                <div class="doc-preview-tag"><i class="ph ph-receipt"></i>Template Invoice</div>
+              </div>
+            </div>
+            <!-- Preview Card 3: Data Print -->
+            <div class="doc-preview-card" onclick="openDocPreviewModal('data')">
+              <div class="doc-preview-thumb">
+                <div class="doc-mock">
+                  <div style="text-align:center;margin-bottom:4px"><div class="doc-mock-header" style="margin:0 auto;width:55%"></div></div>
+                  <div class="doc-mock-block" style="height:12px"></div>
+                  <div style="display:flex;gap:4px;margin-top:4px"><div class="doc-mock-line" style="flex:1"></div><div class="doc-mock-line" style="flex:1"></div><div class="doc-mock-line" style="flex:1"></div></div>
+                  <div style="display:flex;gap:4px"><div class="doc-mock-line" style="flex:1"></div><div class="doc-mock-line" style="flex:1"></div><div class="doc-mock-line" style="flex:1"></div></div>
+                  <div style="display:flex;gap:4px"><div class="doc-mock-line" style="flex:1"></div><div class="doc-mock-line" style="flex:1"></div><div class="doc-mock-line" style="flex:1"></div></div>
+                  <div class="doc-mock-sig" style="margin-top:6px"><div class="doc-mock-sig-block"></div></div>
+                </div>
+              </div>
+              <div class="doc-preview-info">
+                <div class="doc-preview-title">Cetak Data Penerima</div>
+                <div class="doc-preview-desc">Tabel data penerima MBG dengan header instansi dan informasi lengkap</div>
+                <div class="doc-preview-tag"><i class="ph ph-printer"></i>Template Cetak</div>
+              </div>
+            </div>
+            <!-- Preview Card 4: Laporan -->
+            <div class="doc-preview-card" onclick="openDocPreviewModal('laporan')">
+              <div class="doc-preview-thumb">
+                <div class="doc-mock">
+                  <div style="text-align:center;margin-bottom:6px"><div class="doc-mock-header" style="margin:0 auto;width:60%"></div><div class="doc-mock-line w40" style="margin:2px auto 0"></div></div>
+                  <div style="display:flex;gap:6px;margin-bottom:4px"><div class="doc-mock-block" style="flex:1;height:28px"></div><div class="doc-mock-block" style="flex:1;height:28px"></div><div class="doc-mock-block" style="flex:1;height:28px"></div></div>
+                  <div class="doc-mock-line w90"></div>
+                  <div class="doc-mock-line w80"></div>
+                  <div class="doc-mock-line w60"></div>
+                  <div class="doc-mock-sig"><div class="doc-mock-sig-block"></div><div class="doc-mock-sig-block"></div></div>
+                </div>
+              </div>
+              <div class="doc-preview-info">
+                <div class="doc-preview-title">Laporan Rekapitulasi</div>
+                <div class="doc-preview-desc">Ringkasan data statistik per instansi dengan grafik dan tanda tangan</div>
+                <div class="doc-preview-tag"><i class="ph ph-chart-bar"></i>Template Laporan</div>
+              </div>
+            </div>
+          </div>
+        </div><!-- /docTabContentPreview -->
+
+        <!-- Sticky Save Bar -->
+        <div class="doc-save-bar" id="docSaveBar">
+          <div class="doc-save-status" id="docSaveStatus"><i class="ph ph-clock"></i>Belum disimpan</div>
+          <button class="btn btn-prim" onclick="saveSignatureSettings()"><i class="ph ph-floppy-disk me-2"></i>Simpan Konfigurasi</button>
         </div>
+
+        <!-- Preview Modal Container -->
+        <div id="docPreviewModalContainer"></div>
       </div>
 
       <!-- TAB: Rekap Data -->
@@ -2080,8 +2581,8 @@ window.onload = function() {
 
   const maintSchedule = getMaintenanceSchedule();
   if(maintSchedule) {
-    document.getElementById('maintStartTime').value = maintSchedule.startTime || '';
-    document.getElementById('maintEndTime').value = maintSchedule.endTime || '';
+    var _mst = safeEl('maintStartTime'); if (_mst) _mst.value = maintSchedule.startTime || '';
+    var _met = safeEl('maintEndTime'); if (_met) _met.value = maintSchedule.endTime || '';
     updateMaintenanceScheduleStatus();
     checkMaintenanceSchedule();
   } else {
@@ -2185,6 +2686,177 @@ function toggleTheme() {
   document.getElementById('themeIcon').className = nxt === 'dark' ? 'ph ph-sun' : 'ph ph-moon-stars';
   if(chartInstance) renderCategoryChart(allAdminData);
   if(groupChartInstance) updateGroupCharts(allAdminData);
+}
+
+// ============================================================
+// SIMPAN KONTAK INSTANSI (No HP & Email → Database)
+// ============================================================
+// State: melacak nilai No HP & Email yang sudah tersimpan ke DB
+let _kontakSaved = { noHp: '', email: '' }; // nilai yang sudah disimpan
+let _kontakMode = 'simpan'; // 'simpan' | 'update'
+
+/**
+ * Dipanggil setiap kali user mengetik di field No HP atau Email.
+ * Menampilkan/menyembunyikan tombol Simpan/Update.
+ */
+function onContactFieldInput() {
+  const instansi = document.getElementById('instansi').value.trim();
+  const pic = document.getElementById('pic').value.trim();
+  if (!instansi || !pic) return; // jangan tampilkan jika instansi/PIC belum diisi
+
+  const noHpEl = document.getElementById('noHp');
+  const emailEl = document.getElementById('emailPelapor');
+  const btn = document.getElementById('btnSimpanKontak');
+  const btnLabel = document.getElementById('btnSimpanKontakLabel');
+  const savedStatus = document.getElementById('kontakSavedStatus');
+
+  const curNoHp = noHpEl ? noHpEl.value.trim() : '';
+  const curEmail = emailEl ? emailEl.value.trim() : '';
+
+  if (!curNoHp && !curEmail) { btn.classList.add('d-none'); return; }
+
+  const changed = (curNoHp !== _kontakSaved.noHp || curEmail !== _kontakSaved.email);
+  const hasSaved = (_kontakSaved.noHp || _kontakSaved.email);
+
+  if (changed) {
+    // Ada perubahan dari nilai tersimpan → tampilkan tombol
+    btn.classList.remove('d-none');
+    if (hasSaved) {
+      _kontakMode = 'update';
+      btn.style.background = '#f59e0b'; // warna amber untuk update
+      btnLabel.textContent = 'Update No HP & Email';
+      btn.querySelector('i').className = 'ph ph-pencil-simple';
+    } else {
+      _kontakMode = 'simpan';
+      btn.style.background = 'var(--secondary)';
+      btnLabel.textContent = 'Simpan No HP & Email';
+      btn.querySelector('i').className = 'ph ph-floppy-disk-back';
+    }
+    savedStatus.classList.add('d-none');
+  } else {
+    // Nilai sama dengan yang tersimpan → sembunyikan tombol
+    btn.classList.add('d-none');
+    if (hasSaved) {
+      savedStatus.classList.remove('d-none');
+      savedStatus.innerHTML = '<i class="ph ph-check-circle" style="color:var(--success)"></i> <span style="color:var(--success)">Kontak tersimpan di database</span>';
+    }
+  }
+}
+
+/**
+ * Dipanggil saat instansi/PIC berubah — reset state kontak
+ */
+function resetKontakState() {
+  _kontakSaved = { noHp: '', email: '' };
+  _kontakMode = 'simpan';
+  const btn = document.getElementById('btnSimpanKontak');
+  if (btn) btn.classList.add('d-none');
+  const savedStatus = document.getElementById('kontakSavedStatus');
+  if (savedStatus) savedStatus.classList.add('d-none');
+}
+
+/**
+ * Dipanggil setelah auto-fill kontak dari server agar tombol tidak muncul
+ * (karena nilai masih sama dengan yang ada di DB).
+ */
+function markKontakAsSaved(noHp, email) {
+  _kontakSaved.noHp = noHp || '';
+  _kontakSaved.email = email || '';
+  const btn = document.getElementById('btnSimpanKontak');
+  if (btn) btn.classList.add('d-none');
+  const savedStatus = document.getElementById('kontakSavedStatus');
+  if (savedStatus) {
+    savedStatus.classList.remove('d-none');
+    savedStatus.innerHTML = '<i class="ph ph-check-circle" style="color:var(--success)"></i> <span style="color:var(--success)">Kontak tersimpan di database</span>';
+  }
+}
+
+/**
+ * Klik tombol Simpan/Update No HP & Email.
+ */
+function simpanKontakInstansi() {
+  const instansi = document.getElementById('instansi').value.trim();
+  const pic = document.getElementById('pic').value.trim();
+  const noHpRaw = document.getElementById('noHp').value.trim();
+  const email = document.getElementById('emailPelapor').value.trim();
+
+  if (!instansi || !pic) { Swal.fire('Info', 'Isi Nama Instansi dan PIC Kader terlebih dahulu', 'info'); return; }
+  if (!noHpRaw && !email) { Swal.fire('Info', 'Isi No HP atau Email terlebih dahulu', 'info'); return; }
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { Swal.fire('Info', 'Format email tidak valid', 'info'); return; }
+
+  const noHp = getFormattedNoHp();
+
+  // Jika mode UPDATE, tampilkan konfirmasi dulu
+  if (_kontakMode === 'update') {
+    Swal.fire({
+      icon: 'question',
+      title: 'Update Kontak?',
+      html: `Ubah No HP / Email untuk instansi <strong>${esc(instansi)}</strong> PIC <strong>${esc(pic)}</strong>?<br><br>` +
+            (noHp ? `<span class="badge bg-light text-dark border"><i class="ph ph-whatsapp-logo" style="color:#25d366"></i> ${esc(noHp)}</span> ` : '') +
+            (email ? `<span class="badge bg-light text-dark border"><i class="ph ph-envelope" style="color:var(--primary)"></i> ${esc(email)}</span>` : ''),
+      showCancelButton: true,
+      confirmButtonText: 'Ya, Update',
+      cancelButtonText: 'Tidak, Batal',
+      confirmButtonColor: '#f59e0b',
+      cancelButtonColor: '#6366f1'
+    }).then(result => {
+      if (result.isConfirmed) {
+        _doSimpanKontak(instansi, pic, noHp, email);
+      } else {
+        // Batalkan: kembalikan ke nilai tersimpan sebelumnya
+        const noHpEl = document.getElementById('noHp');
+        const emailEl = document.getElementById('emailPelapor');
+        if (_kontakSaved.noHp) {
+          let raw = _kontakSaved.noHp.replace(/[^0-9]/g, '');
+          if (raw.startsWith('62')) raw = raw.substring(2);
+          else if (raw.startsWith('0')) raw = raw.substring(1);
+          noHpEl.value = raw;
+        } else { noHpEl.value = ''; }
+        emailEl.value = _kontakSaved.email || '';
+        onContactFieldInput();
+      }
+    });
+    return;
+  }
+
+  // Mode SIMPAN — langsung proses
+  _doSimpanKontak(instansi, pic, noHp, email);
+}
+
+function _doSimpanKontak(instansi, pic, noHp, email) {
+  const btn = document.getElementById('btnSimpanKontak');
+  const btnLabel = document.getElementById('btnSimpanKontakLabel');
+  const savedStatus = document.getElementById('kontakSavedStatus');
+  const origHtml = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ph ph-spinner-gap" style="animation:spin .8s linear infinite"></i> Menyimpan...';
+
+  google.script.run
+    .withSuccessHandler(res => {
+      btn.disabled = false;
+      btn.innerHTML = origHtml;
+      if (res && res.success) {
+        // Tandai sebagai tersimpan
+        _kontakSaved.noHp = noHp || '';
+        _kontakSaved.email = email || '';
+        _kontakMode = 'simpan'; // reset ke simpan, karena sudah tersimpan
+        btn.classList.add('d-none');
+        savedStatus.classList.remove('d-none');
+        savedStatus.innerHTML = '<i class="ph ph-check-circle" style="color:var(--success)"></i> <span style="color:var(--success)">Kontak tersimpan di database</span>';
+        // Simpan ke localStorage juga
+        saveToLocal();
+        const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2500, timerProgressBar: true });
+        Toast.fire({ icon: 'success', title: '✅ ' + (res.message || 'Kontak tersimpan!') });
+      } else {
+        Swal.fire('Gagal', (res && res.message) || 'Gagal menyimpan kontak', 'error');
+      }
+    })
+    .withFailureHandler(err => {
+      btn.disabled = false;
+      btn.innerHTML = origHtml;
+      Swal.fire('Error', 'Gagal terhubung ke server: ' + (err.message || ''), 'error');
+    })
+    .saveInstansiContact(instansi, pic, noHp, email);
 }
 
 // ============================================================
@@ -2301,6 +2973,10 @@ function loadFromLocal() {
   if (document.getElementById('instansi').value.trim()) {
     setTimeout(onInstansiChange, 800);
   }
+  // Tampilkan contact section jika instansi & PIC sudah terisi
+  if (document.getElementById('instansi').value.trim() && document.getElementById('pic').value.trim()) {
+    showContactSection();
+  }
 }
 function formatNoHp(el) {
   let val = el.value.replace(/[^0-9]/g, '');
@@ -2334,6 +3010,7 @@ function onInstansiChange() {
   _instansiPicValidState = { instansiValid: null, picValid: null, checking: false };
   setInstansiValidFeedback(null);
   setPicValidFeedback(null);
+  resetKontakState();
 
   if (!instansi) { hideInstansiPicHint(); return; }
   const instKey = instansi.toUpperCase();
@@ -2404,6 +3081,7 @@ function applyInstansiPicMapping(mappingData, instansi) {
     }
 
     // Auto-fill No HP SELALU ketika instansi+PIC cocok
+    let savedRawHp = '';
     if (matched.noHp) {
       let rawHp = matched.noHp.replace(/[^0-9]/g, '');
       if (rawHp.startsWith('62') && rawHp.length > 10) rawHp = rawHp.substring(2);
@@ -2411,17 +3089,23 @@ function applyInstansiPicMapping(mappingData, instansi) {
       if (rawHp.length >= 8) {
         _applyNoHpAutofill(noHpEl, rawHp, 'server');
         _showAutoStatus('noHpAutoStatus', 'No HP otomatis dari data ' + esc(instansi));
+        savedRawHp = rawHp;
       }
     }
 
     // Auto-fill Email SELALU ketika instansi+PIC cocok
+    let savedEmail = '';
     if (matched.email) {
       emailEl.value = matched.email;
       _flashField(emailEl);
       _showAutoStatus('emailAutoStatus', 'Email otomatis dari data ' + esc(instansi));
+      savedEmail = matched.email;
     }
 
+    // Tandai kontak sebagai sudah tersimpan di DB (tidak perlu tombol Simpan)
+    markKontakAsSaved(savedRawHp, savedEmail);
     saveToLocal();
+    showContactSection();
   }
 
   // Tampilkan hint jika ada lebih dari 1 PIC
@@ -2456,9 +3140,10 @@ function onPicChange() {
   const instansi = document.getElementById('instansi').value.trim();
   const pic = document.getElementById('pic').value.trim();
 
-  // Reset feedback PIC dulu
+  // Reset feedback PIC dan state kontak
   setPicValidFeedback(null);
   _instansiPicValidState.picValid = null;
+  resetKontakState();
 
   if (!instansi || !pic) return;
 
@@ -2482,6 +3167,7 @@ function onPicChange() {
   const emailEl = document.getElementById('emailPelapor');
 
   // SELALU auto-fill No HP ketika instansi+PIC cocok
+  let savedRawHp2 = '';
   if (matched.noHp) {
     let rawHp = matched.noHp.replace(/[^0-9]/g, '');
     if (rawHp.startsWith('62') && rawHp.length > 10) rawHp = rawHp.substring(2);
@@ -2489,17 +3175,23 @@ function onPicChange() {
     if (rawHp.length >= 8) {
       _applyNoHpAutofill(noHpEl, rawHp, 'cache');
       _showAutoStatus('noHpAutoStatus', 'No HP otomatis dari data ' + esc(instansi));
+      savedRawHp2 = rawHp;
     }
   }
 
   // SELALU auto-fill Email ketika instansi+PIC cocok
+  let savedEmail2 = '';
   if (matched.email) {
     emailEl.value = matched.email;
     _flashField(emailEl);
     _showAutoStatus('emailAutoStatus', 'Email otomatis dari data ' + esc(instansi));
+    savedEmail2 = matched.email;
   }
 
+  // Tandai kontak sebagai sudah tersimpan di DB (tidak perlu tombol Simpan)
+  markKontakAsSaved(savedRawHp2, savedEmail2);
   saveToLocal();
+  showContactSection();
 }
 
 function hideInstansiPicHint() {
@@ -2569,7 +3261,9 @@ function setInstansiValidFeedback(state, msg) {
   } else if (state === true) {
     el.innerHTML = '<i class="ph ph-check-circle" style="color:#16a34a"></i><span style="color:#16a34a">Instansi terdaftar</span>';
     input.style.borderColor = '#16a34a';
+    showContactSection();
   } else if (state === 'warning') {
+    showContactSection();
     el.innerHTML = '<i class="ph ph-warning" style="color:#d97706"></i><span style="color:#d97706">' + (msg || 'Instansi belum terdaftar') + '</span>';
     input.style.borderColor = '#d97706';
   } else {
@@ -2600,12 +3294,35 @@ function setPicValidFeedback(state, msg) {
   if (state === true) {
     el.innerHTML = '<i class="ph ph-check-circle" style="color:#16a34a"></i><span style="color:#16a34a">PIC Kader terdaftar</span>';
     input.style.borderColor = '#16a34a';
+    showContactSection();
   } else if (state === 'warning') {
+    showContactSection();
     el.innerHTML = '<i class="ph ph-warning" style="color:#d97706"></i><span style="color:#d97706">' + (msg || 'PIC belum terdaftar') + '</span>';
     input.style.borderColor = '#d97706';
   } else {
     el.innerHTML = '<i class="ph ph-x-circle" style="color:#dc2626"></i><span style="color:#dc2626">' + (msg || 'PIC tidak ditemukan') + '</span>';
     input.style.borderColor = '#dc2626';
+  }
+}
+
+// ============================================================
+// SHOW/HIDE CONTACT SECTION (No HP & Email)
+// Muncul hanya setelah Instansi DAN PIC terisi dan tervalidasi
+// ============================================================
+function showContactSection() {
+  const instansi = document.getElementById('instansi').value.trim();
+  const pic = document.getElementById('pic').value.trim();
+  const el = document.getElementById('contactSection');
+  if (!el) return;
+  if (instansi && pic) {
+    if (el.style.display === 'none') {
+      el.style.display = '';
+      el.style.animation = 'none';
+      el.offsetHeight; // trigger reflow
+      el.style.animation = 'fadeInUp 0.4s ease-out';
+    }
+  } else {
+    el.style.display = 'none';
   }
 }
 
@@ -2642,6 +3359,7 @@ function _checkInstansiPicBeforeSimpan(instansi, pic) {
     };
   }
 
+  showContactSection();
   return { ok: true };
 }
 
@@ -2717,17 +3435,17 @@ function loadSystemData() {
     }
     // Jika admin sudah login, perbarui schedule & maintenance toggle juga
     if (isAdmin) {
-      document.getElementById('maintenanceToggle').checked = (res.status === 'Maintenance');
-      document.getElementById('adminAnnouncement').value = res.announcement || '';
-      document.getElementById('broadcastMessage').value = res.broadcastMessage || '';
-      var allowDelToggle = document.getElementById('allowUserDeleteToggle');
+      var _mt = safeEl('maintenanceToggle'); if (_mt) _mt.checked = (res.status === 'Maintenance');
+      var _aa = safeEl('adminAnnouncement'); if (_aa) _aa.value = res.announcement || '';
+      var _bm = safeEl('broadcastMessage'); if (_bm) _bm.value = res.broadcastMessage || '';
+      var allowDelToggle = safeEl('allowUserDeleteToggle');
       if (allowDelToggle) allowDelToggle.checked = !!res.allowUserDelete;
       // jadwal maintenance dari server (tanpa localStorage)
       google.script.run.withSuccessHandler(r2 => {
         if (r2 && r2.success && r2.schedule) {
           setMaintenanceScheduleCache(r2.schedule);
-          document.getElementById('maintStartTime').value = r2.schedule.startTime || '';
-          document.getElementById('maintEndTime').value = r2.schedule.endTime || '';
+          var __mst = safeEl('maintStartTime'); if (__mst) __mst.value = r2.schedule.startTime || '';
+          var __met = safeEl('maintEndTime'); if (__met) __met.value = r2.schedule.endTime || '';
           updateMaintenanceScheduleStatus();
           checkMaintenanceSchedule();
         }
@@ -2825,6 +3543,258 @@ function buildAlergiCheckboxes(allergiesStr) {
   document.getElementById('alergi-container').innerHTML = mkHtml('');
   document.getElementById('edit_alergi-container').innerHTML = mkHtml('e_');
 }
+/* ========== DOKUMEN PAGE MODERN FUNCTIONS ========== */
+function switchDocTab(tab) {
+  document.querySelectorAll('.doc-tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.doc-tab-content').forEach(c => c.classList.remove('active'));
+  if (tab === 'config') {
+    document.getElementById('docTabConfig').classList.add('active');
+    document.getElementById('docTabContentConfig').classList.add('active');
+  } else {
+    document.getElementById('docTabPreview').classList.add('active');
+    document.getElementById('docTabContentPreview').classList.add('active');
+  }
+}
+function toggleDocSection(hd) {
+  const bd = hd.nextElementSibling;
+  if (!bd) return;
+  const isCollapsed = bd.classList.contains('collapsed');
+  if (isCollapsed) {
+    bd.classList.remove('collapsed');
+    bd.style.maxHeight = bd.scrollHeight + 'px';
+    hd.classList.remove('collapsed');
+    setTimeout(() => { bd.style.maxHeight = ''; }, 400);
+  } else {
+    bd.style.maxHeight = bd.scrollHeight + 'px';
+    requestAnimationFrame(() => {
+      bd.classList.add('collapsed');
+      hd.classList.add('collapsed');
+    });
+  }
+}
+function updateDocCompletion() {
+  const fields = ['instansiName','sppgId','yayasanName','instansiAddress','instansiPhone','instansiEmail','kepalaName','kepalaNip','akuntanName','akuntanNip'];
+  let filled = 0;
+  fields.forEach(id => { if (document.getElementById(id) && document.getElementById(id).value.trim()) filled++; });
+  if (SIG && SIG.logoBase64) filled++;
+  const total = fields.length + 1;
+  const pct = Math.round((filled / total) * 100);
+  const circumference = 97.4;
+  const offset = circumference - (circumference * pct / 100);
+  const ringFg = document.getElementById('docRingFg');
+  const pctText = document.getElementById('docPctText');
+  const statusBar = document.getElementById('docCompletionBar');
+  const statusText = document.getElementById('docStatusText');
+  if (ringFg) ringFg.style.strokeDashoffset = offset;
+  if (pctText) pctText.textContent = pct + '%';
+  if (statusBar) {
+    statusBar.classList.remove('incomplete','complete');
+    if (pct === 100) {
+      statusBar.classList.add('complete');
+      statusText.innerHTML = '<i class="ph ph-check-circle me-1"></i>Profil dokumen lengkap! Semua pratinjau siap digunakan.';
+    } else if (pct >= 50) {
+      statusBar.classList.add('incomplete');
+      statusText.innerHTML = '<i class="ph ph-warning me-1"></i>' + filled + ' dari ' + total + ' field terisi. Lengkapi sisa data untuk pratinjau optimal.';
+    } else {
+      statusBar.classList.add('incomplete');
+      statusText.innerHTML = '<i class="ph ph-info me-1"></i>Lengkapi profil instansi untuk mengaktifkan pratinjau dokumen';
+    }
+  }
+  const saveStatus = document.getElementById('docSaveStatus');
+  if (saveStatus) { saveStatus.innerHTML = '<i class="ph ph-clock"></i>Perubahan belum disimpan'; saveStatus.classList.remove('saved'); }
+  updateDocBadges();
+}
+function updateDocBadges() {
+  const instansiFields = ['instansiName','sppgId','yayasanName','instansiAddress'];
+  let instansiFilled = instansiFields.filter(id => document.getElementById(id) && document.getElementById(id).value.trim()).length;
+  const badgeInstansi = document.getElementById('docBadgeInstansi');
+  if (badgeInstansi) badgeInstansi.textContent = instansiFilled + '/4 terisi';
+  const kontakFields = ['instansiPhone','instansiEmail'];
+  let kontakFilled = kontakFields.filter(id => document.getElementById(id) && document.getElementById(id).value.trim()).length;
+  const badgeKontak = document.getElementById('docBadgeKontak');
+  if (badgeKontak) badgeKontak.textContent = kontakFilled + '/2 terisi';
+  const signerFields = ['kepalaName','kepalaNip','akuntanName','akuntanNip'];
+  let signerFilled = signerFields.filter(id => document.getElementById(id) && document.getElementById(id).value.trim()).length;
+  const badgeSigner = document.getElementById('docBadgeSigner');
+  if (badgeSigner) badgeSigner.textContent = signerFilled + '/4 terisi';
+}
+function openDocPreviewModal(type) {
+  const container = document.getElementById('docPreviewModalContainer');
+  if (!container) return;
+  const s = SIG || {};
+  const logoSrc = s.logoBase64 || '';
+  const instansiName = s.instansiName || 'Nama Instansi';
+  const yayasanName = s.yayasanName || 'Nama Yayasan';
+  const address = s.instansiAddress || 'Alamat belum diisi';
+  const phone = s.instansiPhone || '-';
+  const email = s.instansiEmail || '-';
+  const sppgId = s.sppgId || '-';
+  const kepalaName = s.kepalaName || '.........................';
+  const kepalaNip = s.kepalaNip || 'NIP: ..................';
+  const akuntanName = s.akuntanName || '.........................';
+  const akuntanNip = s.akuntanNip || 'NIP: ..................';
+  let title = '', bodyHtml = '';
+  if (type === 'surat') {
+    title = 'Pratinjau Surat Resmi';
+    bodyHtml = `
+      <div class="doc-preview-page">
+        <div class="doc-pp-header">
+          ${logoSrc ? '<img class="doc-pp-logo" src="'+logoSrc+'" alt="Logo">' : '<div class="doc-pp-logo" style="display:flex;align-items:center;justify-content:center"><i class="ph ph-image" style="font-size:1.5rem;color:var(--light)"></i></div>'}
+          <div class="doc-pp-instansi">${instansiName.toUpperCase()}</div>
+          ${yayasanName !== 'Nama Yayasan' ? '<div style="font-size:.72rem;color:var(--muted);margin-top:1px">'+yayasanName.toUpperCase()+'</div>' : ''}
+          <div class="doc-pp-alamat">${address}</div>
+          <div style="font-size:.65rem;color:var(--muted);margin-top:4px">Telp: ${phone} | Email: ${email}</div>
+        </div>
+        <div class="doc-pp-body">
+          <div style="text-align:right;font-size:.72rem;margin-bottom:16px;color:var(--muted)">Nomor: ${sppgId !== '-' ? sppgId : '...........'}</div>
+          <div class="doc-pp-title">SURAT KETERANGAN</div>
+          <div style="font-size:.75rem;line-height:1.7;color:var(--text);text-align:justify">
+            Yang bertanda tangan di bawah ini, Kepala ${instansiName}, dengan ini menerangkan bahwa data penerima program Makan Bergizi Gratis (MBG) pada instansi kami telah terverifikasi dan tercatat dengan baik dalam sistem pendataan.
+          </div>
+          <div style="margin-top:16px">
+            <table class="doc-pp-table">
+              <tr><th>No</th><th>Nama</th><th>NIK</th><th>Kategori</th></tr>
+              <tr><td>1</td><td>Contoh Nama</td><td>3201xxxxx</td><td>Balita</td></tr>
+              <tr><td>2</td><td>Contoh Nama</td><td>3201xxxxx</td><td>Anak Sekolah</td></tr>
+              <tr><td>3</td><td>Contoh Nama</td><td>3201xxxxx</td><td>Ibu Hamil</td></tr>
+            </table>
+          </div>
+        </div>
+        <div class="doc-pp-footer">
+          <div class="doc-pp-sig">
+            <div style="font-size:.68rem;color:var(--muted);margin-bottom:4px">Akuntan,</div>
+            <div class="doc-pp-sig-line"></div>
+            <div class="doc-pp-sig-name">${akuntanName}</div>
+            <div class="doc-pp-sig-nip">${akuntanNip}</div>
+          </div>
+          <div class="doc-pp-sig">
+            <div style="font-size:.68rem;color:var(--muted);margin-bottom:4px">Kepala SPPG,</div>
+            <div class="doc-pp-sig-line"></div>
+            <div class="doc-pp-sig-name">${kepalaName}</div>
+            <div class="doc-pp-sig-nip">${kepalaNip}</div>
+          </div>
+        </div>
+      </div>`;
+  } else if (type === 'invoice') {
+    title = 'Pratinjau Invoice / Kwitansi';
+    bodyHtml = `
+      <div class="doc-preview-page">
+        <div class="doc-pp-header">
+          ${logoSrc ? '<img class="doc-pp-logo" src="'+logoSrc+'" alt="Logo">' : ''}
+          <div class="doc-pp-instansi">INVOICE</div>
+          <div class="doc-pp-alamat">${instansiName} ${sppgId !== '-' ? '| '+sppgId : ''}</div>
+        </div>
+        <div class="doc-pp-body">
+          <div style="display:flex;justify-content:space-between;margin-bottom:12px;font-size:.72rem">
+            <div><strong>Ditujukan:</strong><br>Program MBG<br>${yayasanName !== 'Nama Yayasan' ? yayasanName : ''}</div>
+            <div style="text-align:right"><strong>Tanggal:</strong><br>${new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}<br>No: INV-${sppgId !== '-' ? sppgId : '001'}</div>
+          </div>
+          <table class="doc-pp-table">
+            <tr><th>No</th><th>Uraian</th><th>Jumlah</th></tr>
+            <tr><td>1</td><td>Penerimaan Balita (15 orang x Rp15.000)</td><td style="text-align:right">Rp 225.000</td></tr>
+            <tr><td>2</td><td>Penerimaan Anak Sekolah (30 orang x Rp15.000)</td><td style="text-align:right">Rp 450.000</td></tr>
+            <tr><td>3</td><td>Penerimaan Ibu Hamil (10 orang x Rp15.000)</td><td style="text-align:right">Rp 150.000</td></tr>
+            <tr style="font-weight:700;background:var(--primary-l)"><td colspan="2" style="text-align:right">Total</td><td style="text-align:right;color:var(--primary)">Rp 825.000</td></tr>
+          </table>
+        </div>
+        <div class="doc-pp-footer">
+          <div></div>
+          <div class="doc-pp-sig">
+            <div style="font-size:.68rem;color:var(--muted);margin-bottom:4px">Kepala SPPG,</div>
+            <div class="doc-pp-sig-line"></div>
+            <div class="doc-pp-sig-name">${kepalaName}</div>
+            <div class="doc-pp-sig-nip">${kepalaNip}</div>
+          </div>
+        </div>
+      </div>`;
+  } else if (type === 'data') {
+    title = 'Pratinjau Cetak Data Penerima';
+    bodyHtml = `
+      <div class="doc-preview-page">
+        <div class="doc-pp-header">
+          ${logoSrc ? '<img class="doc-pp-logo" src="'+logoSrc+'" alt="Logo">' : ''}
+          <div class="doc-pp-instansi">DATA PENERIMA MBG</div>
+          <div class="doc-pp-alamat">${instansiName} ${sppgId !== '-' ? '| '+sppgId : ''}</div>
+        </div>
+        <div class="doc-pp-body">
+          <table class="doc-pp-table">
+            <tr><th>No</th><th>Nama</th><th>NIK</th><th>Usia</th><th>JK</th><th>Kategori</th></tr>
+            <tr><td>1</td><td>Contoh Nama</td><td>3201xxxxx</td><td>3 th</td><td>L</td><td>Balita</td></tr>
+            <tr><td>2</td><td>Contoh Nama</td><td>3201xxxxx</td><td>8 th</td><td>P</td><td>Anak Sekolah</td></tr>
+            <tr><td>3</td><td>Contoh Nama</td><td>3201xxxxx</td><td>25 th</td><td>P</td><td>Ibu Hamil</td></tr>
+            <tr><td>4</td><td>Contoh Nama</td><td>3201xxxxx</td><td>5 th</td><td>L</td><td>Balita</td></tr>
+            <tr><td>5</td><td>Contoh Nama</td><td>3201xxxxx</td><td>10 th</td><td>P</td><td>Anak Sekolah</td></tr>
+          </table>
+          <div style="text-align:center;margin-top:12px;font-size:.68rem;color:var(--muted)">Dicetak pada: ${new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+        </div>
+        <div class="doc-pp-footer">
+          <div class="doc-pp-sig">
+            <div style="font-size:.68rem;color:var(--muted);margin-bottom:4px">Petugas Pendata,</div>
+            <div class="doc-pp-sig-line"></div>
+            <div class="doc-pp-sig-name">( ........................ )</div>
+          </div>
+          <div class="doc-pp-sig">
+            <div style="font-size:.68rem;color:var(--muted);margin-bottom:4px">Kepala SPPG,</div>
+            <div class="doc-pp-sig-line"></div>
+            <div class="doc-pp-sig-name">${kepalaName}</div>
+            <div class="doc-pp-sig-nip">${kepalaNip}</div>
+          </div>
+        </div>
+      </div>`;
+  } else if (type === 'laporan') {
+    title = 'Pratinjau Laporan Rekapitulasi';
+    bodyHtml = `
+      <div class="doc-preview-page">
+        <div class="doc-pp-header">
+          ${logoSrc ? '<img class="doc-pp-logo" src="'+logoSrc+'" alt="Logo">' : ''}
+          <div class="doc-pp-instansi">LAPORAN REKAPITULASI</div>
+          <div class="doc-pp-alamat">Program Makan Bergizi Gratis - ${instansiName}</div>
+        </div>
+        <div class="doc-pp-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
+            <div style="background:var(--primary-l);padding:10px;border-radius:8px;text-align:center"><div style="font-size:.65rem;color:var(--muted)">Total Penerima</div><div style="font-size:1.1rem;font-weight:800;color:var(--primary)">55</div></div>
+            <div style="background:var(--secondary-l);padding:10px;border-radius:8px;text-align:center"><div style="font-size:.65rem;color:var(--muted)">Balita</div><div style="font-size:1.1rem;font-weight:800;color:var(--success)">20</div></div>
+            <div style="background:rgba(245,158,11,.1);padding:10px;border-radius:8px;text-align:center"><div style="font-size:.65rem;color:var(--muted)">Sekolah</div><div style="font-size:1.1rem;font-weight:800;color:var(--warn)">25</div></div>
+          </div>
+          <table class="doc-pp-table">
+            <tr><th>Instansi</th><th>PIC</th><th>Balita</th><th>Sekolah</th><th>Lainnya</th><th>Total</th></tr>
+            <tr><td>Posyandu A</td><td>PIC A</td><td>10</td><td>5</td><td>2</td><td>17</td></tr>
+            <tr><td>SDN 01</td><td>PIC B</td><td>0</td><td>15</td><td>3</td><td>18</td></tr>
+            <tr><td>Posyandu B</td><td>PIC C</td><td>10</td><td>5</td><td>5</td><td>20</td></tr>
+            <tr style="font-weight:700;background:var(--primary-l)"><td colspan="2">Total</td><td>20</td><td>25</td><td>10</td><td>55</td></tr>
+          </table>
+        </div>
+        <div class="doc-pp-footer">
+          <div class="doc-pp-sig">
+            <div style="font-size:.68rem;color:var(--muted);margin-bottom:4px">Akuntan,</div>
+            <div class="doc-pp-sig-line"></div>
+            <div class="doc-pp-sig-name">${akuntanName}</div>
+            <div class="doc-pp-sig-nip">${akuntanNip}</div>
+          </div>
+          <div class="doc-pp-sig">
+            <div style="font-size:.68rem;color:var(--muted);margin-bottom:4px">Kepala SPPG,</div>
+            <div class="doc-pp-sig-line"></div>
+            <div class="doc-pp-sig-name">${kepalaName}</div>
+            <div class="doc-pp-sig-nip">${kepalaNip}</div>
+          </div>
+        </div>
+      </div>`;
+  }
+  container.innerHTML = `
+    <div class="doc-preview-modal-overlay" onclick="if(event.target===this)closeDocPreviewModal()">
+      <div class="doc-preview-modal">
+        <div class="doc-preview-modal-hd">
+          <h3>${title}</h3>
+          <button class="doc-preview-modal-close" onclick="closeDocPreviewModal()"><i class="ph ph-x"></i></button>
+        </div>
+        <div class="doc-preview-modal-bd">${bodyHtml}</div>
+      </div>
+    </div>`;
+}
+function closeDocPreviewModal() {
+  const container = document.getElementById('docPreviewModalContainer');
+  if (container) container.innerHTML = '';
+}
 function loadSignatureSettings() {
   google.script.run.withSuccessHandler(res => {
     SIG = res;
@@ -2840,6 +3810,9 @@ function loadSignatureSettings() {
     document.getElementById('yayasanName').value   = res.yayasanName || '';
     updateHeaderInfo();
     updateLogoPreview(res.logoBase64 || '');
+    updateDocCompletion();
+    const saveStatus = document.getElementById('docSaveStatus');
+    if (saveStatus) { saveStatus.innerHTML = '<i class="ph ph-check-circle me-1"></i>Tersimpan'; saveStatus.classList.add('saved'); }
   }).getSignatureSettings();
 }
 
@@ -2867,16 +3840,22 @@ function updateLogoPreview(base64) {
   const preview = document.getElementById('logoPreview');
   const placeholder = document.getElementById('logoPlaceholder');
   const btnRemove = document.getElementById('btnRemoveLogo');
+  const logoArea = document.getElementById('docLogoArea');
+  const logoFileName = document.getElementById('docLogoFileName');
   if(base64) {
     preview.src = base64;
     preview.style.display = 'block';
     placeholder.style.display = 'none';
-    btnRemove.style.display = 'inline-block';
+    btnRemove.style.display = 'flex';
+    if (logoArea) logoArea.classList.add('has-logo');
+    if (logoFileName) logoFileName.textContent = 'Logo terupload';
   } else {
     preview.src = '';
     preview.style.display = 'none';
     placeholder.style.display = 'flex';
     btnRemove.style.display = 'none';
+    if (logoArea) logoArea.classList.remove('has-logo');
+    if (logoFileName) logoFileName.textContent = 'Belum ada logo';
   }
 }
 function handleLogoUpload(input) {
@@ -3198,8 +4177,8 @@ setInterval(function() {
       .withSuccessHandler(res => {
         if (res && res.success && res.schedule) {
           setMaintenanceScheduleCache(res.schedule);
-          document.getElementById('maintStartTime').value = res.schedule.startTime || '';
-          document.getElementById('maintEndTime').value = res.schedule.endTime || '';
+          var ___ms = safeEl('maintStartTime'); if (___ms) ___ms.value = res.schedule.startTime || '';
+          var ___me = safeEl('maintEndTime'); if (___me) ___me.value = res.schedule.endTime || '';
           updateMaintenanceScheduleStatus();
           checkMaintenanceSchedule();
         }
@@ -3223,30 +4202,55 @@ function processLogin() {
   const u = document.getElementById('loginUser').value.trim();
   const p = document.getElementById('loginPass').value;
   if(!u || !p) { Swal.fire('Info','Isi username dan password','info'); return; }
-  google.script.run.withSuccessHandler(res => {
-    if(res.success) {
-      currentPass = p;
-      currentUser = u;
-      isAdmin = true;
-      sessionStorage.setItem('mbg_admin_user', u);
-      sessionStorage.setItem('mbg_admin_pass', p);
-      sessionStorage.setItem('mbg_admin_in', '1');
-      const cb = document.getElementById('rememberMe');
-      if(cb && cb.checked) {
-        localStorage.setItem('mbg_remember_user', u);
-        localStorage.setItem('mbg_remember_me', '1');
-        localStorage.setItem('mbg_remember_pass', btoa(p));
+  const loginBtn = document.querySelector('#modalLogin .btn-prim');
+  if(loginBtn) { loginBtn.disabled = true; loginBtn.innerHTML = '<i class="ph ph-spinner-gap" style="animation:spin .8s linear infinite"></i> Memverifikasi...'; }
+  google.script.run
+    .withSuccessHandler(res => {
+      if(loginBtn) { loginBtn.disabled = false; loginBtn.innerHTML = '<i class="ph ph-sign-in"></i>MASUK SISTEM'; }
+      if(res && res.success) {
+        currentPass = p;
+        currentUser = u;
+        isAdmin = true;
+        sessionStorage.setItem('mbg_admin_user', u);
+        sessionStorage.setItem('mbg_admin_pass', p);
+        sessionStorage.setItem('mbg_admin_in', '1');
+        const cb = document.getElementById('rememberMe');
+        if(cb && cb.checked) {
+          localStorage.setItem('mbg_remember_user', u);
+          localStorage.setItem('mbg_remember_me', '1');
+          localStorage.setItem('mbg_remember_pass', btoa(p));
+        } else {
+          localStorage.removeItem('mbg_remember_user');
+          localStorage.removeItem('mbg_remember_me');
+          localStorage.removeItem('mbg_remember_pass');
+        }
+        const m = bootstrap.Modal.getInstance(document.getElementById('modalLogin'));
+        if(m) m.hide();
+        enterAdminPanel(false);
+        Swal.fire({icon:'success',title:'Welcome Admin!',timer:900,showConfirmButton:false});
       } else {
-        localStorage.removeItem('mbg_remember_user');
-        localStorage.removeItem('mbg_remember_me');
-        localStorage.removeItem('mbg_remember_pass');
+        const errMsg = (res && res.message) ? res.message : 'Username atau Password Salah!';
+        notify.error(errMsg || 'Username atau Password Salah!');
+        var _lp = safeEl('loginPass'); if (_lp) { _lp.focus(); _lp.select(); }
       }
-      const m = bootstrap.Modal.getInstance(document.getElementById('modalLogin'));
-      if(m) m.hide();
-      enterAdminPanel(false);
-      Swal.fire({icon:'success',title:'Welcome Admin!',timer:900,showConfirmButton:false});
-    } else Swal.fire('Error', res.message, 'error');
-  }).adminLogin(u, p);
+    })
+    .withFailureHandler(err => {
+      if(loginBtn) { loginBtn.disabled = false; loginBtn.innerHTML = '<i class="ph ph-sign-in"></i>MASUK SISTEM'; }
+      Swal.fire({
+        icon: 'error',
+        title: '<i class="ph ph-wifi-x"></i> Koneksi Gagal',
+        html: 'Tidak dapat terhubung ke server.<br><small style="color:#6b7280">Periksa koneksi internet Anda dan coba lagi.</small>',
+        confirmButtonText: '<i class="ph ph-arrows-clockwise me-1"></i>Coba Lagi',
+        confirmButtonColor: '#6366f1',
+        showCloseButton: true,
+        allowEscapeKey: true,
+        didOpen: () => {
+          var b = Swal.getConfirmButton();
+          if(b) b.addEventListener('click', () => setTimeout(processLogin, 50));
+        }
+      });
+    })
+    .adminLogin(u, p);
 }
 function enterAdminPanel(fromRefresh) {
   document.getElementById('userApp').classList.add('d-none');
@@ -4055,7 +5059,7 @@ function _showUploadConfirmation(dataToSend, dupErrorsPre, otherErrorsPre, insta
 
       const totalProcessed = res.successCount + (res.skippedCount || 0) + res.failCount;
       Swal.fire({
-        title: 'Upload Selesai',
+        title: '<i class="ph ph-cloud-check"></i> Upload Selesai',
         html: html,
         icon: res.failCount > 0 ? 'warning' : 'success',
         confirmButtonText: 'Tutup',
@@ -4182,9 +5186,21 @@ function checkAgeCategoryRule() {
 }
 function checkDup(nik, excludeRow, excludeId, instansi) {
   const s = document.getElementById('nikStatus');
-  s.innerHTML = `<small class="text-primary"><i class="ph ph-spinner-gap"></i> Memeriksa...</small>`;
+  s.innerHTML = `<small class="text-primary"><i class="ph ph-spinner-gap" style="animation:spin .8s linear infinite"></i> Memeriksa...</small>`;
   google.script.run.withSuccessHandler(r => {
-    if(r.isDuplicate && r.instansi && r.instansi.length) { document.getElementById('nik').classList.add('is-invalid'); s.innerHTML = `<div class="alert alert-danger d-flex align-items-center p-2 mt-1"><i class="ph ph-warning-circle fs-5 me-2 flex-shrink-0"></i><div><strong>Duplikat!</strong> Terdaftar di: <strong>${esc(r.instansi.join(', '))}</strong></div></div>`; }
+    if(r.isDuplicate && r.instansi && r.instansi.length) {
+      document.getElementById('nik').classList.add('is-invalid');
+      s.innerHTML = `<small class="text-danger fw-bold"><i class="ph ph-warning-circle"></i> Duplikat!</small>`;
+      Swal.fire({
+        icon: 'error',
+        title: '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><i class="ph ph-warning-octagon" style="color:#ef4444;font-size:1.5rem;animation:shakeX 0.5s ease;"></i><span>ID Duplikat</span></div>',
+        html: `<div style="text-align:left;font-size:0.9rem;"><p>ID ini sudah terdaftar di:</p><div style="background:rgba(239,68,68,0.06);padding:10px 14px;border-radius:10px;border:1px solid rgba(239,68,68,0.2);">${r.instansi.map(inst => `<div style="display:flex;align-items:center;gap:8px;padding:3px 0;"><i class="ph ph-buildings" style="color:#ef4444;"></i><strong>${esc(inst)}</strong></div>`).join('')}</div></div>`,
+        showCloseButton: true,
+        confirmButtonText: '<i class="ph ph-check"></i> Mengerti',
+        confirmButtonColor: '#ef4444',
+        customClass: { popup: 'nik-duplikat-popup' }
+      });
+    }
     else { s.innerHTML = `<small class="text-success fw-bold"><i class="ph ph-check-circle"></i> ID Valid & Unik</small>`; }
   }).cekNikGanda(nik, excludeRow, excludeId, instansi);
 }
@@ -4241,7 +5257,13 @@ function prosesNIK() {
     setTimeout(() => document.getElementById('tglLahir').focus(), 300);
     return;
   }
-  if (nikStr.length !== 16) { s.innerHTML = `<small class="text-danger">ID harus 16 digit (NIK), 10 digit (NISN), atau 18 digit (NIP)</small>`; nik.classList.add('is-invalid'); return; }
+  if (nikStr.length !== 16) {
+    s.innerHTML = `<small class="text-danger"><i class="ph ph-warning"></i> ID harus 16 digit (NIK), 10 digit (NISN), atau 18 digit (NIP)</small>`;
+    nik.classList.add('is-invalid');
+    nik.style.animation = 'shakeX 0.5s ease';
+    setTimeout(() => { nik.style.animation = ''; }, 500);
+    return;
+  }
   let d = parseInt(nikStr.substring(6,8)), m = parseInt(nikStr.substring(8,10)), y = nikStr.substring(10,12);
   let jk = 'PRIA';
   if (d > 40) { d -= 40; jk = 'WANITA'; }
@@ -4251,7 +5273,25 @@ function prosesNIK() {
   hitungUsia(); syncJumlah();
   s.innerHTML = `<small class="text-primary"><i class="ph ph-spinner-gap"></i> Cek duplikat...</small>`;
   google.script.run.withSuccessHandler(r => {
-    if (r.isDuplicate && r.instansi && r.instansi.length) { nik.classList.add('is-invalid'); s.innerHTML = `<div class="alert alert-danger p-2 mt-1"><i class="ph ph-warning-circle me-1"></i><strong>NIK Duplikat!</strong> NIK ini sudah terdaftar di: ${esc(r.instansi.join(', '))}.<br><small>Nomor identitas harus unik untuk setiap individu.</small></div>`; }
+    if (r.isDuplicate && r.instansi && r.instansi.length) {
+      nik.classList.add('is-invalid');
+      s.innerHTML = `<small class="text-danger fw-bold"><i class="ph ph-warning-circle"></i> NIK Duplikat!</small>`;
+      Swal.fire({
+        icon: 'error',
+        title: '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><i class="ph ph-warning-octagon" style="color:#ef4444;font-size:1.6rem;animation:shakeX 0.5s ease;"></i><span>NIK Duplikat Terdeteksi</span></div>',
+        html: `<div style="text-align:left;font-size:0.92rem;line-height:1.7;">
+          <p style="margin-bottom:10px;">NIK <strong>${esc(nikStr)}</strong> sudah terdaftar di:</p>
+          <div style="background:rgba(239,68,68,0.06);padding:12px 16px;border-radius:10px;border:1px solid rgba(239,68,68,0.2);">
+            ${r.instansi.map(inst => `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;"><i class="ph ph-buildings" style="color:#ef4444;"></i><strong>${esc(inst)}</strong></div>`).join('')}
+          </div>
+          <p style="margin-top:12px;font-size:0.82rem;color:#6b7280;"><i class="ph ph-info"></i> Nomor identitas harus unik untuk setiap individu.</p>
+        </div>`,
+        showCloseButton: true,
+        confirmButtonText: '<i class="ph ph-check"></i> Mengerti',
+        confirmButtonColor: '#ef4444',
+        customClass: { popup: 'nik-duplikat-popup' }
+      });
+    }
     else { s.innerHTML = `<small class="text-success fw-bold"><i class="ph ph-check-circle"></i> NIK Aman - Tidak ada duplikat</small>`; }
   }).cekNikGanda(nikStr, null, '', instansi);
 }
@@ -4278,7 +5318,13 @@ function prosesNIK_Edit() {
     s.innerHTML = `<small class="text-info"><i class="ph ph-info"></i> Terdeteksi NISN</small><br><small class="text-muted"><i class="ph ph-calendar"></i> Pilih <strong>Tanggal Lahir</strong> untuk mengisi usia otomatis</small>`; 
     return; 
   }
-  if (nikStr.length !== 16) { s.innerHTML = `<small class="text-danger">ID harus 16 digit (NIK) atau 10 digit (NISN) atau 18 digit (NIP)</small>`; nik.classList.add('is-invalid'); return; }
+  if (nikStr.length !== 16) {
+    s.innerHTML = `<small class="text-danger"><i class="ph ph-warning"></i> ID harus 16 digit (NIK), 10 digit (NISN), atau 18 digit (NIP)</small>`;
+    nik.classList.add('is-invalid');
+    nik.style.animation = 'shakeX 0.5s ease';
+    setTimeout(() => { nik.style.animation = ''; }, 500);
+    return;
+  }
   let d = parseInt(nikStr.substring(6,8)), m = parseInt(nikStr.substring(8,10)), y = nikStr.substring(10,12);
   let jk = 'PRIA';
   if (d > 40) { d -= 40; jk = 'WANITA'; }
@@ -4289,7 +5335,24 @@ function prosesNIK_Edit() {
   if (nikStr === origNikEdit) { s.innerHTML = `<small class="text-success fw-bold"><i class="ph ph-check-circle"></i> NIK Tidak Berubah</small>`; return; }
   s.innerHTML = `<small class="text-primary"><i class="ph ph-spinner-gap"></i> Cek duplikat...</small>`;
   google.script.run.withSuccessHandler(r => {
-    if (r.isDuplicate && r.instansi && r.instansi.length) { nik.classList.add('is-invalid'); s.innerHTML = `<div class="alert alert-danger p-2 mt-1"><i class="ph ph-warning-circle me-1"></i><strong>NIK Duplikat!</strong> NIK ini sudah terdaftar di: ${esc(r.instansi.join(', '))}.<br><small>Nomor identitas harus unik untuk setiap individu.</small></div>`; }
+    if (r.isDuplicate && r.instansi && r.instansi.length) {
+      nik.classList.add('is-invalid');
+      s.innerHTML = `<small class="text-danger fw-bold"><i class="ph ph-warning-circle"></i> NIK Duplikat!</small>`;
+      Swal.fire({
+        icon: 'error',
+        title: '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><i class="ph ph-warning-octagon" style="color:#ef4444;font-size:1.6rem;animation:shakeX 0.5s ease;"></i><span>NIK Duplikat Terdeteksi</span></div>',
+        html: `<div style="text-align:left;font-size:0.92rem;line-height:1.7;">
+          <p>NIK <strong>${esc(nikStr)}</strong> sudah terdaftar di:</p>
+          <div style="background:rgba(239,68,68,0.06);padding:12px 16px;border-radius:10px;border:1px solid rgba(239,68,68,0.2);">
+            ${r.instansi.map(inst => `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;"><i class="ph ph-buildings" style="color:#ef4444;"></i><strong>${esc(inst)}</strong></div>`).join('')}
+          </div>
+        </div>`,
+        showCloseButton: true,
+        confirmButtonText: '<i class="ph ph-check"></i> Mengerti',
+        confirmButtonColor: '#ef4444',
+        customClass: { popup: 'nik-duplikat-popup' }
+      });
+    }
     else { s.innerHTML = `<small class="text-success fw-bold"><i class="ph ph-check-circle"></i> NIK Aman - Tidak ada duplikat</small>`; }
   }).cekNikGanda(nikStr, rowIndex, origNikEdit, instansi);
 }
@@ -4403,9 +5466,7 @@ function simpan() {
  * Dipanggil oleh simpan() jika valid, atau oleh Swal.then() jika user memilih "Lanjutkan Simpan".
  */
 function _proceedSimpan(instansi, pic, noHp, email, btn) {
-  if(!email) { Swal.fire('Info','Email wajib diisi','info'); document.getElementById('emailPelapor').focus(); return; }
-  // Validasi format email sederhana
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { Swal.fire('Info','Format email tidak valid','info'); document.getElementById('emailPelapor').focus(); return; }
+  if(email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { Swal.fire('Info','Format email tidak valid','info'); document.getElementById('emailPelapor').focus(); return; }
   
   const data = { 
     nama: document.getElementById('nama').value.trim(), 
@@ -4443,9 +5504,16 @@ function _proceedSimpan(instansi, pic, noHp, email, btn) {
       const ketVal = document.getElementById('ket') ? document.getElementById('ket').value : '';
       const histEntry = { type:'add', nama: namaVal, nik: data.nik||'', instansi: instVal, pic: picVal, kategori: ketVal, timestamp: new Date().toISOString() };
       if (typeof _riwayatCache !== 'undefined') { _riwayatCache.push(histEntry); }
-      Swal.fire({icon:'success',title:'Berhasil!',text:r.message,timer:1500,showConfirmButton:false});
+      Swal.fire({
+        icon: 'success',
+        title: '<div style="display:flex;align-items:center;gap:10px;"><i class="ph ph-check-circle" style="color:#16a34a;"></i><span>Data Tersimpan!</span></div>',
+        text: r.message,
+        timer: 1500,
+        showConfirmButton: false,
+        customClass: { popup: 'nik-warning-popup' }
+      });
       const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true });
-      Toast.fire({ icon: 'success', title: '✅ Data ' + data.nama + ' berhasil ditambahkan' });
+      Toast.fire({ icon: 'success', title: data.nama + ' berhasil ditambahkan' });
       // Reset form
       document.getElementById('nik').value = ''; document.getElementById('nama').value = ''; document.getElementById('tglLahir').value = ''; document.getElementById('usia').value = ''; document.getElementById('jk').value = ''; document.getElementById('ket').value = ''; document.getElementById('namaOrangTua').value = ''; document.getElementById('alamat').value = ''; document.getElementById('nikStatus').innerHTML = ''; document.getElementById('jumlahSection').classList.add('d-none'); document.querySelectorAll('.al-chk').forEach(c => c.checked = false); document.getElementById('alergiNote').value = '';
       refreshSummary();
@@ -4464,29 +5532,33 @@ function cekNikKosongPadaData(data, instansi, pic) {
   const recordsKosong = data.filter(item => !item.nik || item.nik.trim() === '');
   if (recordsKosong.length > 0) {
     let namaListHtml = '';
-    recordsKosong.forEach((item) => { namaListHtml += `<li><strong>${esc(item.nama || 'Tanpa Nama')}</strong> <span class="badge bg-light text-muted border" style="font-size:0.7em">${esc(item.ket || item.kategori || '-')}</span></li>`; });
+    recordsKosong.forEach((item) => {
+      namaListHtml += `<li style="padding:8px 12px;margin-bottom:6px;background:rgba(239,68,68,0.06);border-radius:8px;border-left:3px solid #ef4444;display:flex;align-items:center;gap:8px;"><i class="ph ph-user-circle" style="color:#ef4444;font-size:1.2rem;flex-shrink:0;"></i><div><strong>${esc(item.nama || 'Tanpa Nama')}</strong><br><span class="badge" style="font-size:0.65em;background:rgba(99,102,241,0.1);color:#6366f1;border:1px solid rgba(99,102,241,0.2)">${esc(item.ket || item.kategori || '-')}</span></div></li>`;
+    });
     Swal.fire({
       icon: 'warning',
-      title: '<i class="ph ph-warning-circle"></i> Data Belum Lengkap',
-      html: `<div style="text-align:left; font-size:0.95rem;">
-        <p class="mb-2">Ditemukan <strong>${recordsKosong.length} data</strong> pada:</p>
-        <p><strong>Instansi:</strong> ${esc(instansi)}<br><strong>PIC Kader:</strong> ${esc(pic)}</p>
-        <p class="fw-bold small text-muted">Data berikut <strong>belum memiliki NIK / NISN / NIP</strong> :</p>
-        <div style="max-height:300px; overflow-y:auto; background:var(--input); padding:12px; border-radius:8px; border:1px solid var(--border);">
-          <ul style="margin:0; padding-left:20px; line-height:1.6;">${namaListHtml}</ul>
+      title: '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><i class="ph ph-warning-circle" style="color:#f59e0b;font-size:1.6rem;animation:iconBounce 1s ease infinite;"></i><span>NIK Belum Lengkap</span></div>',
+      html: `<div style="text-align:left; font-size:0.92rem; line-height:1.7;">
+        <div style="background:linear-gradient(135deg,rgba(245,158,11,0.08),rgba(239,68,68,0.05));padding:12px 16px;border-radius:12px;margin-bottom:14px;border:1px solid rgba(245,158,11,0.2);">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><i class="ph ph-buildings" style="color:#6366f1;"></i><strong>${esc(instansi)}</strong></div>
+          <div style="display:flex;align-items:center;gap:8px;"><i class="ph ph-user-focus" style="color:#6366f1;"></i><strong>PIC:</strong> ${esc(pic)}</div>
         </div>
-        <div class="mt-3 p-2 bg-warning bg-opacity-10 border border-warning rounded text-dark small">
-          <i class="ph ph-info"></i> Silakan klik tombol <strong>Edit</strong> (ikon pensil) pada tab <strong>Data Masuk</strong> untuk melengkapi NIK.
+        <p style="margin-bottom:10px;"><i class="ph ph-warning" style="color:#f59e0b;"></i> <strong>${recordsKosong.length} data</strong> belum memiliki NIK / NISN / NIP:</p>
+        <div style="max-height:280px; overflow-y:auto; padding:8px; border-radius:12px; border:1px solid var(--border); background:var(--card);">
+          <ul style="margin:0; padding:0; list-style:none;">${namaListHtml}</ul>
+        </div>
+        <div style="margin-top:14px;padding:10px 14px;background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.15);border-radius:10px;font-size:0.82rem;color:#4b5563;">
+          <i class="ph ph-pencil-simple" style="color:#6366f1;"></i> Klik tombol <strong>Edit</strong> (ikon pensil) pada tab <strong>Data Masuk</strong> untuk melengkapi NIK.
         </div>
       </div>`,
-      width: '700px',
-      showCloseButton: false,
-      confirmButtonText: 'Tutup',
-      confirmButtonColor: '#ef4444',
-      allowOutsideClick: false,
-      allowEscapeKey: false,
+      width: '580px',
+      showCloseButton: true,
+      confirmButtonText: '<i class="ph ph-check"></i> Mengerti',
+      confirmButtonColor: '#6366f1',
+      allowOutsideClick: true,
+      allowEscapeKey: true,
       allowEnterKey: false,
-      backdrop: true,
+      backdrop: 'rgba(0,0,0,0.5)',
       customClass: { popup: 'nik-warning-popup' }
     });
     return true;
@@ -5860,7 +6932,7 @@ function changeAdminCredentials() {
 function saveSignatureSettings() {
   const data={kepalaName:document.getElementById('kepalaName').value,kepalaNip:document.getElementById('kepalaNip').value,akuntanName:document.getElementById('akuntanName').value,akuntanNip:document.getElementById('akuntanNip').value,sppgId:document.getElementById('sppgId').value,instansiName:document.getElementById('instansiName').value,instansiAddress:document.getElementById('instansiAddress').value,instansiPhone:document.getElementById('instansiPhone').value,instansiEmail:document.getElementById('instansiEmail').value,yayasanName:document.getElementById('yayasanName').value,logoBase64:SIG.logoBase64||''};
   google.script.run.withSuccessHandler(r=>{
-    if(r.success){SIG={...SIG,...data};updateHeaderInfo();Swal.fire({icon:'success',title:'Berhasil',timer:1500,showConfirmButton:false});}
+    if(r.success){SIG={...SIG,...data};updateHeaderInfo();Swal.fire({icon:'success',title:'Berhasil',timer:1500,showConfirmButton:false});const ss=document.getElementById('docSaveStatus');if(ss){ss.innerHTML='<i class="ph ph-check-circle me-1"></i>Tersimpan';ss.classList.add('saved');}updateDocCompletion();}
     else Swal.fire('Gagal',r.message,'error');
   }).saveSignatureSettings(data,currentPass);
 }
@@ -6743,6 +7815,42 @@ function renderRiwayat(type) {
   }).getRiwayat(currentPass, 'all', 500);
 }
 
+// Format timestamp ke "Senin 30/07/2026 04:50:00"
+function formatRiwayatTimestamp(h) {
+  const DAYS_ID = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  // Coba dari h.timestamp (ISO string dari local cache) dulu
+  let d = null;
+  if (h.timestamp) {
+    const t = new Date(h.timestamp);
+    if (!isNaN(t.getTime())) d = t;
+  }
+  // Fallback ke h.tsDisplay dari server (format: "30 Jul 2026 04:50")
+  if (!d && h.tsDisplay) {
+    // tsDisplay dari GAS: "30 Jul 2026 04:50" atau "30 Jul 2026 04:50:00"
+    const raw = h.tsDisplay.trim();
+    const parts = raw.split(' ');
+    if (parts.length >= 4) {
+      const monthMapTs = {Jan:'01',Feb:'02',Mar:'03',Apr:'04',May:'05',Jun:'06',Jul:'07',Aug:'08',Sep:'09',Oct:'10',Nov:'11',Dec:'12'};
+      const dd = parts[0].padStart(2,'0');
+      const mm = monthMapTs[parts[1]] || '??';
+      const yyyy = parts[2];
+      const hhmm = parts[3]; // "04:50" atau "04:50:00"
+      const parsed = new Date(`${yyyy}-${mm}-${dd}T${hhmm.length === 5 ? hhmm + ':00' : hhmm}+07:00`);
+      if (!isNaN(parsed.getTime())) d = parsed;
+    }
+  }
+  if (!d) return h.tsDisplay || '';
+  // Format ke lokal WIB manual agar konsisten
+  const dayName = DAYS_ID[d.getDay()];
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const yyyy = d.getFullYear();
+  const hh = String(d.getHours()).padStart(2,'0');
+  const min = String(d.getMinutes()).padStart(2,'0');
+  const ss = String(d.getSeconds()).padStart(2,'0');
+  return `${dayName} ${dd}-${mm}-${yyyy} ${hh}:${min}:${ss} Wib`;
+}
+
 function renderRiwayatFromCache(type) {
   const el = document.getElementById('riwayatContainer');
   const countEl = document.getElementById('riwayatCount');
@@ -6760,42 +7868,141 @@ function renderRiwayatFromCache(type) {
   }
 
   const iconMap = { add: 'ph-plus-circle', del: 'ph-minus-circle', mod: 'ph-pencil-simple' };
+
   const html = hist.map(h => {
     const icon = iconMap[h.type] || 'ph-info';
     const typeClass = h.type || 'add';
+    const tsStr = formatRiwayatTimestamp(h);
+    const instansi = (h.instansi || '').trim();
+    const pic = (h.pic || '').trim();
+    const ctxStr = (instansi && pic) ? `${instansi} - ${pic}` : (instansi || pic || '');
+    const nik = (h.nik && h.nik !== '-') ? h.nik.trim() : '';
+    const kat = (h.kategori && h.kategori !== '-') ? h.kategori.trim() : '';
+    let mainHtml = '';
+    let detailBlock = '';
 
-    let mainLabel = '';
-    if (h.type === 'mod' && h.keterangan) {
-      // Tampilkan perubahan detail dari server (sudah berisi before > after)
-      mainLabel = '* Diubah: ' + h.keterangan;
+    if (h.type === 'mod') {
+      // ---- FORMAT UBAH ----
+      // Contoh: Aldi Ermawan -> Aldi Hermawan, ID. 360xxx, Kat. SMA. (SMA PUSAT - MILASARI) 04-08-2026 03:00:34 Wib
+      const parts = (h.keterangan && h.keterangan !== '-' && !h.keterangan.startsWith('Data diperbarui'))
+        ? h.keterangan.split('|').map(s => s.trim()).filter(Boolean) : [];
+      const namaChangePart = parts.find(p => p.toLowerCase().startsWith('nama:'));
+      let namaLama = '', namaBaru = '';
+      if (namaChangePart) {
+        const val = namaChangePart.replace(/^nama:\s*/i, '').trim();
+        const arrowIdx = val.indexOf(' > ');
+        if (arrowIdx > -1) {
+          namaLama = val.substring(0, arrowIdx).trim();
+          namaBaru = val.substring(arrowIdx + 3).trim();
+        }
+      }
+      if (!namaLama && !namaBaru) namaBaru = esc(h.nama || '(tanpa nama)');
+
+      // Bangun baris utama
+      let line = '';
+      if (namaLama) {
+        line += `<span class="rw-name-old">${esc(namaLama)}</span><span class="rw-arrow">-></span><span class="rw-name">${esc(namaBaru)}</span>`;
+      } else {
+        line += `<span class="rw-name">${esc(namaBaru)}</span>`;
+      }
+      if (nik) line += `<span class="rw-sep">,</span> ID. <span class="rw-nik">${esc(nik)}</span>`;
+      if (kat) line += `<span class="rw-sep">,</span> Kat. <span class="rw-kat mod">${esc(kat)}</span>`;
+      if (ctxStr) line += `<span class="rw-sep">.</span> <span class="rw-ctx">(${esc(ctxStr)})</span>`;
+      if (tsStr) line += ` <span class="rw-time">${esc(tsStr)}</span>`;
+      mainHtml = `<div class="riwayat-main">${line}</div>`;
+
+      // Detail: perubahan field lain (selain nama)
+      if (parts.length > 0) {
+        const detailParts = parts.filter(p => !p.toLowerCase().startsWith('nama:')).map(p => {
+          const colonIdx = p.indexOf(':');
+          if (colonIdx > -1) {
+            const field = p.substring(0, colonIdx).trim();
+            const val = p.substring(colonIdx + 1).trim();
+            const arrowIdx = val.indexOf(' > ');
+            if (arrowIdx > -1) {
+              const dari = val.substring(0, arrowIdx).trim();
+              const ke = val.substring(arrowIdx + 3).trim();
+              return `<span style="opacity:.7">${esc(field)}:</span> ` +
+                     `<span style="text-decoration:line-through;opacity:.55">${esc(dari)}</span>` +
+                     ` <i class="ph ph-arrow-right" style="font-size:.7em;opacity:.5"></i> ` +
+                     `<span class="chg">${esc(ke)}</span>`;
+            }
+            return `<span style="opacity:.7">${esc(field)}:</span> <span class="chg">${esc(val)}</span>`;
+          }
+          return esc(p);
+        });
+        if (detailParts.length) detailBlock = `<div class="riwayat-detail">${detailParts.join(' &nbsp;·&nbsp; ')}</div>`;
+      }
+
+    } else if (h.type === 'del') {
+      // ---- FORMAT HAPUS ----
+      // Contoh: dihapus - Aldi Hermawan, ID. 360xxx, Kat. SMA. (SMA PUSAT - MILASARI) 04-08-2026 04:00:34 Wib
+      let line = `<span style="color:#dc2626;font-weight:600">dihapus</span><span class="rw-sep"> -</span> <span class="rw-name">${esc(h.nama || '(tanpa nama)')}</span>`;
+      if (nik) line += `<span class="rw-sep">,</span> ID. <span class="rw-nik">${esc(nik)}</span>`;
+      if (kat) line += `<span class="rw-sep">,</span> Kat. <span class="rw-kat del">${esc(kat)}</span>`;
+      if (ctxStr) line += `<span class="rw-sep">.</span> <span class="rw-ctx">(${esc(ctxStr)})</span>`;
+      if (tsStr) line += ` <span class="rw-time">${esc(tsStr)}</span>`;
+      mainHtml = `<div class="riwayat-main">${line}</div>`;
+
     } else {
-      const prefix = h.type === 'add' ? '+' : h.type === 'del' ? '-' : '*';
-      const action = h.type === 'add' ? 'Ditambah' : h.type === 'del' ? 'Dihapus' : 'Diubah';
-      const namePart = esc(h.nama || '(tanpa nama)');
-      mainLabel = prefix + ' ' + action + ': ' + namePart;
+      // ---- FORMAT TAMBAH ----
+      // Contoh: + Aldi Hermawan, ID. 360xxx, Kat. SMA. (SMA PUSAT - MILASARI) 04-08-2026 03:30:34 Wib
+      let line = `<span style="color:#059669;font-weight:700">+</span> <span class="rw-name">${esc(h.nama || '(tanpa nama)')}</span>`;
+      if (nik) line += `<span class="rw-sep">,</span> ID. <span class="rw-nik">${esc(nik)}</span>`;
+      if (kat) line += `<span class="rw-sep">,</span> Kat. <span class="rw-kat add">${esc(kat)}</span>`;
+      if (ctxStr) line += `<span class="rw-sep">.</span> <span class="rw-ctx">(${esc(ctxStr)})</span>`;
+      if (tsStr) line += ` <span class="rw-time">${esc(tsStr)}</span>`;
+      mainHtml = `<div class="riwayat-main">${line}</div>`;
     }
 
-    const ctxParts = [];
-    if (h.instansi) ctxParts.push('<strong>' + esc(h.instansi) + '</strong>');
-    if (h.kategori && h.kategori !== '-') ctxParts.push(esc(h.kategori));
-    if (h.nik && h.nik !== '-') ctxParts.push('ID: ' + esc(h.nik));
-    if (h.pic) ctxParts.push('PIC: ' + esc(h.pic));
-    if (h.tsDisplay) ctxParts.push('<i class="ph ph-clock" style="font-size:.7rem;opacity:.6"></i> ' + esc(h.tsDisplay));
-    const ctxLine = ctxParts.length > 0 ? ctxParts.join(' <span style="opacity:.35;margin:0 2px">·</span> ') : '';
-
-    return '<div class="riwayat-item">' +
-      '<div class="riwayat-icon ' + typeClass + '"><i class="ph ' + icon + '"></i></div>' +
-      '<div class="riwayat-body">' +
-        '<div class="riwayat-label ' + typeClass + '">' + mainLabel + '</div>' +
-        (ctxLine ? '<div class="riwayat-detail">' + ctxLine + '</div>' : '') +
-      '</div>' +
-    '</div>';
+    return `<div class="riwayat-item">` +
+      `<div class="riwayat-icon ${typeClass}"><i class="ph ${icon}"></i></div>` +
+      `<div class="riwayat-body">` +
+        mainHtml +
+        detailBlock +
+      `</div>` +
+    `</div>`;
   }).join('');
+
   el.innerHTML = html;
 }
 
 // Init theme
 loadTheme();
 </script>
+
+<script>
+/* =========================================================
+   GLOBAL ERROR HANDLER — tangkap runtime error → notify.toast
+   ========================================================= */
+(function(){
+  var lastError = null, throttle = 0;
+  function showError(msg){
+    var now = Date.now();
+    if (msg === lastError && (now - throttle) < 3000) return; // anti-spam
+    lastError = msg; throttle = now;
+    try {
+      if (typeof Swal !== 'undefined' && Swal.isVisible && Swal.isVisible()) return;
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          toast: true, position: 'top-end', icon: 'error',
+          title: 'Terjadi kesalahan: ' + msg.substring(0, 120),
+          showConfirmButton: false, timer: 4000, timerProgressBar: true
+        });
+      }
+    } catch(e){}
+  }
+  window.addEventListener('error', function(ev){
+    showError((ev && ev.message) ? ev.message : 'Unknown error');
+  });
+  window.addEventListener('unhandledrejection', function(ev){
+    var m = (ev && ev.reason && (ev.reason.message || ev.reason.toString)) || 'Promise error';
+    showError('Async: ' + m);
+  });
+})();
+</script>
+
+
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79"}' crossorigin="anonymous"></script>
 </body>
 </html>
