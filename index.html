@@ -158,7 +158,7 @@
     // 1) GANTI URL INI dengan URL Web App hasil Deploy Apps Script kamu
     //    (Deploy > New deployment > Web app > Execute as: Me > Who has access: Anyone > /exec)
     //    Hanya dipakai saat file ini berjalan di LUAR Apps Script (Blogger/Netlify).
-    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxbEKMwB6F94IGTi7rio2Ov8_qn0AoWw3pSmzYKsmlfq0kU5Cfw7DX2GcMaqczDk9Om/exec';
+    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxdX-vxTLZ52iO00aJ13m_vOvXT3krF1fMM37argW3qv-iHWJPCNK94v8r2hGXAtaQH/exec';
 
     // 2) Peta nama fungsi server -> urutan nama parameter,
     //    HARUS SAMA PERSIS dengan switch(action) di Code.gs (doPost)
@@ -996,6 +996,15 @@ const notify = {
     .doc-pp-sig-line{width:100px;height:1px;background:var(--text);margin:40px auto 4px}
     .doc-pp-sig-name{font-size:.75rem;font-weight:600}
     .doc-pp-sig-nip{font-size:.65rem;color:var(--muted)}
+
+    .doc-preview-modal-toolbar{display:flex;gap:8px;padding:10px 20px;border-bottom:1px solid var(--border);background:var(--input)}
+    .doc-tb-btn{display:inline-flex;align-items:center;gap:5px;padding:8px 16px;border:none;border-radius:var(--r-md);font-size:.75rem;font-weight:600;cursor:pointer;transition:all .2s}
+    .doc-tb-btn i{font-size:.9rem}
+    .doc-tb-download{background:var(--primary);color:#fff}
+    .doc-tb-download:hover{background:var(--primary-dark);transform:translateY(-1px);box-shadow:0 4px 12px rgba(99,102,241,.35)}
+    .doc-tb-print{background:var(--card);color:var(--text);border:1px solid var(--border)}
+    .doc-tb-print:hover{border-color:var(--primary);color:var(--primary);transform:translateY(-1px)}
+    .doc-preview-modal{max-width:620px}
     /* Responsive Dokumen */
     @media(max-width:768px){
       .doc-hero{padding:22px 18px;border-radius:var(--r-lg)}
@@ -3870,179 +3879,364 @@ function updateDocBadges() {
   const badgeSigner = document.getElementById('docBadgeSigner');
   if (badgeSigner) badgeSigner.textContent = signerFilled + '/4 terisi';
 }
+// ============================================================
+// DOWNLOAD DOKUMEN ASLI (buka di tab baru, bisa print/save PDF)
+// ============================================================
+function downloadDocAsFile(type) {
+  if (!allAdminData || !allAdminData.length) {
+    if(typeof notify!=='undefined') notify.warning('Tidak ada data. Tambahkan data terlebih dahulu.');
+    else Swal.fire('Info','Tidak ada data','info');
+    return;
+  }
+  var s = SIG || {};
+  var logoSrc = s.logoBase64 || '';
+  var instansiName = s.instansiName || 'Nama Instansi';
+  var yayasanName = s.yayasanName || 'Nama Yayasan';
+  var address = s.instansiAddress || 'Alamat belum diisi';
+  var phone = s.instansiPhone || '-';
+  var email = s.instansiEmail || '-';
+  var sppgId = s.sppgId || '-';
+  var kepalaName = s.kepalaName || '.........................';
+  var kepalaNip = s.kepalaNip || 'NIP: ..................';
+  var akuntanName = s.akuntanName || '.........................';
+  var akuntanNip = s.akuntanNip || 'NIP: ..................';
+  var tanggal = new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+  var tanggalLengkap = new Date().toLocaleString('id-ID');
+
+  var kopHtml = '<div style="text-align:center;border-bottom:3px double #1e293b;padding-bottom:14px;margin-bottom:20px">'
+    + (logoSrc ? '<img src="'+logoSrc+'" style="width:70px;height:70px;object-fit:contain;margin-bottom:8px;display:block;margin-left:auto;margin-right:auto" alt="Logo">' : '')
+    + '<h2 style="margin:0;font-size:16px;color:#1e293b;letter-spacing:1px">'+esc(instansiName).toUpperCase()+'</h2>'
+    + (yayasanName !== 'Nama Yayasan' ? '<p style="margin:2px 0 0;font-size:11px;color:#475569;text-transform:uppercase;letter-spacing:.5px">'+esc(yayasanName).toUpperCase()+'</p>' : '')
+    + '<p style="margin:4px 0 0;font-size:11px;color:#64748b">'+esc(address)+'</p>'
+    + '<p style="margin:2px 0 0;font-size:10px;color:#94a3b8">Telp: '+esc(phone)+' | Email: '+esc(email)+'</p>'
+    + '</div>';
+
+  var sigHtml = function(lLabel,lName,lNip,rLabel,rName,rNip) {
+    return '<div style="display:flex;justify-content:space-between;margin-top:50px;font-size:12px">'
+      +'<div style="text-align:center;width:45%"><div style="color:#64748b;margin-bottom:52px">'+lLabel+'</div>'
+      +'<div style="border-top:1.5px solid #1e293b;padding-top:6px"><strong>'+esc(lName)+'</strong><br><span style="color:#94a3b8;font-size:11px">'+esc(lNip)+'</span></div></div>'
+      +'<div style="text-align:center;width:45%"><div style="color:#64748b;margin-bottom:52px">'+rLabel+'</div>'
+      +'<div style="border-top:1.5px solid #1e293b;padding-top:6px"><strong>'+esc(rName)+'</strong><br><span style="color:#94a3b8;font-size:11px">'+esc(rNip)+'</span></div></div></div>';
+  };
+
+  var footerHtml = '<p style="margin-top:20px;text-align:center;font-size:9px;color:#94a3b8;border-top:1px solid #e2e8f0;padding-top:8px">Dokumen dicetak otomatis oleh Sistem Pendataan MBG &bull; '+tanggalLengkap+'</p>';
+
+  var baseStyle = '*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,Helvetica,sans-serif;margin:20px;color:#1e293b;font-size:12px;line-height:1.5}'
+    +'table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid #cbd5e1;padding:6px 8px;text-align:left}'
+    +'th{background:#475569;color:#fff;font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:.3px}'
+    +'tr:nth-child(even){background:#f8fafc}.stat-box{text-align:center;border:1px solid #e2e8f0;border-radius:8px;padding:10px}'
+    +'.stat-num{font-size:22px;font-weight:800;color:#4f46e5}.stat-lbl{font-size:10px;color:#64748b;text-transform:uppercase;margin-top:2px}'
+    +'@media print{body{margin:0}@page{margin:15mm 12mm}}';
+
+  var title = '', bodyContent = '';
+
+  if (type === 'surat') {
+    title = 'Surat Keterangan - ' + instansiName;
+    var suratNo = sppgId !== '-' ? sppgId : '........./SPPG/2025';
+    var dataRows = allAdminData.slice(0, 100).map(function(item, i) {
+      return '<tr><td style="text-align:center">'+(i+1)+'</td><td>'+esc(item.nama)+'</td><td>'+(item.nik||'-')+'</td><td>'+(item.usia||'-')+'</td><td>'+(item.jk==='PRIA'?'L':'P')+'</td><td>'+esc(item.kategori||item.ket||'-')+'</td></tr>';
+    }).join('');
+    bodyContent = kopHtml
+      + '<div style="text-align:right;font-size:11px;margin-bottom:14px;color:#64748b">Nomor: '+suratNo+'</div>'
+      + '<h3 style="text-align:center;font-size:14px;margin-bottom:16px;color:#1e293b;letter-spacing:.5px">SURAT KETERANGAN</h3>'
+      + '<p style="text-align:justify;font-size:12px;line-height:1.8;margin-bottom:16px">Yang bertanda tangan di bawah ini, Kepala '+esc(instansiName)
+      + ', dengan ini menerangkan bahwa data penerima program <strong>Makan Bergizi Gratis (MBG)</strong> pada instansi kami'
+      + ' telah terverifikasi dan tercatat dengan baik dalam sistem pendataan. Adapun data penerima tersebut adalah sebagai berikut:</p>'
+      + '<p style="margin-bottom:12px">Total Penerima: <strong>'+allAdminData.length+' Jiwa</strong></p>'
+      + '<table><thead><tr><th style="width:5%">No</th><th style="width:25%">Nama Lengkap</th><th style="width:18%">NIK/NISN</th><th style="width:10%">Usia</th><th style="width:7%">JK</th><th>Kategori</th></tr></thead>'
+      + '<tbody>'+dataRows+'</tbody></table>'
+      + (allAdminData.length > 100 ? '<p style="margin-top:8px;font-size:10px;color:#94a3b8">* Menampilkan 100 data pertama dari total '+allAdminData.length+' data</p>' : '')
+      + '<p style="text-align:justify;font-size:12px;line-height:1.8;margin-top:16px">Demikian surat keterangan ini dibuat untuk dapat dipergunakan sebagaimana mestinya.</p>'
+      + sigHtml('Akuntan,', akuntanName, akuntanNip, 'Kepala SPPG,', kepalaName, kepalaNip)
+      + footerHtml;
+
+  } else if (type === 'invoice') {
+    title = 'Invoice Honor - ' + instansiName;
+    var POS = ['BUMIL','BUSUI','BALITA','ATS'];
+    var cPos=0, cSek=0, catDet = {};
+    allAdminData.forEach(function(item) {
+      var cat = item.kategori||item.ket||'Lainnya';
+      catDet[cat] = (catDet[cat]||0) + 1;
+      if(POS.some(function(p){return (item.kategori||item.ket||'').toUpperCase().includes(p);})) cPos++; else cSek++;
+    });
+    var rPos = (typeof SYS!=='undefined'&&SYS.posyanduRate) ? parseInt(SYS.posyanduRate) : 1000;
+    var t1A = (typeof SYS!=='undefined'&&SYS.sekolahTier1Amount) ? parseInt(SYS.sekolahTier1Amount) : 20000;
+    var t2A = (typeof SYS!=='undefined'&&SYS.sekolahTier2Amount) ? parseInt(SYS.sekolahTier2Amount) : 50000;
+    var t3A = (typeof SYS!=='undefined'&&SYS.sekolahTier3Amount) ? parseInt(SYS.sekolahTier3Amount) : 75000;
+    var days = typeof getPeriodDays==='function' ? getPeriodDays() : 1;
+    var hPos = cPos > 0 ? cPos * rPos * days : 0;
+    var sh = cSek <= 500 ? t1A : cSek <= 1000 ? t2A : t3A;
+    var hSek = cSek > 0 ? sh * days : 0;
+    var total = hPos + hSek;
+    var rp = function(n) { return 'Rp ' + (n||0).toLocaleString('id-ID'); };
+    var invNo = 'INV/' + (instansiName||'SPPG').replace(/[^A-Za-z0-9]/g,'').substring(0,8).toUpperCase() + '/' + new Date().toISOString().slice(0,10).replace(/-/g,'');
+    var catKeys = Object.keys(catDet).sort();
+    var catRows = catKeys.map(function(cat, i) {
+      return '<tr><td>'+(i+1)+'</td><td>'+esc(cat)+'</td><td style="text-align:center;font-weight:600">'+catDet[cat]+'</td><td style="text-align:right">&mdash;</td></tr>';
+    }).join('');
+    bodyContent = kopHtml
+      + '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">'
+      + '<div><div style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:4px">Ditagihkan Kepada</div>'
+      + '<div style="font-weight:700;font-size:14px">'+esc(instansiName)+'</div><div style="font-size:11px;color:#64748b">Program MBG</div></div>'
+      + '<div style="text-align:right"><div style="display:inline-block;background:#4f46e5;color:#fff;font-weight:700;font-size:13px;letter-spacing:1px;padding:6px 16px;border-radius:6px">INVOICE HONOR</div>'
+      + '<div style="font-size:10px;color:#94a3b8;margin-top:6px;font-family:monospace">'+esc(invNo)+'</div></div></div>'
+      + '<div style="background:#f1f5f9;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:11px;display:flex;justify-content:space-between;border-left:4px solid #4f46e5">'
+      + '<div><strong>Periode:</strong> '+tanggal+'</div><div><strong>Dicetak:</strong> '+tanggalLengkap+'</div></div>'
+      + '<table><thead><tr><th style="width:5%">No</th><th>Kategori</th><th style="width:15%;text-align:center">Jumlah</th><th style="width:20%;text-align:right">Keterangan</th></tr></thead><tbody>'
+      + catRows
+      + (cPos>0 ? '<tr style="background:#f0fdf4"><td>'+(catKeys.length+1)+'</td><td style="font-weight:700;color:#047857">Kelompok Posyandu</td><td style="text-align:center;font-weight:700">'+cPos+'</td><td style="text-align:right;font-size:10px">'+cPos+' x '+rp(rPos)+' x '+days+' hari</td></tr>' : '')
+      + (cSek>0 ? '<tr style="background:#fffbeb"><td>'+(catKeys.length+(cPos>0?2:1))+'</td><td style="font-weight:700;color:#92400e">Kelompok Sekolah/Ponpes</td><td style="text-align:center;font-weight:700">'+cSek+'</td><td style="text-align:right;font-size:10px">Tarif Tier ('+cSek+' jiwa) x '+days+' hari</td></tr>' : '')
+      + '<tr style="font-weight:800;background:#eef2ff"><td colspan="2" style="text-align:right;font-size:12px">GRAND TOTAL</td><td style="text-align:center;font-size:13px;color:#4f46e5">'+(cPos+cSek)+'</td><td style="text-align:right;font-size:14px;color:#4f46e5">'+rp(total)+'</td></tr>'
+      + '</tbody></table>'
+      + '<div style="margin-top:14px;padding:10px 14px;background:#fffbeb;border-radius:8px;border:1px dashed #f59e0b;font-size:11px;color:#78350f">'
+      + '<strong>Terbilang:</strong> <em>'+(typeof numToWords==='function'?numToWords(total):total+' Rupiah')+' Rupiah</em></div>'
+      + sigHtml('Mengetahui,\nKepala SPPG', kepalaName, 'NIP. '+kepalaNip, 'Menyetujui,\nAkuntan', akuntanName, 'NIP. '+akuntanNip)
+      + footerHtml;
+
+  } else if (type === 'data') {
+    title = 'Data Penerima MBG - ' + instansiName;
+    var dataRows = allAdminData.map(function(item, i) {
+      return '<tr><td style="text-align:center">'+(i+1)+'</td><td>'+esc(item.nama)+'</td><td>'+(item.nik||'-')+'</td><td>'+(item.usia||'-')+'</td><td style="text-align:center">'+(item.jk==='PRIA'?'L':'P')+'</td><td>'+esc(item.kategori||item.ket||'-')+'</td><td>'+(item.instansi||'-')+'</td><td>'+(item.pic||'-')+'</td></tr>';
+    }).join('');
+    var totalP = allAdminData.filter(function(d){return (d.jk||'').toUpperCase()==='PRIA';}).length;
+    var totalW = allAdminData.filter(function(d){return (d.jk||'').toUpperCase()==='WANITA';}).length;
+    bodyContent = kopHtml
+      + '<h3 style="text-align:center;font-size:14px;margin-bottom:6px">DATA PENERIMA PROGRAM MBG</h3>'
+      + '<p style="text-align:center;font-size:11px;color:#64748b;margin-bottom:14px">'+(sppgId !== '-' ? 'ID: '+esc(sppgId)+' | ' : '')+'Dicetak: '+tanggal+'</p>'
+      + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">'
+      + '<div class="stat-box"><div class="stat-num">'+allAdminData.length+'</div><div class="stat-lbl">Total Penerima</div></div>'
+      + '<div class="stat-box"><div class="stat-num" style="color:#3b82f6">'+totalP+'</div><div class="stat-lbl">Laki-laki</div></div>'
+      + '<div class="stat-box"><div class="stat-num" style="color:#ec4899">'+totalW+'</div><div class="stat-lbl">Perempuan</div></div>'
+      + '<div class="stat-box"><div class="stat-num" style="color:#f59e0b">'+new Set(allAdminData.map(function(d){return d.instansi;}).filter(function(i){return i;})).size+'</div><div class="stat-lbl">Instansi</div></div>'
+      + '</div>'
+      + '<table><thead><tr><th style="width:4%">No</th><th style="width:20%">Nama</th><th style="width:14%">NIK/NISN</th><th style="width:8%">Usia</th><th style="width:5%">JK</th><th style="width:12%">Kategori</th><th>Instansi</th><th>PIC</th></tr></thead>'
+      + '<tbody>'+dataRows+'</tbody></table>'
+      + sigHtml('Petugas Pendata,', '........................', '', 'Kepala SPPG,', kepalaName, 'NIP. '+kepalaNip)
+      + footerHtml;
+
+  } else if (type === 'laporan') {
+    title = 'Laporan Rekapitulasi MBG - ' + instansiName;
+    var instansiMap = {};
+    allAdminData.forEach(function(item) {
+      var key = item.instansi || 'Tidak Diketahui';
+      if (!instansiMap[key]) instansiMap[key] = { pic: item.pic||'-', cats: {}, total: 0 };
+      instansiMap[key].total++;
+      var cat = item.kategori||item.ket||'Lainnya';
+      instansiMap[key].cats[cat] = (instansiMap[key].cats[cat]||0) + 1;
+    });
+    var totalP = allAdminData.filter(function(d){return (d.jk||'').toUpperCase()==='PRIA';}).length;
+    var totalW = allAdminData.filter(function(d){return (d.jk||'').toUpperCase()==='WANITA';}).length;
+    var uniqueKategori = []; var katSet = {};
+    allAdminData.forEach(function(d){var k=d.kategori||d.ket||'Lainnya'; if(!katSet[k]){katSet[k]=1;uniqueKategori.push(k);}});
+    uniqueKategori.sort();
+    var instKeys = Object.keys(instansiMap).sort();
+    var rekapRows = instKeys.map(function(inst, i) {
+      var d = instansiMap[inst];
+      var catCells = uniqueKategori.map(function(k) { return '<td style="text-align:center">'+(d.cats[k]||0)+'</td>'; }).join('');
+      return '<tr><td style="text-align:center">'+(i+1)+'</td><td style="font-weight:600">'+esc(inst)+'</td><td>'+esc(d.pic)+'</td>'+catCells+'<td style="text-align:center;font-weight:700">'+d.total+'</td></tr>';
+    }).join('');
+    var grandCells = uniqueKategori.map(function(k) {
+      var c = allAdminData.filter(function(d){return (d.kategori||d.ket||'Lainnya')===k;}).length;
+      return '<td style="text-align:center;font-weight:700">'+c+'</td>';
+    }).join('');
+    var katHeaders = uniqueKategori.map(function(k) { return '<th style="text-align:center">'+esc(k)+'</th>'; }).join('');
+    bodyContent = kopHtml
+      + '<h3 style="text-align:center;font-size:14px;margin-bottom:6px">LAPORAN REKAPITULASI</h3>'
+      + '<p style="text-align:center;font-size:11px;color:#64748b;margin-bottom:14px">Program Makan Bergizi Gratis - '+esc(instansiName)+'</p>'
+      + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">'
+      + '<div class="stat-box"><div class="stat-num">'+allAdminData.length+'</div><div class="stat-lbl">Total Penerima</div></div>'
+      + '<div class="stat-box"><div class="stat-num" style="color:#3b82f6">'+totalP+'</div><div class="stat-lbl">Laki-laki</div></div>'
+      + '<div class="stat-box"><div class="stat-num" style="color:#ec4899">'+totalW+'</div><div class="stat-lbl">Perempuan</div></div>'
+      + '<div class="stat-box"><div class="stat-num" style="color:#f59e0b">'+instKeys.length+'</div><div class="stat-lbl">Instansi</div></div>'
+      + '</div>'
+      + '<table><thead><tr><th style="width:4%">No</th><th style="width:18%">Instansi</th><th style="width:12%">PIC</th>'+katHeaders+'<th style="width:8%;text-align:center">Total</th></tr></thead>'
+      + '<tbody>'+rekapRows
+      + '<tr style="font-weight:800;background:#eef2ff"><td colspan="3" style="text-align:right">GRAND TOTAL</td>'+grandCells+'<td style="text-align:center;font-size:13px;color:#4f46e5">'+allAdminData.length+'</td></tr>'
+      + '</tbody></table>'
+      + sigHtml('Akuntan,', akuntanName, 'NIP. '+akuntanNip, 'Kepala SPPG,', kepalaName, 'NIP. '+kepalaNip)
+      + footerHtml;
+  }
+
+  var fullHtml = '<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><title>'+title+'</title><style>'+baseStyle+'</style></head><body>'+bodyContent+'</body></html>';
+  var w = window.open('', '_blank');
+  if (w) { w.document.write(fullHtml); w.document.close(); setTimeout(function(){ try{w.print();}catch(e){} }, 800); }
+  else { if(typeof notify!=='undefined') notify.error('Pop-up diblokir. Izinkan pop-up untuk mengunduh dokumen.'); else Swal.fire('Error','Pop-up diblokir','error'); }
+}
+
+
 function openDocPreviewModal(type) {
-  const container = document.getElementById('docPreviewModalContainer');
+  var container = document.getElementById('docPreviewModalContainer');
   if (!container) return;
-  const s = SIG || {};
-  const logoSrc = s.logoBase64 || '';
-  const instansiName = s.instansiName || 'Nama Instansi';
-  const yayasanName = s.yayasanName || 'Nama Yayasan';
-  const address = s.instansiAddress || 'Alamat belum diisi';
-  const phone = s.instansiPhone || '-';
-  const email = s.instansiEmail || '-';
-  const sppgId = s.sppgId || '-';
-  const kepalaName = s.kepalaName || '.........................';
-  const kepalaNip = s.kepalaNip || 'NIP: ..................';
-  const akuntanName = s.akuntanName || '.........................';
-  const akuntanNip = s.akuntanNip || 'NIP: ..................';
-  let title = '', bodyHtml = '';
+  var s = SIG || {};
+  var logoSrc = s.logoBase64 || '';
+  var instansiName = s.instansiName || 'Nama Instansi';
+  var yayasanName = s.yayasanName || 'Nama Yayasan';
+  var address = s.instansiAddress || 'Alamat belum diisi';
+  var phone = s.instansiPhone || '-';
+  var email = s.instansiEmail || '-';
+  var sppgId = s.sppgId || '-';
+  var kepalaName = s.kepalaName || '.........................';
+  var kepalaNip = s.kepalaNip || 'NIP: ..................';
+  var akuntanName = s.akuntanName || '.........................';
+  var akuntanNip = s.akuntanNip || 'NIP: ..................';
+  var tanggal = new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+  var title = '', bodyHtml = '';
+  var hasData = allAdminData && allAdminData.length > 0;
+
   if (type === 'surat') {
     title = 'Pratinjau Surat Resmi';
-    bodyHtml = `
-      <div class="doc-preview-page">
-        <div class="doc-pp-header">
-          ${logoSrc ? '<img class="doc-pp-logo" src="'+logoSrc+'" alt="Logo">' : '<div class="doc-pp-logo" style="display:flex;align-items:center;justify-content:center"><i class="ph ph-image" style="font-size:1.5rem;color:var(--light)"></i></div>'}
-          <div class="doc-pp-instansi">${instansiName.toUpperCase()}</div>
-          ${yayasanName !== 'Nama Yayasan' ? '<div style="font-size:.72rem;color:var(--muted);margin-top:1px">'+yayasanName.toUpperCase()+'</div>' : ''}
-          <div class="doc-pp-alamat">${address}</div>
-          <div style="font-size:.65rem;color:var(--muted);margin-top:4px">Telp: ${phone} | Email: ${email}</div>
-        </div>
-        <div class="doc-pp-body">
-          <div style="text-align:right;font-size:.72rem;margin-bottom:16px;color:var(--muted)">Nomor: ${sppgId !== '-' ? sppgId : '...........'}</div>
-          <div class="doc-pp-title">SURAT KETERANGAN</div>
-          <div style="font-size:.75rem;line-height:1.7;color:var(--text);text-align:justify">
-            Yang bertanda tangan di bawah ini, Kepala ${instansiName}, dengan ini menerangkan bahwa data penerima program Makan Bergizi Gratis (MBG) pada instansi kami telah terverifikasi dan tercatat dengan baik dalam sistem pendataan.
-          </div>
-          <div style="margin-top:16px">
-            <table class="doc-pp-table">
-              <tr><th>No</th><th>Nama</th><th>NIK</th><th>Kategori</th></tr>
-              <tr><td>1</td><td>Contoh Nama</td><td>3201xxxxx</td><td>Balita</td></tr>
-              <tr><td>2</td><td>Contoh Nama</td><td>3201xxxxx</td><td>Anak Sekolah</td></tr>
-              <tr><td>3</td><td>Contoh Nama</td><td>3201xxxxx</td><td>Ibu Hamil</td></tr>
-            </table>
-          </div>
-        </div>
-        <div class="doc-pp-footer">
-          <div class="doc-pp-sig">
-            <div style="font-size:.68rem;color:var(--muted);margin-bottom:4px">Akuntan,</div>
-            <div class="doc-pp-sig-line"></div>
-            <div class="doc-pp-sig-name">${akuntanName}</div>
-            <div class="doc-pp-sig-nip">${akuntanNip}</div>
-          </div>
-          <div class="doc-pp-sig">
-            <div style="font-size:.68rem;color:var(--muted);margin-bottom:4px">Kepala SPPG,</div>
-            <div class="doc-pp-sig-line"></div>
-            <div class="doc-pp-sig-name">${kepalaName}</div>
-            <div class="doc-pp-sig-nip">${kepalaNip}</div>
-          </div>
-        </div>
-      </div>`;
+    var previewData = hasData ? allAdminData.slice(0, 5) : [
+      {nama:'Contoh Nama', nik:'3201xxxxx', kategori:'Balita', usia:'3 th', jk:'PRIA'},
+      {nama:'Contoh Nama', nik:'3201xxxxx', kategori:'Anak Sekolah', usia:'8 th', jk:'WANITA'},
+      {nama:'Contoh Nama', nik:'3201xxxxx', kategori:'Ibu Hamil', usia:'25 th', jk:'WANITA'}
+    ];
+    var dataRows = previewData.map(function(item, i) {
+      return '<tr><td style="text-align:center">'+(i+1)+'</td><td>'+esc(item.nama)+'</td><td>'+(item.nik||'-')+'</td><td>'+(item.usia||'-')+'</td><td>'+(item.jk==='PRIA'?'L':'P')+'</td><td>'+esc(item.kategori||item.ket||'-')+'</td></tr>';
+    }).join('');
+    bodyHtml = '<div class="doc-preview-page">'
+      + '<div class="doc-pp-header">'
+      + (logoSrc ? '<img class="doc-pp-logo" src="'+logoSrc+'" alt="Logo">' : '<div class="doc-pp-logo" style="display:flex;align-items:center;justify-content:center"><i class="ph ph-image" style="font-size:1.5rem;color:var(--muted)"></i></div>')
+      + '<div class="doc-pp-instansi">'+instansiName.toUpperCase()+'</div>'
+      + (yayasanName !== 'Nama Yayasan' ? '<div style="font-size:.72rem;color:var(--muted);margin-top:1px">'+yayasanName.toUpperCase()+'</div>' : '')
+      + '<div class="doc-pp-alamat">'+address+'</div>'
+      + '<div style="font-size:.65rem;color:var(--muted);margin-top:4px">Telp: '+phone+' | Email: '+email+'</div>'
+      + '</div>'
+      + '<div class="doc-pp-body">'
+      + '<div style="text-align:right;font-size:.72rem;margin-bottom:16px;color:var(--muted)">Nomor: '+(sppgId !== '-' ? sppgId : '...........')+'</div>'
+      + '<div class="doc-pp-title">SURAT KETERANGAN</div>'
+      + '<div style="font-size:.75rem;line-height:1.7;color:var(--text);text-align:justify">Yang bertanda tangan di bawah ini, Kepala '+esc(instansiName)+', dengan ini menerangkan bahwa data penerima program Makan Bergizi Gratis (MBG) pada instansi kami telah terverifikasi dan tercatat dengan baik dalam sistem pendataan.</div>'
+      + '<div style="margin-top:12px;font-size:.75rem">Total Penerima: <strong>'+(hasData ? allAdminData.length : '0')+' Jiwa</strong></div>'
+      + '<div style="margin-top:8px"><table class="doc-pp-table"><tr><th>No</th><th>Nama</th><th>NIK</th><th>Usia</th><th>JK</th><th>Kategori</th></tr>'+dataRows+'</table>'
+      + (hasData && allAdminData.length > 5 ? '<div style="text-align:center;margin-top:6px;font-size:.65rem;color:var(--muted)">+ '+(allAdminData.length - 5)+' data lainnya (download untuk melihat semua)</div>' : '')
+      + '</div>'
+      + '<div class="doc-pp-footer">'
+      + '<div class="doc-pp-sig"><div style="font-size:.68rem;color:var(--muted);margin-bottom:4px">Akuntan,</div><div class="doc-pp-sig-line"></div><div class="doc-pp-sig-name">'+akuntanName+'</div><div class="doc-pp-sig-nip">'+akuntanNip+'</div></div>'
+      + '<div class="doc-pp-sig"><div style="font-size:.68rem;color:var(--muted);margin-bottom:4px">Kepala SPPG,</div><div class="doc-pp-sig-line"></div><div class="doc-pp-sig-name">'+kepalaName+'</div><div class="doc-pp-sig-nip">'+kepalaNip+'</div></div>'
+      + '</div></div>';
+
   } else if (type === 'invoice') {
     title = 'Pratinjau Invoice / Kwitansi';
-    bodyHtml = `
-      <div class="doc-preview-page">
-        <div class="doc-pp-header">
-          ${logoSrc ? '<img class="doc-pp-logo" src="'+logoSrc+'" alt="Logo">' : ''}
-          <div class="doc-pp-instansi">INVOICE</div>
-          <div class="doc-pp-alamat">${instansiName} ${sppgId !== '-' ? '| '+sppgId : ''}</div>
-        </div>
-        <div class="doc-pp-body">
-          <div style="display:flex;justify-content:space-between;margin-bottom:12px;font-size:.72rem">
-            <div><strong>Ditujukan:</strong><br>Program MBG<br>${yayasanName !== 'Nama Yayasan' ? yayasanName : ''}</div>
-            <div style="text-align:right"><strong>Tanggal:</strong><br>${new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}<br>No: INV-${sppgId !== '-' ? sppgId : '001'}</div>
-          </div>
-          <table class="doc-pp-table">
-            <tr><th>No</th><th>Uraian</th><th>Jumlah</th></tr>
-            <tr><td>1</td><td>Penerimaan Balita (15 orang x Rp15.000)</td><td style="text-align:right">Rp 225.000</td></tr>
-            <tr><td>2</td><td>Penerimaan Anak Sekolah (30 orang x Rp15.000)</td><td style="text-align:right">Rp 450.000</td></tr>
-            <tr><td>3</td><td>Penerimaan Ibu Hamil (10 orang x Rp15.000)</td><td style="text-align:right">Rp 150.000</td></tr>
-            <tr style="font-weight:700;background:var(--primary-l)"><td colspan="2" style="text-align:right">Total</td><td style="text-align:right;color:var(--primary)">Rp 825.000</td></tr>
-          </table>
-        </div>
-        <div class="doc-pp-footer">
-          <div></div>
-          <div class="doc-pp-sig">
-            <div style="font-size:.68rem;color:var(--muted);margin-bottom:4px">Kepala SPPG,</div>
-            <div class="doc-pp-sig-line"></div>
-            <div class="doc-pp-sig-name">${kepalaName}</div>
-            <div class="doc-pp-sig-nip">${kepalaNip}</div>
-          </div>
-        </div>
-      </div>`;
+    var POS = ['BUMIL','BUSUI','BALITA','ATS'];
+    var cPos=0, cSek=0, catDet = {};
+    var invoiceData = hasData ? allAdminData : [
+      {kategori:'Balita',jk:'PRIA'},{kategori:'Balita',jk:'WANITA'},
+      {kategori:'Anak Sekolah',jk:'PRIA'},{kategori:'Ibu Hamil',jk:'WANITA'}
+    ];
+    invoiceData.forEach(function(item) {
+      var cat = item.kategori||item.ket||'Lainnya';
+      catDet[cat] = (catDet[cat]||0) + 1;
+      if(POS.some(function(p){return (item.kategori||item.ket||'').toUpperCase().includes(p);})) cPos++; else cSek++;
+    });
+    var catChips = Object.keys(catDet).sort().map(function(cat) {
+      return '<span style="display:inline-block;background:var(--primary-l);color:var(--primary);font-weight:600;font-size:.68rem;padding:3px 10px;border-radius:12px;margin:2px 4px 2px 0">'+esc(cat)+' <strong>'+catDet[cat]+'</strong></span>';
+    }).join('');
+    bodyHtml = '<div class="doc-preview-page">'
+      + '<div class="doc-pp-header">'
+      + (logoSrc ? '<img class="doc-pp-logo" src="'+logoSrc+'" alt="Logo">' : '')
+      + '<div class="doc-pp-instansi">INVOICE HONOR</div>'
+      + '<div class="doc-pp-alamat">'+instansiName+(sppgId !== '-' ? ' | '+sppgId : '')+'</div>'
+      + '</div><div class="doc-pp-body">'
+      + '<div style="display:flex;justify-content:space-between;margin-bottom:12px;font-size:.72rem">'
+      + '<div><strong>Ditujukan:</strong><br>Program MBG<br>'+(yayasanName !== 'Nama Yayasan' ? yayasanName : '')+'</div>'
+      + '<div style="text-align:right"><strong>Tanggal:</strong><br>'+tanggal+'<br>No: INV-'+(sppgId !== '-' ? sppgId : '001')+'</div></div>'
+      + '<div style="margin-bottom:10px">'+catChips+'</div>'
+      + '<div style="background:var(--primary-l);border-radius:8px;padding:10px 14px;text-align:center;margin-bottom:10px">'
+      + '<div style="font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Total Penerima</div>'
+      + '<div style="font-size:1.2rem;font-weight:800;color:var(--primary)">'+(cPos+cSek)+' Jiwa</div></div>'
+      + '<table class="doc-pp-table"><tr><th>No</th><th>Kategori</th><th style="text-align:center">Jumlah</th></tr>'
+      + Object.keys(catDet).sort().map(function(cat,i){return '<tr><td>'+(i+1)+'</td><td>'+esc(cat)+'</td><td style="text-align:center;font-weight:600">'+catDet[cat]+'</td></tr>';}).join('')
+      + '<tr style="font-weight:700;background:var(--primary-l)"><td colspan="2" style="text-align:right">Total</td><td style="text-align:center;color:var(--primary)">'+(cPos+cSek)+'</td></tr>'
+      + '</table></div>'
+      + '<div class="doc-pp-footer"><div></div>'
+      + '<div class="doc-pp-sig"><div style="font-size:.68rem;color:var(--muted);margin-bottom:4px">Kepala SPPG,</div><div class="doc-pp-sig-line"></div><div class="doc-pp-sig-name">'+kepalaName+'</div><div class="doc-pp-sig-nip">'+kepalaNip+'</div></div>'
+      + '</div></div>';
+
   } else if (type === 'data') {
     title = 'Pratinjau Cetak Data Penerima';
-    bodyHtml = `
-      <div class="doc-preview-page">
-        <div class="doc-pp-header">
-          ${logoSrc ? '<img class="doc-pp-logo" src="'+logoSrc+'" alt="Logo">' : ''}
-          <div class="doc-pp-instansi">DATA PENERIMA MBG</div>
-          <div class="doc-pp-alamat">${instansiName} ${sppgId !== '-' ? '| '+sppgId : ''}</div>
-        </div>
-        <div class="doc-pp-body">
-          <table class="doc-pp-table">
-            <tr><th>No</th><th>Nama</th><th>NIK</th><th>Usia</th><th>JK</th><th>Kategori</th></tr>
-            <tr><td>1</td><td>Contoh Nama</td><td>3201xxxxx</td><td>3 th</td><td>L</td><td>Balita</td></tr>
-            <tr><td>2</td><td>Contoh Nama</td><td>3201xxxxx</td><td>8 th</td><td>P</td><td>Anak Sekolah</td></tr>
-            <tr><td>3</td><td>Contoh Nama</td><td>3201xxxxx</td><td>25 th</td><td>P</td><td>Ibu Hamil</td></tr>
-            <tr><td>4</td><td>Contoh Nama</td><td>3201xxxxx</td><td>5 th</td><td>L</td><td>Balita</td></tr>
-            <tr><td>5</td><td>Contoh Nama</td><td>3201xxxxx</td><td>10 th</td><td>P</td><td>Anak Sekolah</td></tr>
-          </table>
-          <div style="text-align:center;margin-top:12px;font-size:.68rem;color:var(--muted)">Dicetak pada: ${new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
-        </div>
-        <div class="doc-pp-footer">
-          <div class="doc-pp-sig">
-            <div style="font-size:.68rem;color:var(--muted);margin-bottom:4px">Petugas Pendata,</div>
-            <div class="doc-pp-sig-line"></div>
-            <div class="doc-pp-sig-name">( ........................ )</div>
-          </div>
-          <div class="doc-pp-sig">
-            <div style="font-size:.68rem;color:var(--muted);margin-bottom:4px">Kepala SPPG,</div>
-            <div class="doc-pp-sig-line"></div>
-            <div class="doc-pp-sig-name">${kepalaName}</div>
-            <div class="doc-pp-sig-nip">${kepalaNip}</div>
-          </div>
-        </div>
-      </div>`;
+    var previewData = hasData ? allAdminData.slice(0, 8) : [
+      {nama:'Contoh Nama', nik:'3201xxxxx', kategori:'Balita', usia:'3 th', jk:'PRIA'},
+      {nama:'Contoh Nama', nik:'3201xxxxx', kategori:'Anak Sekolah', usia:'8 th', jk:'WANITA'},
+      {nama:'Contoh Nama', nik:'3201xxxxx', kategori:'Ibu Hamil', usia:'25 th', jk:'WANITA'},
+      {nama:'Contoh Nama', nik:'3201xxxxx', kategori:'Balita', usia:'5 th', jk:'PRIA'},
+      {nama:'Contoh Nama', nik:'3201xxxxx', kategori:'Anak Sekolah', usia:'10 th', jk:'WANITA'}
+    ];
+    var dataRows = previewData.map(function(item, i) {
+      return '<tr><td>'+(i+1)+'</td><td>'+esc(item.nama)+'</td><td>'+(item.nik||'-')+'</td><td>'+(item.usia||'-')+'</td><td style="text-align:center">'+(item.jk==='PRIA'?'L':'P')+'</td><td>'+esc(item.kategori||item.ket||'-')+'</td></tr>';
+    }).join('');
+    var totalP = hasData ? allAdminData.filter(function(d){return (d.jk||'').toUpperCase()==='PRIA';}).length : 0;
+    var totalW = hasData ? allAdminData.filter(function(d){return (d.jk||'').toUpperCase()==='WANITA';}).length : 0;
+    bodyHtml = '<div class="doc-preview-page">'
+      + '<div class="doc-pp-header">'
+      + (logoSrc ? '<img class="doc-pp-logo" src="'+logoSrc+'" alt="Logo">' : '')
+      + '<div class="doc-pp-instansi">DATA PENERIMA MBG</div>'
+      + '<div class="doc-pp-alamat">'+instansiName+(sppgId !== '-' ? ' | '+sppgId : '')+'</div>'
+      + '</div><div class="doc-pp-body">'
+      + '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px">'
+      + '<div style="background:var(--primary-l);padding:8px;border-radius:8px;text-align:center"><div style="font-size:.62rem;color:var(--muted)">Total</div><div style="font-size:1rem;font-weight:800;color:var(--primary)">'+(hasData ? allAdminData.length : 0)+'</div></div>'
+      + '<div style="background:rgba(59,130,246,.1);padding:8px;border-radius:8px;text-align:center"><div style="font-size:.62rem;color:var(--muted)">Laki-laki</div><div style="font-size:1rem;font-weight:800;color:#3b82f6">'+totalP+'</div></div>'
+      + '<div style="background:rgba(236,72,153,.1);padding:8px;border-radius:8px;text-align:center"><div style="font-size:.62rem;color:var(--muted)">Perempuan</div><div style="font-size:1rem;font-weight:800;color:#ec4899">'+totalW+'</div></div>'
+      + '</div>'
+      + '<table class="doc-pp-table"><tr><th>No</th><th>Nama</th><th>NIK</th><th>Usia</th><th>JK</th><th>Kategori</th></tr>'+dataRows+'</table>'
+      + (hasData && allAdminData.length > 8 ? '<div style="text-align:center;margin-top:6px;font-size:.65rem;color:var(--muted)">+ '+(allAdminData.length - 8)+' data lainnya (download untuk melihat semua)</div>' : '')
+      + '<div style="text-align:center;margin-top:12px;font-size:.68rem;color:var(--muted)">Dicetak pada: '+new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})+'</div>'
+      + '</div>'
+      + '<div class="doc-pp-footer">'
+      + '<div class="doc-pp-sig"><div style="font-size:.68rem;color:var(--muted);margin-bottom:4px">Petugas Pendata,</div><div class="doc-pp-sig-line"></div><div class="doc-pp-sig-name">( ........................ )</div></div>'
+      + '<div class="doc-pp-sig"><div style="font-size:.68rem;color:var(--muted);margin-bottom:4px">Kepala SPPG,</div><div class="doc-pp-sig-line"></div><div class="doc-pp-sig-name">'+kepalaName+'</div><div class="doc-pp-sig-nip">'+kepalaNip+'</div></div>'
+      + '</div></div>';
+
   } else if (type === 'laporan') {
     title = 'Pratinjau Laporan Rekapitulasi';
-    bodyHtml = `
-      <div class="doc-preview-page">
-        <div class="doc-pp-header">
-          ${logoSrc ? '<img class="doc-pp-logo" src="'+logoSrc+'" alt="Logo">' : ''}
-          <div class="doc-pp-instansi">LAPORAN REKAPITULASI</div>
-          <div class="doc-pp-alamat">Program Makan Bergizi Gratis - ${instansiName}</div>
-        </div>
-        <div class="doc-pp-body">
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
-            <div style="background:var(--primary-l);padding:10px;border-radius:8px;text-align:center"><div style="font-size:.65rem;color:var(--muted)">Total Penerima</div><div style="font-size:1.1rem;font-weight:800;color:var(--primary)">55</div></div>
-            <div style="background:var(--secondary-l);padding:10px;border-radius:8px;text-align:center"><div style="font-size:.65rem;color:var(--muted)">Balita</div><div style="font-size:1.1rem;font-weight:800;color:var(--success)">20</div></div>
-            <div style="background:rgba(245,158,11,.1);padding:10px;border-radius:8px;text-align:center"><div style="font-size:.65rem;color:var(--muted)">Sekolah</div><div style="font-size:1.1rem;font-weight:800;color:var(--warn)">25</div></div>
-          </div>
-          <table class="doc-pp-table">
-            <tr><th>Instansi</th><th>PIC</th><th>Balita</th><th>Sekolah</th><th>Lainnya</th><th>Total</th></tr>
-            <tr><td>Posyandu A</td><td>PIC A</td><td>10</td><td>5</td><td>2</td><td>17</td></tr>
-            <tr><td>SDN 01</td><td>PIC B</td><td>0</td><td>15</td><td>3</td><td>18</td></tr>
-            <tr><td>Posyandu B</td><td>PIC C</td><td>10</td><td>5</td><td>5</td><td>20</td></tr>
-            <tr style="font-weight:700;background:var(--primary-l)"><td colspan="2">Total</td><td>20</td><td>25</td><td>10</td><td>55</td></tr>
-          </table>
-        </div>
-        <div class="doc-pp-footer">
-          <div class="doc-pp-sig">
-            <div style="font-size:.68rem;color:var(--muted);margin-bottom:4px">Akuntan,</div>
-            <div class="doc-pp-sig-line"></div>
-            <div class="doc-pp-sig-name">${akuntanName}</div>
-            <div class="doc-pp-sig-nip">${akuntanNip}</div>
-          </div>
-          <div class="doc-pp-sig">
-            <div style="font-size:.68rem;color:var(--muted);margin-bottom:4px">Kepala SPPG,</div>
-            <div class="doc-pp-sig-line"></div>
-            <div class="doc-pp-sig-name">${kepalaName}</div>
-            <div class="doc-pp-sig-nip">${kepalaNip}</div>
-          </div>
-        </div>
-      </div>`;
+    var instansiMap = {};
+    var rekapData = hasData ? allAdminData : [
+      {instansi:'Posyandu A', pic:'PIC A', kategori:'Balita', jk:'PRIA'},
+      {instansi:'Posyandu A', pic:'PIC A', kategori:'Balita', jk:'WANITA'},
+      {instansi:'SDN 01', pic:'PIC B', kategori:'Anak Sekolah', jk:'PRIA'},
+      {instansi:'Posyandu B', pic:'PIC C', kategori:'Ibu Hamil', jk:'WANITA'}
+    ];
+    rekapData.forEach(function(item) {
+      var key = item.instansi || 'Tidak Diketahui';
+      if (!instansiMap[key]) instansiMap[key] = { pic: item.pic||'-', cats: {}, total: 0 };
+      instansiMap[key].total++;
+      var cat = item.kategori||item.ket||'Lainnya';
+      instansiMap[key].cats[cat] = (instansiMap[key].cats[cat]||0) + 1;
+    });
+    var totalP = rekapData.filter(function(d){return (d.jk||'').toUpperCase()==='PRIA';}).length;
+    var totalW = rekapData.filter(function(d){return (d.jk||'').toUpperCase()==='WANITA';}).length;
+    var instKeys = Object.keys(instansiMap).sort();
+    var rekapRows = instKeys.slice(0, 5).map(function(inst, i) {
+      var d = instansiMap[inst];
+      var topCats = Object.keys(d.cats).sort(function(a,b){return d.cats[b]-d.cats[a];}).slice(0,2).map(function(c){return c+':'+d.cats[c];}).join(', ');
+      return '<tr><td style="text-align:center">'+(i+1)+'</td><td style="font-weight:600">'+esc(inst)+'</td><td>'+esc(d.pic)+'</td><td style="text-align:center">'+d.total+'</td><td style="font-size:.68rem;color:var(--muted)">'+topCats+'</td></tr>';
+    }).join('');
+    bodyHtml = '<div class="doc-preview-page">'
+      + '<div class="doc-pp-header">'
+      + (logoSrc ? '<img class="doc-pp-logo" src="'+logoSrc+'" alt="Logo">' : '')
+      + '<div class="doc-pp-instansi">LAPORAN REKAPITULASI</div>'
+      + '<div class="doc-pp-alamat">Program Makan Bergizi Gratis - '+instansiName+'</div>'
+      + '</div><div class="doc-pp-body">'
+      + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px">'
+      + '<div style="background:var(--primary-l);padding:10px;border-radius:8px;text-align:center"><div style="font-size:.62rem;color:var(--muted)">Total Penerima</div><div style="font-size:1.1rem;font-weight:800;color:var(--primary)">'+rekapData.length+'</div></div>'
+      + '<div style="background:rgba(59,130,246,.1);padding:10px;border-radius:8px;text-align:center"><div style="font-size:.62rem;color:var(--muted)">Laki-laki</div><div style="font-size:1.1rem;font-weight:800;color:#3b82f6">'+totalP+'</div></div>'
+      + '<div style="background:rgba(236,72,153,.1);padding:10px;border-radius:8px;text-align:center"><div style="font-size:.62rem;color:var(--muted)">Perempuan</div><div style="font-size:1.1rem;font-weight:800;color:#ec4899">'+totalW+'</div></div>'
+      + '<div style="background:rgba(245,158,11,.1);padding:10px;border-radius:8px;text-align:center"><div style="font-size:.62rem;color:var(--muted)">Instansi</div><div style="font-size:1.1rem;font-weight:800;color:var(--warn)">'+instKeys.length+'</div></div>'
+      + '</div>'
+      + '<table class="doc-pp-table"><tr><th>No</th><th>Instansi</th><th>PIC</th><th style="text-align:center">Total</th><th>Top Kategori</th></tr>'+rekapRows
+      + (instKeys.length > 5 ? '<tr><td colspan="5" style="text-align:center;font-size:.68rem;color:var(--muted)">+ '+(instKeys.length - 5)+' instansi lainnya</td></tr>' : '')
+      + '</table></div>'
+      + '<div class="doc-pp-footer">'
+      + '<div class="doc-pp-sig"><div style="font-size:.68rem;color:var(--muted);margin-bottom:4px">Akuntan,</div><div class="doc-pp-sig-line"></div><div class="doc-pp-sig-name">'+akuntanName+'</div><div class="doc-pp-sig-nip">'+akuntanNip+'</div></div>'
+      + '<div class="doc-pp-sig"><div style="font-size:.68rem;color:var(--muted);margin-bottom:4px">Kepala SPPG,</div><div class="doc-pp-sig-line"></div><div class="doc-pp-sig-name">'+kepalaName+'</div><div class="doc-pp-sig-nip">'+kepalaNip+'</div></div>'
+      + '</div></div>';
   }
-  container.innerHTML = `
-    <div class="doc-preview-modal-overlay" onclick="if(event.target===this)closeDocPreviewModal()">
-      <div class="doc-preview-modal">
-        <div class="doc-preview-modal-hd">
-          <h3>${title}</h3>
-          <button class="doc-preview-modal-close" onclick="closeDocPreviewModal()"><i class="ph ph-x"></i></button>
-        </div>
-        <div class="doc-preview-modal-bd">${bodyHtml}</div>
-      </div>
-    </div>`;
+
+  var hasDataInfo = hasData
+    ? '<span style="display:inline-flex;align-items:center;gap:4px;font-size:.7rem;color:var(--success);font-weight:600;background:var(--secondary-l);padding:3px 10px;border-radius:10px"><i class="ph ph-check-circle"></i> '+allAdminData.length+' data real</span>'
+    : '<span style="display:inline-flex;align-items:center;gap:4px;font-size:.7rem;color:var(--warn);font-weight:600;background:rgba(245,158,11,.1);padding:3px 10px;border-radius:10px"><i class="ph ph-warning"></i> Contoh (belum ada data)</span>';
+
+  container.innerHTML = '\n    <div class="doc-preview-modal-overlay" onclick="if(event.target===this)closeDocPreviewModal()">\n      <div class="doc-preview-modal" style="max-width:620px">\n        <div class="doc-preview-modal-hd">\n          <div>\n            <h3>'+title+'</h3>\n            <div style="margin-top:4px">'+hasDataInfo+'</div>\n          </div>\n          <button class="doc-preview-modal-close" onclick="closeDocPreviewModal()"><i class="ph ph-x"></i></button>\n        </div>\n        <div class="doc-preview-modal-toolbar">\n          <button class="doc-tb-btn doc-tb-download" onclick="downloadDocAsFile(\''+type+'\')"><i class="ph ph-download-simple"></i> Download Dokumen</button>\n          <button class="doc-tb-btn doc-tb-print" onclick="downloadDocAsFile(\''+type+'\')"><i class="ph ph-printer"></i> Print PDF</button>\n        </div>\n        <div class="doc-preview-modal-bd">'+bodyHtml+'</div>\n      </div>\n    </div>';
 }
+
 function closeDocPreviewModal() {
   const container = document.getElementById('docPreviewModalContainer');
   if (container) container.innerHTML = '';
