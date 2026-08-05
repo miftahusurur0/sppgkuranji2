@@ -34,6 +34,101 @@
     .nik-problem-popup .swal2-html-container { animation: fadeInUp 0.4s ease-out 0.2s both !important; }
     .swal2-popup { border-radius: 16px !important; }
     .swal2-icon { border-radius: 50% !important; }
+
+    /* === MODERNIZED DATABASE & RIWAYAT STYLES === */
+    .db-group-card{background:var(--card);border-radius:18px;border:1px solid var(--border);box-shadow:0 1px 3px rgba(0,0,0,.06),0 8px 24px -4px rgba(0,0,0,.04);overflow:hidden;transition:all .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;height:100%}
+    .db-group-card:hover{box-shadow:0 4px 12px rgba(99,102,241,.08),0 12px 32px -4px rgba(0,0,0,.06);transform:translateY(-2px)}
+    .db-group-header{position:relative;padding:20px 20px 16px;overflow:hidden}
+    .db-group-header::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(99,102,241,.95) 0%,rgba(139,92,246,.9) 100%);z-index:0}
+    .db-group-header::after{content:'';position:absolute;top:-40%;right:-20%;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.07);z-index:0}
+    .db-group-header>*{position:relative;z-index:1}
+    .db-group-avatar{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.1rem;background:rgba(255,255,255,.2);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#fff;border:1.5px solid rgba(255,255,255,.3);box-shadow:0 2px 8px rgba(0,0,0,.15);flex-shrink:0}
+    .db-group-stats{display:flex;align-items:center;gap:0;margin-top:14px;background:rgba(255,255,255,.12);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);border-radius:12px;padding:10px 0;overflow:hidden}
+    .db-group-stat{flex:1;text-align:center;padding:0 8px}
+    .db-group-stat:not(:last-child){border-right:1px solid rgba(255,255,255,.15)}
+    .db-group-stat .val{font-weight:800;font-size:1.15rem;color:#fff;line-height:1.2}
+    .db-group-stat .lbl{font-size:.62rem;font-weight:600;color:rgba(255,255,255,.75);text-transform:uppercase;letter-spacing:.04em;margin-top:1px}
+    .db-group-chips{padding:10px 16px;display:flex;flex-wrap:wrap;gap:5px;border-bottom:1px solid var(--border)}
+    .db-chip-new{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:.67rem;font-weight:700;background:var(--input);color:var(--muted);border:1px solid var(--border);transition:all .15s}
+    .db-chip-new:hover{border-color:var(--primary);color:var(--primary)}
+    .db-chip-new i{font-size:.72rem;opacity:.7}
+    .db-group-actions{display:flex;gap:4px}
+    .db-act-btn-new{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;font-size:.85rem;transition:all .2s;color:rgba(255,255,255,.85)}
+    .db-act-btn-new:hover{background:rgba(255,255,255,.25);color:#fff;transform:scale(1.1)}
+    .db-data-list{flex:1 1 auto;padding:6px 10px;max-height:320px;overflow-y:auto}
+    .db-data-list::-webkit-scrollbar{width:4px}
+    .db-data-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+    .db-data-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:12px;transition:all .2s ease;margin-bottom:2px;cursor:default;border:1px solid transparent}
+    .db-data-row:hover{background:var(--input);border-color:var(--border);box-shadow:0 2px 8px rgba(0,0,0,.04)}
+    .db-row-avatar{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.82rem;flex-shrink:0;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;box-shadow:0 2px 6px rgba(99,102,241,.25)}
+    .db-row-info{flex:1;min-width:0}
+    .db-row-name{font-weight:700;font-size:.82rem;color:var(--text);text-transform:uppercase;display:flex;align-items:center;gap:5px}
+    .db-row-meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:3px}
+    .db-meta-tag{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:8px;font-size:.65rem;font-weight:700;letter-spacing:.01em}
+    .db-meta-tag.id-tag{background:#dbeafe;color:#1d4ed8}
+    .db-meta-tag.nisn-tag{background:#d1fae5;color:#065f46}
+    .db-meta-tag.nip-tag{background:#fef3c7;color:#92400e}
+    .db-meta-tag.usia-tag{background:rgba(99,102,241,.08);color:var(--primary)}
+    .db-meta-tag.jk-tag{font-size:.7rem}
+    .db-row-actions{display:flex;gap:4px;flex-shrink:0}
+    .db-btn-edit,.db-btn-del{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);background:var(--card);cursor:pointer;font-size:.75rem;transition:all .2s;padding:0}
+    .db-btn-edit{color:var(--primary);border-color:rgba(99,102,241,.15);background:rgba(99,102,241,.05)}
+    .db-btn-edit:hover{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 2px 8px rgba(99,102,241,.3)}
+    .db-btn-del{color:#ef4444;border-color:rgba(239,68,68,.12);background:rgba(239,68,68,.04)}
+    .db-btn-del:hover{background:#ef4444;color:#fff;border-color:#ef4444;box-shadow:0 2px 8px rgba(239,68,68,.3)}
+    .db-expand-btn{padding:8px;text-align:center;font-size:.78rem;font-weight:700;color:var(--primary);cursor:pointer;transition:all .2s;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:center;gap:4px}
+    .db-expand-btn:hover{background:rgba(99,102,241,.05)}
+    .db-kat-sep{display:flex;align-items:center;gap:6px;padding:6px 12px;font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+    .db-kat-sep::after{content:'';flex:1;height:1px;background:var(--border)}
+
+    /* === MODERNIZED RIWAYAT STYLES === */
+    .rwt-timeline{position:relative;padding:4px 0}
+    .rwt-timeline::before{content:'';position:absolute;left:17px;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,var(--border),transparent);border-radius:2px}
+    .rwt-card{display:flex;gap:14px;padding:14px 16px;border-radius:14px;background:var(--card);border:1px solid var(--border);margin-bottom:8px;transition:all .25s ease;position:relative;animation:rwtSlideIn .35s ease-out both}
+    .rwt-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.06);transform:translateX(2px)}
+    @keyframes rwtSlideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .rwt-icon-wrap{width:36px;height:36px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.05rem;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+    .rwt-icon-wrap.type-add{background:linear-gradient(135deg,#d1fae5,#a7f3d0);color:#059669}
+    .rwt-icon-wrap.type-del{background:linear-gradient(135deg,#fee2e2,#fecaca);color:#dc2626}
+    .rwt-icon-wrap.type-mod{background:linear-gradient(135deg,#fef3c7,#fde68a);color:#d97706}
+    [data-theme="dark"] .rwt-icon-wrap.type-add{background:rgba(5,150,105,.2);color:#34d399}
+    [data-theme="dark"] .rwt-icon-wrap.type-del{background:rgba(220,38,38,.2);color:#f87171}
+    [data-theme="dark"] .rwt-icon-wrap.type-mod{background:rgba(217,119,6,.2);color:#fbbf24}
+    .rwt-body{flex:1;min-width:0}
+    .rwt-type-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:20px;font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+    .rwt-type-badge.badge-add{background:#d1fae5;color:#059669}
+    .rwt-type-badge.badge-del{background:#fee2e2;color:#dc2626}
+    .rwt-type-badge.badge-mod{background:#fef3c7;color:#d97706}
+    [data-theme="dark"] .rwt-type-badge.badge-add{background:rgba(5,150,105,.2);color:#34d399}
+    [data-theme="dark"] .rwt-type-badge.badge-del{background:rgba(220,38,38,.2);color:#f87171}
+    [data-theme="dark"] .rwt-type-badge.badge-mod{background:rgba(217,119,6,.2);color:#fbbf24}
+    .rwt-main{font-size:.8rem;line-height:1.65;word-break:break-word;margin-top:6px}
+    .rwt-name{font-weight:700;color:var(--text);text-transform:uppercase}
+    .rwt-name-old{font-weight:600;color:var(--muted);text-decoration:line-through;opacity:.6}
+    .rwt-arrow{color:var(--muted);margin:0 3px;font-weight:400}
+    .rwt-nik{color:var(--muted);font-weight:500}
+    .rwt-kat{font-weight:700;padding:1px 8px;border-radius:20px;font-size:.68rem;display:inline-block}
+    .rwt-kat.kat-add{background:#d1fae5;color:#059669}
+    .rwt-kat.kat-del{background:#fee2e2;color:#dc2626}
+    .rwt-kat.kat-mod{background:#fef3c7;color:#d97706}
+    [data-theme="dark"] .rwt-kat.kat-add{background:rgba(5,150,105,.22);color:#34d399}
+    [data-theme="dark"] .rwt-kat.kat-del{background:rgba(220,38,38,.22);color:#f87171}
+    [data-theme="dark"] .rwt-kat.kat-mod{background:rgba(217,119,6,.22);color:#fbbf24}
+    .rwt-ctx{color:var(--muted);font-weight:500}
+    .rwt-time{color:var(--light);font-weight:500;font-size:.68rem;display:inline-flex;align-items:center;gap:3px}
+    .rwt-time::before{content:'2';margin-right:2px;opacity:.6}
+    .rwt-sep{color:var(--light);margin:0 4px}
+    .rwt-detail{font-size:.71rem;color:var(--muted);margin-top:8px;background:var(--input);border-radius:10px;padding:8px 12px;line-height:1.7;border-left:3px solid var(--border-f);word-break:break-word}
+    .rwt-detail .chg{color:var(--text);font-weight:700}
+    .rwt-empty{text-align:center;padding:48px 20px;color:var(--muted)}
+    .rwt-empty i{opacity:.4;font-size:2.5rem}
+    .rwt-filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+    .rwt-filter-btn{border:1.5px solid var(--border);background:var(--input);color:var(--muted);border-radius:22px;padding:7px 16px;font-size:.78rem;font-weight:700;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:5px}
+    .rwt-filter-btn:hover{border-color:var(--primary);color:var(--primary)}
+    .rwt-filter-btn.active{background:var(--primary-grad);border-color:transparent;color:#fff;box-shadow:0 4px 12px -3px rgba(99,102,241,.45)}
+    .rwt-filter-btn.active.f-add{background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 4px 12px -3px rgba(16,185,129,.45)}
+    .rwt-filter-btn.active.f-del{background:linear-gradient(135deg,#ef4444,#dc2626);box-shadow:0 4px 12px -3px rgba(239,68,68,.45)}
+    .rwt-filter-btn.active.f-mod{background:linear-gradient(135deg,#f59e0b,#d97706);box-shadow:0 4px 12px -3px rgba(245,158,11,.45)}
   </style>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -63,7 +158,7 @@
     // 1) GANTI URL INI dengan URL Web App hasil Deploy Apps Script kamu
     //    (Deploy > New deployment > Web app > Execute as: Me > Who has access: Anyone > /exec)
     //    Hanya dipakai saat file ini berjalan di LUAR Apps Script (Blogger/Netlify).
-    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyEZrZOEa3j849FgtwGRCYxnJyDxuLGXZGJW4hWNBrhPSwRetpeKv2ZRVnF2OiwaWJT/exec';
+    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxbEKMwB6F94IGTi7rio2Ov8_qn0AoWw3pSmzYKsmlfq0kU5Cfw7DX2GcMaqczDk9Om/exec';
 
     // 2) Peta nama fungsi server -> urutan nama parameter,
     //    HARUS SAMA PERSIS dengan switch(action) di Code.gs (doPost)
@@ -532,44 +627,56 @@ const notify = {
     [data-theme="dark"] .ic-act-add{background:#059669}
     [data-theme="dark"] .ic-act-del{background:#dc2626}
     [data-theme="dark"] .ic-act-mod{background:#d97706}
-    .riwayat-wrap{display:flex;flex-direction:column;gap:0}
-    .riwayat-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);transition:background .15s}
-    .riwayat-item:last-child{border-bottom:none}
-    .riwayat-item:hover{background:var(--input)}
-    .riwayat-icon{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;margin-top:1px}
-    .riwayat-icon.add{background:#d1fae5;color:#059669}
-    .riwayat-icon.del{background:#fee2e2;color:#dc2626}
-    .riwayat-icon.mod{background:#fef3c7;color:#d97706}
+    /* ============================================================
+       RIWAYAT — tampilan modern (timeline card, aksen warna, filter pill)
+       ============================================================ */
+    .riwayat-wrap{display:flex;flex-direction:column;gap:10px;padding:12px}
+    .riwayat-item{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border-radius:14px;background:var(--card);border:1px solid var(--border);border-left:4px solid var(--border-f);transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;position:relative;overflow:hidden}
+    .riwayat-item:hover{transform:translateX(2px);box-shadow:0 6px 18px -6px rgba(15,23,42,.15)}
+    .riwayat-item.add{border-left-color:#10b981}
+    .riwayat-item.del{border-left-color:#ef4444}
+    .riwayat-item.mod{border-left-color:#f59e0b}
+    .riwayat-icon{width:36px;height:36px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.05rem;flex-shrink:0;margin-top:1px;box-shadow:0 2px 6px -1px rgba(0,0,0,.08)}
+    .riwayat-icon.add{background:linear-gradient(135deg,#d1fae5,#a7f3d0);color:#059669}
+    .riwayat-icon.del{background:linear-gradient(135deg,#fee2e2,#fecaca);color:#dc2626}
+    .riwayat-icon.mod{background:linear-gradient(135deg,#fef3c7,#fde68a);color:#d97706}
     [data-theme="dark"] .riwayat-icon.add{background:rgba(5,150,105,.2);color:#34d399}
     [data-theme="dark"] .riwayat-icon.del{background:rgba(220,38,38,.2);color:#f87171}
     [data-theme="dark"] .riwayat-icon.mod{background:rgba(217,119,6,.2);color:#fbbf24}
     .riwayat-body{flex:1;min-width:0}
-    .riwayat-main{font-size:.8rem;line-height:1.6;word-break:break-word}
-    .riwayat-main .rw-name{font-weight:700;color:var(--text)}
-    .riwayat-main .rw-name-old{font-weight:700;color:var(--muted);text-decoration:line-through;opacity:.6}
-    .riwayat-main .rw-arrow{color:var(--muted);margin:0 4px;font-weight:400}
-    .riwayat-main .rw-nik{color:var(--muted);font-weight:500}
-    .riwayat-main .rw-kat{font-weight:600}
-    .riwayat-main .rw-kat.add{color:#059669}
-    .riwayat-main .rw-kat.del{color:#dc2626}
-    .riwayat-main .rw-kat.mod{color:#d97706}
-    [data-theme="dark"] .riwayat-main .rw-kat.add{color:#34d399}
-    [data-theme="dark"] .riwayat-main .rw-kat.del{color:#f87171}
-    [data-theme="dark"] .riwayat-main .rw-kat.mod{color:#fbbf24}
-    .riwayat-main .rw-ctx{color:var(--muted);font-weight:400}
-    .riwayat-main .rw-time{color:var(--light);font-weight:400}
-    .riwayat-main .rw-sep{color:var(--light);margin:0 4px}
+    .riwayat-main{font-size:.82rem;line-height:1.65;word-break:break-word}
+    .riwayat-main .rwt-name{font-weight:700;color:var(--text)}
+    .riwayat-main .rwt-name-old{font-weight:600;color:var(--muted);text-decoration:line-through;opacity:.6}
+    .riwayat-main .rwt-arrow{color:var(--muted);margin:0 3px;font-weight:400}
+    .riwayat-main .rwt-nik{color:var(--muted);font-weight:500}
+    .riwayat-main .rwt-kat{font-weight:700;padding:1px 8px;border-radius:20px;font-size:.68rem;display:inline-block}
+    .riwayat-main .rw-kat.add{background:#d1fae5;color:#059669}
+    .riwayat-main .rw-kat.del{background:#fee2e2;color:#dc2626}
+    .riwayat-main .rw-kat.mod{background:#fef3c7;color:#d97706}
+    [data-theme="dark"] .riwayat-main .rw-kat.add{background:rgba(5,150,105,.22);color:#34d399}
+    [data-theme="dark"] .riwayat-main .rw-kat.del{background:rgba(220,38,38,.22);color:#f87171}
+    [data-theme="dark"] .riwayat-main .rw-kat.mod{background:rgba(217,119,6,.22);color:#fbbf24}
+    .riwayat-main .rwt-ctx{color:var(--muted);font-weight:500}
+    .riwayat-main .rwt-time{color:var(--light);font-weight:500;font-size:.68rem;display:inline-flex;align-items:center;gap:3px}
+    .riwayat-main .rw-time::before{content:'\\2022';margin-right:2px;opacity:.6}
+    .riwayat-main .rwt-sep{color:var(--light);margin:0 4px}
     .riwayat-label{font-size:.82rem;font-weight:700;line-height:1.5;white-space:normal;word-break:break-word}
     .riwayat-label.add{color:#059669}
     .riwayat-label.del{color:#dc2626}
     .riwayat-label.mod{color:#d97706}
     .riwayat-meta{font-size:.75rem;color:var(--muted);margin-top:3px;white-space:normal;line-height:1.5;word-break:break-word}
     .riwayat-time-tag{font-size:.7rem;color:var(--light);display:inline-flex;align-items:center;gap:3px;margin-top:2px}
-    .riwayat-detail{font-size:.72rem;color:var(--muted);margin-top:2px;background:var(--input);border-radius:6px;padding:4px 8px;line-height:1.6;border-left:3px solid var(--border-f);word-break:break-word}
-    .riwayat-detail .chg{color:var(--text);font-weight:600}
-    .riwayat-empty{text-align:center;padding:32px;color:var(--muted);font-size:.85rem}
-    .riwayat-filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
-    .riwayat-filter button{border:none;border-radius:20px;padding:4px 12px;font-size:.75rem;font-weight:600;cursor:pointer;transition:all .2s}
+    .riwayat-detail{font-size:.73rem;color:var(--muted);margin-top:6px;background:var(--input);border-radius:9px;padding:6px 10px;line-height:1.7;border-left:3px solid var(--border-f);word-break:break-word}
+    .riwayat-detail .chg{color:var(--text);font-weight:700}
+    .riwayat-empty{text-align:center;padding:36px 20px;color:var(--muted);font-size:.85rem}
+    .riwayat-empty i{opacity:.5}
+    .riwayat-filter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+    .riwayat-filter button{border:1.5px solid var(--border);background:var(--input);color:var(--muted);border-radius:20px;padding:6px 14px;font-size:.78rem;font-weight:700;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:5px}
+    .riwayat-filter button:hover{border-color:var(--border-f);color:var(--text)}
+    .riwayat-filter button.active{background:var(--primary-grad);border-color:transparent;color:#fff;box-shadow:0 4px 12px -3px rgba(99,102,241,.5)}
+    .riwayat-filter button.active.rf-add{background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 4px 12px -3px rgba(16,185,129,.5)}
+    .riwayat-filter button.active.rf-del{background:linear-gradient(135deg,#ef4444,#dc2626);box-shadow:0 4px 12px -3px rgba(239,68,68,.5)}
+    .riwayat-filter button.active.rf-mod{background:linear-gradient(135deg,#f59e0b,#d97706);box-shadow:0 4px 12px -3px rgba(245,158,11,.5)}
     .rf-all{background:var(--primary);color:#fff}
     .rf-add{background:#d1fae5;color:#059669}
     .rf-del{background:#fee2e2;color:#dc2626}
@@ -661,6 +768,18 @@ const notify = {
     }
     .adm-hd{background:var(--primary-grad);color:#fff;padding:18px 20px;display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;position:relative;overflow:hidden}
     .adm-hd::before{content:'';position:absolute;top:-50%;right:-20%;width:180px;height:180px;background:rgba(255,255,255,.07);border-radius:50%}
+    /* [MODERNISASI TAMPILAN "DATABASE" / DATA ADMIN] */
+    .db-inst-avatar{width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1rem;flex-shrink:0;position:relative;z-index:1}
+    .db-act-btn{width:32px;height:32px;border-radius:10px;border:1px solid rgba(255,255,255,.28);color:#fff;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;position:relative;z-index:1}
+    .db-act-btn:hover{transform:translateY(-2px) scale(1.05);filter:brightness(1.15)}
+    .db-stat-row{position:relative;z-index:1;gap:14px;margin-top:2px}
+    .db-stat{text-align:center}
+    .db-stat-lbl{font-size:.62rem;opacity:.85;letter-spacing:.3px;white-space:nowrap;font-weight:600}
+    .db-stat-div{width:1px;align-self:stretch;background:rgba(255,255,255,.25)}
+    .db-chip-row{background:linear-gradient(135deg,rgba(99,102,241,.06),rgba(139,92,246,.06));border-bottom:1px solid var(--border)}
+    .db-chip{display:inline-flex;align-items:center;gap:4px;background:var(--primary-l);color:var(--primary);font-size:.68rem;font-weight:700;border-radius:20px;padding:3px 10px;margin:0 4px 4px 0}
+    .db-chip-usia{background:transparent;border:1px solid var(--border-f);color:var(--muted);font-weight:600}
+    [data-theme="dark"] .db-chip-usia{border-color:#334155}
     .adm-info{flex:1;min-width:180px;position:relative;z-index:1}
     .adm-info h5{margin:0 0 5px;font-size:1rem;font-weight:700;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .adm-info small{display:block;opacity:.9;font-size:.8rem}
@@ -731,6 +850,12 @@ const notify = {
        di atas broadcast-bar / maint-announcement-bar / overlay lainnya. */
     .modal-backdrop{z-index:10540!important}
     .modal{z-index:10550!important}
+    /* [FIX BUG] SweetAlert2 default z-index (1060) jauh lebih rendah dari .modal
+       (10550) di atas, sehingga setiap notifikasi/alert (termasuk pesan
+       "Username atau Password Salah!") tampil TERSEMBUNYI di belakang modal
+       Login dan terlihat seperti tidak ada respons sama sekali. Paksa semua
+       popup SweetAlert2 tampil di atas modal manapun. */
+    .swal2-container{z-index:10600!important}
 
     /* ==== LOGIN MODAL - MODERN LOOK ==== */
     #modalLogin .modal-content{border-radius:var(--r-xl);overflow:hidden;border:none;box-shadow:0 30px 70px -15px rgba(15,23,42,.45)}
@@ -742,6 +867,14 @@ const notify = {
     #modalLogin .login-modal-sub{position:relative;z-index:1;font-size:.78rem;opacity:.9;margin:0}
     #modalLogin .login-modal-close{position:absolute;top:16px;right:16px;z-index:2}
     #modalLogin .modal-body{background:var(--card);padding:28px 28px 24px!important}
+    /* [FIX] Kotak pesan error login yang PASTI terlihat (tidak bergantung pada
+       SweetAlert2/z-index modal lain) — inline langsung di dalam modal. */
+    .login-error-box{display:flex;align-items:flex-start;gap:10px;background:linear-gradient(135deg,#fee2e2 0%,#fecaca 100%);color:#991b1b;border:2px solid #f87171;border-radius:14px;padding:14px 16px;margin-bottom:16px;font-size:.88rem;font-weight:700;animation:loginErrPop .4s ease-out;box-shadow:0 6px 20px -4px rgba(239,68,68,.3)}
+    .login-error-box i{font-size:1.5rem;flex-shrink:0;margin-top:1px;color:#dc2626;animation:iconBounce .6s ease-in-out 3}
+    [data-theme="dark"] .login-error-box{background:linear-gradient(135deg,rgba(220,38,38,.22),rgba(239,68,68,.15));color:#fca5a5;border-color:rgba(248,113,113,.55);box-shadow:0 6px 20px -4px rgba(239,68,68,.35)}
+    @keyframes loginErrPop{from{opacity:0;transform:translateY(-10px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+    @keyframes loginShake{10%,90%{transform:translateX(-1px)}20%,80%{transform:translateX(2px)}30%,50%,70%{transform:translateX(-4px)}40%,60%{transform:translateX(4px)}}
+    #modalLogin .modal-content.shake-error{animation:loginShake .5s cubic-bezier(.36,.07,.19,.97) both}
     @media(max-width:768px) and (min-width:481px){.row .col-sm-4.col-md-4{width:33.333%!important}}
     @media(max-width:768px){.header-logo{width:36px;height:36px;border-radius:10px}.header-title h2{font-size:1rem}.header-sub{font-size:.68rem}.scroll-body{padding:12px 14px;padding-bottom:80px}.cat-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}.data-grid{grid-template-columns:1fr;gap:14px}.instansi-grid{grid-template-columns:1fr;gap:14px}.adm-grid{grid-template-columns:1fr;gap:14px}.adm-cat-grid{grid-template-columns:1fr;gap:12px}.cat-stats{grid-template-columns:repeat(3,1fr);gap:8px}.upload-actions{flex-direction:column;width:100%}.upload-actions .btn{width:100%;justify-content:center}.data-toolbar-btns{flex-wrap:wrap;gap:6px!important}.data-toolbar-btns .btn-outline-success,.data-toolbar-btns .btn-success{flex:1;min-width:0;font-size:.78rem;padding:8px 10px}.data-toolbar-btns .btn-outline-success span.btn-label,.data-toolbar-btns .btn-success span.btn-label{display:none}.data-toolbar-btns .btn-outline-warning,.data-toolbar-btns .btn-outline-secondary{width:38px;height:38px;padding:0;justify-content:center}}
     @media(max-width:480px){.cat-grid{grid-template-columns:1fr 1fr;gap:10px}.cat-card-hd{padding:10px 12px}.cat-card-title{font-size:.8rem}.cs-val{font-size:1.1rem}.summary-banner{padding:16px}.stat-val-w{font-size:1.5rem}.stat-item{flex-direction:column;align-items:flex-start;gap:10px}.stat-trend{width:100%;flex-direction:row;justify-content:space-between}.adm-sgrid{grid-template-columns:1fr 1fr;gap:10px}.list-li{padding:10px 12px;gap:8px}.avatar{width:36px;height:36px;font-size:.85rem;margin-right:10px;border-radius:10px}.pname{font-size:.83rem}.pmeta{font-size:.68rem;gap:4px}.act-grp{gap:6px}.act-grp .btn{width:30px;height:30px;font-size:.85rem}.dc-head{padding:12px 14px}.dc-title{font-size:.78rem}.dc-badge{font-size:.68rem;padding:3px 9px}.form-control,.form-select{font-size:.9rem;padding:10px 12px}.fml{font-size:.74rem}.upload-card-inner{flex-direction:column;align-items:flex-start!important}.upload-card-inner>div:last-child{width:100%}.upload-card-inner .d-flex.gap-2{flex-wrap:wrap}}
@@ -896,7 +1029,9 @@ const notify = {
     ::selection{background:var(--primary);color:#fff}
     .glass-card{background:rgba(255,255,255,.7);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:1px solid rgba(255,255,255,.3);box-shadow:0 8px 32px rgba(31,38,135,.07),inset 0 1px 0 rgba(255,255,255,.6);color:var(--text)}
     [data-theme="dark"] .glass-card{background:rgba(30,41,59,.7);border:1px solid rgba(255,255,255,.08);box-shadow:0 8px 32px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.05);color:#f1f5f9}
-    .modern-card{background:var(--card);border-radius:var(--r-xl);border:1px solid var(--border);box-shadow:var(--sh-sm);transition:all .4s cubic-bezier(.4,0,.2,1);overflow:hidden;color:var(--text)}
+    .modern-card{background:var(--card);border-radius:var(--r-xl);border:1px solid var(--border);box-shadow:var(--sh-sm);transition:all .4s cubic-bezier(.4,0,.2,1);overflow:hidden;color:var(--text);position:relative}
+    .adm-grid>.modern-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--primary-grad);opacity:0;transition:opacity .3s;z-index:2}
+    .adm-grid>.modern-card:hover::before{opacity:1}
     .modern-card:hover{transform:translateY(-4px);box-shadow:var(--sh-lg),0 0 0 1px var(--border-f)}
     [data-theme="dark"] .modern-card{background:#1e293b;border-color:#334155;color:#f1f5f9}
     [data-theme="dark"] .modern-card:hover{box-shadow:0 12px 24px rgba(0,0,0,.6),0 0 0 1px #818cf8}
@@ -1003,6 +1138,94 @@ const notify = {
     .color-option.selected{border-color:#fff;box-shadow:0 0 0 3px var(--primary),0 4px 12px rgba(0,0,0,.3);transform:scale(1.1)}
     [data-theme="dark"] .color-option.selected{border-color:#1e293b;box-shadow:0 0 0 3px #818cf8,0 4px 12px rgba(0,0,0,.5)}
     .color-option.selected::after{content:'✓';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:14px;font-weight:bold;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+
+    /* === MODERN ADMIN PANEL STYLES === */
+    @keyframes adminFadeIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes slideInLeft{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:translateX(0)}}
+    @keyframes slideInRight{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+    @keyframes countUp{from{opacity:0;transform:translateY(8px) scale(.9)}to{opacity:1;transform:translateY(0) scale(1)}}
+    @keyframes pulseSoft{0%,100%{opacity:1}50%{opacity:.7}}
+    @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+    @keyframes floatUp{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+    @keyframes gradientMove{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+    @keyframes welcomeSlide{from{opacity:0;transform:translateY(-30px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+    @keyframes welcomeDismiss{from{opacity:1;transform:translateY(0);max-height:200px;margin-bottom:20px}to{opacity:0;transform:translateY(-20px);max-height:0;margin-bottom:0;padding:0;border-width:0}}
+    @keyframes badgePop{from{transform:scale(0)}to{transform:scale(1)}}
+    @keyframes progressFill{from{width:0}to{width:var(--target-width)}}
+
+    /* Admin tab content animation */
+    #adminDash > div:not(.d-none){animation:adminFadeIn .4s ease-out}
+    #adminDash > div.d-none{animation:none}
+
+    /* Modern Section Title */
+    .section-title{font-weight:800;color:var(--primary);border-bottom:none;padding-bottom:0;margin-bottom:16px;display:flex;align-items:center;gap:10px;font-size:.95rem;position:relative}
+    .section-title::after{content:'';position:absolute;bottom:-6px;left:0;width:40px;height:3px;border-radius:2px;background:var(--primary-grad);transition:width .3s ease}
+    .section-title:hover::after{width:100%}
+    .section-title i{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,rgba(99,102,241,.12),rgba(139,92,246,.08));color:var(--primary);font-size:1rem;flex-shrink:0}
+    [data-theme="dark"] .section-title{color:#a5b4fc}
+    [data-theme="dark"] .section-title::after{background:linear-gradient(135deg,#818cf8,#6366f1)}
+    [data-theme="dark"] .section-title i{background:rgba(129,140,248,.15);color:#a5b4fc}
+
+    /* Welcome Banner */
+    .admin-welcome{position:relative;overflow:hidden;border-radius:18px;padding:28px 24px 24px;margin-bottom:24px;background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 40%,#6366f1 100%);background-size:200% 200%;animation:gradientMove 8s ease infinite;color:#fff;box-shadow:0 8px 32px rgba(99,102,241,.35)}
+    .admin-welcome::before{content:'';position:absolute;top:-50%;right:-20%;width:300px;height:300px;border-radius:50%;background:rgba(255,255,255,.06)}
+    .admin-welcome::after{content:'';position:absolute;bottom:-30%;left:-10%;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.04)}
+    .admin-welcome *{position:relative;z-index:1}
+    .admin-welcome-dismiss{position:absolute;top:12px;right:12px;z-index:2;width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,.15);border:none;color:rgba(255,255,255,.7);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;font-size:.85rem}
+    .admin-welcome-dismiss:hover{background:rgba(255,255,255,.25);color:#fff;transform:rotate(90deg)}
+    .admin-welcome h4{font-weight:800;font-size:1.15rem;margin-bottom:4px;text-shadow:0 1px 3px rgba(0,0,0,.15)}
+    .admin-welcome p{opacity:.85;font-size:.82rem;margin:0;line-height:1.5}
+    .admin-welcome-stats{display:flex;gap:0;margin-top:16px;background:rgba(255,255,255,.1);border-radius:14px;padding:12px 0;overflow:hidden;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+    .admin-welcome-stat{flex:1;text-align:center;padding:0 12px;border-right:1px solid rgba(255,255,255,.12)}
+    .admin-welcome-stat:last-child{border-right:none}
+    .admin-welcome-stat .val{font-weight:900;font-size:1.3rem;line-height:1.2}
+    .admin-welcome-stat .lbl{font-size:.62rem;font-weight:600;opacity:.7;text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+    .admin-welcome-time{position:absolute;bottom:12px;right:16px;font-size:.68rem;opacity:.5;z-index:1}
+    .admin-welcome.hiding{animation:welcomeDismiss .4s ease-out forwards}
+
+    /* Admin Stats Overview Cards */
+    .admin-overview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:24px}
+    .admin-stat-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px 16px;position:relative;overflow:hidden;transition:all .3s ease;animation:adminFadeIn .5s ease-out both}
+    .admin-stat-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px -4px rgba(0,0,0,.08)}
+    .admin-stat-card .stat-icon{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;margin-bottom:12px;box-shadow:0 4px 12px -2px var(--stat-shadow,rgba(0,0,0,.1))}
+    .admin-stat-card .stat-val{font-weight:900;font-size:1.6rem;line-height:1.1;color:var(--text);animation:countUp .6s ease-out}
+    .admin-stat-card .stat-label{font-size:.72rem;font-weight:600;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.03em}
+    .admin-stat-card .stat-badge{position:absolute;top:12px;right:12px;font-size:.6rem;font-weight:700;padding:3px 10px;border-radius:20px;animation:badgePop .4s ease-out}
+    .admin-stat-card::after{content:'';position:absolute;top:0;right:0;width:80px;height:80px;border-radius:50%;background:var(--stat-glow,transparent);opacity:.5;transform:translate(20px,-20px)}
+    [data-theme="dark"] .admin-stat-card{background:#1e293b;border-color:#334155}
+    [data-theme="dark"] .admin-stat-card .stat-val{color:#f1f5f9}
+
+    /* Modern Settings Card */
+    .settings-card{background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden;transition:all .3s ease;animation:adminFadeIn .5s ease-out both}
+    .settings-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.05)}
+    .settings-card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,rgba(99,102,241,.03),transparent)}
+    .settings-card-header .sc-icon{width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+    .settings-card-header .sc-title{font-weight:700;font-size:.88rem;color:var(--text)}
+    .settings-card-header .sc-sub{font-size:.7rem;color:var(--muted);font-weight:500}
+    .settings-card-body{padding:20px}
+    [data-theme="dark"] .settings-card{background:#1e293b;border-color:#334155}
+    [data-theme="dark"] .settings-card-header{background:linear-gradient(135deg,rgba(129,140,248,.06),transparent)}
+
+    /* Sidebar active indicator */
+    .anb{position:relative;transition:all .2s ease}
+    .anb::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%) scaleY(0);width:3px;height:60%;border-radius:0 3px 3px 0;background:var(--primary);transition:transform .25s cubic-bezier(.4,0,.2,1)}
+    .anb.active::before{transform:translateY(-50%) scaleY(1)}
+    .anb.active{background:linear-gradient(135deg,rgba(99,102,241,.12),rgba(139,92,246,.06))!important;color:var(--primary)!important;font-weight:700}
+    .anb:hover:not(.active){background:rgba(99,102,241,.05)!important}
+
+    /* Floating Info Tooltip */
+    .admin-info-tip{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:12px;font-size:.75rem;font-weight:600;background:linear-gradient(135deg,rgba(99,102,241,.08),rgba(139,92,246,.05));color:var(--primary);border:1px solid rgba(99,102,241,.12);margin-bottom:16px;animation:adminFadeIn .5s ease-out .2s both}
+    .admin-info-tip i{font-size:.9rem;animation:floatUp 2s ease-in-out infinite}
+    [data-theme="dark"] .admin-info-tip{background:rgba(129,140,248,.1);color:#a5b4fc;border-color:rgba(129,140,248,.2)}
+
+    /* Tab content sections get staggered animation */
+    .admin-overview-grid .admin-stat-card:nth-child(1){animation-delay:.05s}
+    .admin-overview-grid .admin-stat-card:nth-child(2){animation-delay:.1s}
+    .admin-overview-grid .admin-stat-card:nth-child(3){animation-delay:.15s}
+    .admin-overview-grid .admin-stat-card:nth-child(4){animation-delay:.2s}
+    .admin-overview-grid .admin-stat-card:nth-child(5){animation-delay:.25s}
+    .admin-overview-grid .admin-stat-card:nth-child(6){animation-delay:.3s}
+
   </style>
 </head>
 <body>
@@ -1010,7 +1233,8 @@ const notify = {
 
   <!-- ADMIN SIDEBAR (Desktop only) -->
   <aside class="admin-sidebar" id="adminSidebar">
-    <div class="sidebar-header">
+    <div class="sidebar-header" style="position:relative;overflow:hidden">
+      <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(139,92,246,.1));animation:pulseGlow 4s ease-in-out infinite"></div>
       <img id="sidebarLogo" class="sidebar-logo" src="" alt="Logo">
       <div class="sidebar-brand-text">
         <small>Admin Panel</small>
@@ -1090,13 +1314,13 @@ const notify = {
             <div class="row g-3 g-md-3 mb-2">
               <div class="col-sm-6 col-md-6">
                 <label class="fml req"><i class="ph ph-buildings me-1" style="color:var(--primary)"></i>Nama Instansi</label>
-                <input type="text" class="form-control" id="instansi" placeholder="Contoh: SDN 01 Kuranji" onchange="clearTimeout(_debounceInstansiTimer);saveToLocal();onInstansiChange()" oninput="saveToLocal();debouncedInstansiCheck()" style="font-weight:600">
+                <input type="text" class="form-control" id="instansi" placeholder="Contoh: SDN 01 Kuranji" onchange="clearTimeout(_debounceInstansiTimer);saveToLocal();onInstansiChange()" oninput="saveToLocal();debouncedInstansiCheck();this.value=this.value.toUpperCase()" style="font-weight:600;text-transform:uppercase">
                 <small id="instansiPicHint" class="text-primary d-none" style="font-size:.65rem"><i class="ph ph-magic-wand"></i> <span></span></small>
                 <div id="instansiValidFeedback" class="d-none mt-1" style="font-size:.72rem;display:flex;align-items:center;gap:4px"></div>
               </div>
               <div class="col-sm-6 col-md-6">
                 <label class="fml req"><i class="ph ph-user-focus me-1" style="color:var(--primary)"></i>Nama PIC Kader</label>
-                <input type="text" class="form-control" id="pic" placeholder="Nama Penanggung Jawab" onchange="clearTimeout(_debouncePicTimer);saveToLocal();onPicChange()" oninput="saveToLocal();debouncedPicCheck()" style="font-weight:600">
+                <input type="text" class="form-control" id="pic" placeholder="Nama Penanggung Jawab" onchange="clearTimeout(_debouncePicTimer);saveToLocal();onPicChange()" oninput="saveToLocal();debouncedPicCheck();this.value=this.value.toUpperCase()" style="font-weight:600;text-transform:uppercase">
                 <div id="picValidFeedback" class="d-none mt-1" style="font-size:.72rem;display:flex;align-items:center;gap:4px"></div>
               </div>
             </div>
@@ -1248,7 +1472,7 @@ const notify = {
             <div class="row g-3 mb-3">
               <div class="col-sm-6 col-md-6">
                 <label class="fml req">Nama Lengkap</label>
-                <input type="text" class="form-control" id="nama" placeholder="Sesuai KTP/KK" oninput="this.value=this.value.replace(/[^a-zA-Z\s'\-\.\,]/g,'');" title="Hanya huruf (A-Z, a-z), spasi, tanda petik ('), tanda hubung (-), titik (.), dan koma (,) yang diperbolehkan">
+                <input type="text" class="form-control" id="nama" placeholder="Sesuai KTP/KK" oninput="this.value=this.value.replace(/[^a-zA-Z\s'\-\.\,]/g,'');this.value=this.value.toUpperCase()" style="text-transform:uppercase" title="Hanya huruf (A-Z, a-z), spasi, tanda petik ('), tanda hubung (-), titik (.), dan koma (,) yang diperbolehkan">
               </div>
 
               <div class="col-sm-6 col-md-3">
@@ -1355,6 +1579,20 @@ const notify = {
 
     <!-- ADMIN DASHBOARD -->
     <div id="adminDash" class="d-none">
+
+      <!-- WELCOME BANNER -->
+      <div class="admin-welcome" id="adminWelcomeBanner">
+        <button class="admin-welcome-dismiss" onclick="dismissWelcomeBanner()" title="Tutup"><i class="ph ph-x"></i></button>
+        <h4><i class="ph ph-hand-waving" style="margin-right:6px"></i> Selamat Datang, Admin!</h4>
+        <p>Kelola data pendataan MBG dengan mudah. Pantau statistik, kelola pengaturan, dan cetak laporan dari satu tempat.</p>
+        <div class="admin-welcome-stats" id="welcomeStats">
+          <div class="admin-welcome-stat"><div class="val" id="wsTotal">-</div><div class="lbl">Total Data</div></div>
+          <div class="admin-welcome-stat"><div class="val" id="wsInstansi">-</div><div class="lbl">Instansi</div></div>
+          <div class="admin-welcome-stat"><div class="val" id="wsToday">-</div><div class="lbl">Hari Ini</div></div>
+          <div class="admin-welcome-stat"><div class="val" id="wsPic">-</div><div class="lbl">PIC Kader</div></div>
+        </div>
+        <div class="admin-welcome-time" id="welcomeTime"></div>
+      </div>
 
       <!-- TAB: Settings -->
       <div id="admSettings">
@@ -1801,6 +2039,7 @@ const notify = {
 
       <!-- TAB: Rekap Data -->
       <div id="admRekap" class="d-none">
+        <div class="admin-info-tip"><i class="ph ph-table"></i> Rekap data menyediakan tabel lengkap dengan fitur filter, pencarian, dan cetak laporan PDF.</div>
         <!-- Summary Stats Cards -->
         <div class="row g-3 mb-4" id="rekapStatsRow"></div>
 
@@ -1988,22 +2227,23 @@ const notify = {
 
       <!-- TAB: Riwayat -->
       <div id="admRiwayat" class="d-none">
+        <div class="admin-info-tip"><i class="ph ph-clock-clockwise"></i> Riwayat mencatat seluruh aktivitas penambahan, pengubahan, dan penghapusan data secara real-time.</div>
         <div class="modern-card p-4 mb-4">
           <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
-            <div class="section-title mb-0"><i class="ph ph-clock-clockwise"></i>Riwayat Aktivitas Data</div>
+            <div class="section-title mb-0"><i class="ph ph-clock-clockwise"></i>Riwayat Aktivitas</div>
             <div class="d-flex gap-2 flex-wrap">
               <button class="btn btn-sm btn-outline-danger modern-btn" onclick="clearDataHistory()" style="font-size:.75rem"><i class="ph ph-trash"></i> Bersihkan</button>
               <span class="badge rounded-pill" style="background:var(--primary);color:#fff;font-size:.75rem;padding:6px 12px" id="riwayatCount">0 entri</span>
             </div>
           </div>
-          <div class="riwayat-filter mb-3">
-            <button class="rf-all" onclick="filterRiwayat('all')">Semua</button>
-            <button class="rf-add" onclick="filterRiwayat('add')"><i class="ph ph-plus"></i> Tambah</button>
-            <button class="rf-del" onclick="filterRiwayat('del')"><i class="ph ph-minus"></i> Hapus</button>
-            <button class="rf-mod" onclick="filterRiwayat('mod')"><i class="ph ph-pencil"></i> Ubah</button>
+          <div class="rwt-filter-bar">
+            <button class="rwt-filter-btn f-all active" onclick="filterRiwayat('all')"><i class="ph ph-squares-four"></i> Semua</button>
+            <button class="rwt-filter-btn f-add" onclick="filterRiwayat('add')"><i class="ph ph-plus"></i> Tambah</button>
+            <button class="rwt-filter-btn f-del" onclick="filterRiwayat('del')"><i class="ph ph-minus"></i> Hapus</button>
+            <button class="rwt-filter-btn f-mod" onclick="filterRiwayat('mod')"><i class="ph ph-pencil"></i> Ubah</button>
           </div>
-          <div id="riwayatContainer" class="riwayat-wrap" style="max-height:520px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r-md)">
-            <div class="riwayat-empty"><i class="ph ph-clock-clockwise d-block fs-3 mb-2"></i>Belum ada riwayat aktivitas</div>
+          <div id="riwayatContainer" class="rwt-timeline" style="max-height:600px;overflow-y:auto;padding:4px 2px">
+            <div class="rwt-empty"><i class="ph ph-clock-clockwise d-block fs-3 mb-2"></i>Belum ada riwayat aktivitas</div>
           </div>
           <div class="mt-3 p-2 rounded" style="background:var(--input);font-size:.75rem;color:var(--muted)">
             <i class="ph ph-google-logo"></i> Riwayat tersimpan di <strong>Google Sheets (Riwayat)</strong>. Maksimal 500 entri terakhir. Data tidak hilang walau browser ditutup.
@@ -2013,6 +2253,7 @@ const notify = {
 
       <!-- TAB: Data -->
       <div id="admData" class="d-none">
+        <div class="admin-info-tip"><i class="ph ph-database"></i> Database menampilkan seluruh data penerima yang tercatat. Gunakan filter untuk mencari data spesifik.</div>
         <!-- Global stats -->
         <div class="row g-3 mb-4" id="adminStatsContent"></div>
 
@@ -2330,6 +2571,10 @@ const notify = {
         <p class="login-modal-sub">Masuk untuk mengelola data &amp; pengaturan sistem</p>
       </div>
       <div class="modal-body p-4">
+        <div id="loginErrorBox" class="login-error-box d-none">
+          <i class="ph ph-warning-circle"></i>
+          <span id="loginErrorText">Username atau Password salah!</span>
+        </div>
         <div class="mb-3">
           <label class="fml">Username</label>
           <div class="input-group">
@@ -2376,7 +2621,7 @@ const notify = {
           </div>
           <div class="col-md-7">
             <label class="form-label small fw-semibold text-muted mb-1">Nama Lengkap</label>
-            <input type="text" class="form-control shadow-sm" id="edit_nama" placeholder="Nama lengkap sesuai identitas" oninput="this.value=this.value.replace(/[^a-zA-Z\s'\-\.\,]/g,'');" title="Hanya huruf (A-Z, a-z), spasi, tanda petik ('), tanda hubung (-), titik (.), dan koma (,) yang diperbolehkan">
+            <input type="text" class="form-control shadow-sm" id="edit_nama" placeholder="Nama lengkap sesuai identitas" oninput="this.value=this.value.replace(/[^a-zA-Z\s'\-\.\,]/g,'');this.value=this.value.toUpperCase()" style="text-transform:uppercase" title="Hanya huruf (A-Z, a-z), spasi, tanda petik ('), tanda hubung (-), titik (.), dan koma (,) yang diperbolehkan">
           </div>
         </div>
 
@@ -2415,7 +2660,7 @@ const notify = {
         <div class="row g-3 mb-4">
           <div class="col-12">
             <label class="form-label small fw-semibold text-muted mb-1"><i class="ph ph-buildings me-1" style="opacity:.5"></i>Nama Instansi <small style="font-weight:400;color:var(--muted)">(bisa diubah jika salah)</small></label>
-            <input type="text" class="form-control shadow-sm" id="edit_instansi" placeholder="Nama instansi" style="text-transform:uppercase">
+            <input type="text" class="form-control shadow-sm" id="edit_instansi" placeholder="Nama instansi" oninput="this.value=this.value.toUpperCase()" style="text-transform:uppercase">
           </div>
         </div>
 
@@ -2554,27 +2799,35 @@ window.onload = function() {
   if(rememberedUser && rememberMe === '1') {
     document.getElementById('loginUser').value = rememberedUser;
     document.getElementById('rememberMe').checked = true;
-    if(rememberedPass) {
-      try {
-        const savedPass = atob(rememberedPass);
-        google.script.run.withSuccessHandler(res => {
-          if(res && res.success) {
-            currentUser = rememberedUser;
-            currentPass = savedPass;
-            isAdmin = true;
-            sessionStorage.setItem('mbg_admin_user', rememberedUser);
-            sessionStorage.setItem('mbg_admin_pass', savedPass);
-            sessionStorage.setItem('mbg_admin_in', '1');
-            enterAdminPanel(true);
-          } else {
-            localStorage.removeItem('mbg_remember_user');
-            localStorage.removeItem('mbg_remember_me');
-            localStorage.removeItem('mbg_remember_pass');
-          }
-        }).adminLogin(rememberedUser, savedPass);
-      } catch(e) {
-        localStorage.removeItem('mbg_remember_pass');
-      }
+  }
+  // [FIX PERFORMA/BUG] Sebelumnya blok "Remember Me" di atas dan blok sesi aktif
+  // di bawah SAMA-SAMA memanggil adminLogin() saat halaman dibuka jika keduanya
+  // tersedia — dua request server berbarengan (memperlambat loading) dan berisiko
+  // race condition (enterAdminPanel terpanggil dua kali). Sekarang: sesi aktif
+  // (sessionStorage) diprioritaskan; "Remember Me" hanya dipakai sebagai fallback
+  // saat tidak ada sesi aktif, sehingga hanya ada SATU pemanggilan adminLogin.
+  const _hasActiveSession = sessionStorage.getItem('mbg_admin_in') === '1'
+    && sessionStorage.getItem('mbg_admin_pass') && sessionStorage.getItem('mbg_admin_user');
+  if(!_hasActiveSession && rememberedUser && rememberMe === '1' && rememberedPass) {
+    try {
+      const savedPass = atob(rememberedPass);
+      google.script.run.withSuccessHandler(res => {
+        if(res && res.success) {
+          currentUser = rememberedUser;
+          currentPass = savedPass;
+          isAdmin = true;
+          sessionStorage.setItem('mbg_admin_user', rememberedUser);
+          sessionStorage.setItem('mbg_admin_pass', savedPass);
+          sessionStorage.setItem('mbg_admin_in', '1');
+          enterAdminPanel(true);
+        } else {
+          localStorage.removeItem('mbg_remember_user');
+          localStorage.removeItem('mbg_remember_me');
+          localStorage.removeItem('mbg_remember_pass');
+        }
+      }).adminLogin(rememberedUser, savedPass);
+    } catch(e) {
+      localStorage.removeItem('mbg_remember_pass');
     }
   }
 
@@ -2633,8 +2886,8 @@ window.onload = function() {
   const savedUser = sessionStorage.getItem('mbg_admin_user');
   const savedPass = sessionStorage.getItem('mbg_admin_pass');
   const savedLoggedIn = sessionStorage.getItem('mbg_admin_in');
-  
-  if(savedLoggedIn === '1' && savedPass && savedUser) {
+
+  if(_hasActiveSession && savedLoggedIn === '1' && savedPass && savedUser) {
     google.script.run.withSuccessHandler(res => {
       if(res.success) {
         currentUser = savedUser;
@@ -3923,6 +4176,41 @@ function toggleSidebarMode(mode) {
     sessionStorage.setItem('mbg_sidebar_mode', 'full');
   }
 }
+// Welcome banner stats
+function updateWelcomeStats() {
+  if (!allAdminData || !allAdminData.length) return;
+  var total = allAdminData.length;
+  var instansiSet = new Set();
+  var picSet = new Set();
+  var todayCount = 0;
+  var today = new Date();
+  today.setHours(0,0,0,0);
+  allAdminData.forEach(function(d) {
+    if (d.instansi) instansiSet.add(d.instansi);
+    if (d.pic) picSet.add(d.pic);
+    if (d.timestamp) {
+      var ts = new Date(d.timestamp);
+      if (ts >= today) todayCount++;
+    }
+  });
+  var el = function(id) { var e = document.getElementById(id); if(e) e.textContent = '-'; };
+  var setVal = function(id, val) { var e = document.getElementById(id); if(e) { e.textContent = val; e.style.animation='countUp .6s ease-out'; } };
+  setVal('wsTotal', total);
+  setVal('wsInstansi', instansiSet.size);
+  setVal('wsToday', todayCount);
+  setVal('wsPic', picSet.size);
+  var now = new Date();
+  var days = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  var months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  var timeEl = document.getElementById('welcomeTime');
+  if (timeEl) timeEl.textContent = days[now.getDay()] + ', ' + now.getDate() + ' ' + months[now.getMonth()] + ' ' + now.getFullYear();
+}
+function dismissWelcomeBanner() {
+  var b = document.getElementById('adminWelcomeBanner');
+  if (!b) return;
+  b.classList.add('hiding');
+  setTimeout(function() { b.style.display = 'none'; }, 400);
+}
 function restoreSidebarMode() {
   const saved = sessionStorage.getItem('mbg_sidebar_mode');
   if(saved === 'minimalis') {
@@ -4188,7 +4476,11 @@ setInterval(function() {
 // ============================================================
 // ADMIN SESSION
 // ============================================================
-function openAdminLogin() { new bootstrap.Modal(document.getElementById('modalLogin')).show(); }
+function openAdminLogin() {
+  const box = document.getElementById('loginErrorBox');
+  if (box) box.classList.add('d-none');
+  new bootstrap.Modal(document.getElementById('modalLogin')).show();
+}
 function toggleRememberMe() {
   const cb = document.getElementById('rememberMe');
   if(!cb.checked) {
@@ -4200,6 +4492,10 @@ function toggleRememberMe() {
 function processLogin() {
   const u = document.getElementById('loginUser').value.trim();
   const p = document.getElementById('loginPass').value;
+  const errBox = document.getElementById('loginErrorBox');
+  const errText = document.getElementById('loginErrorText');
+  const modalContent = document.querySelector('#modalLogin .modal-content');
+  if (errBox) errBox.classList.add('d-none');
   if(!u || !p) { Swal.fire('Info','Isi username dan password','info'); return; }
   const loginBtn = document.querySelector('#modalLogin .btn-prim');
   if(loginBtn) { loginBtn.disabled = true; loginBtn.innerHTML = '<i class="ph ph-spinner-gap" style="animation:spin .8s linear infinite"></i> Memverifikasi...'; }
@@ -4226,15 +4522,30 @@ function processLogin() {
         const m = bootstrap.Modal.getInstance(document.getElementById('modalLogin'));
         if(m) m.hide();
         enterAdminPanel(false);
-        Swal.fire({icon:'success',title:'Welcome Admin!',timer:900,showConfirmButton:false});
+        Swal.fire({icon:'success',title:'Selamat Datang, Admin!',text:'Dashboard siap digunakan.',timer:1500,timerProgressBar:true,showConfirmButton:false,position:'top-end',toast:true,background:getComputedStyle(document.body).getPropertyValue('--card').trim(),color:getComputedStyle(document.body).getPropertyValue('--text').trim()});
       } else {
+        // [FIX BUG] Sebelumnya pesan error hanya lewat SweetAlert2, yang bisa
+        // tampil TERSEMBUNYI di belakang modal Login (konflik z-index) sehingga
+        // terlihat seperti "tidak terjadi apa-apa" saat password salah.
+        // Sekarang pesan SELALU tampil langsung di dalam modal (inline), plus
+        // efek shake + SweetAlert2 sebagai penguat visual.
         const errMsg = (res && res.message) ? res.message : 'Username atau Password Salah!';
-        notify.error(errMsg || 'Username atau Password Salah!');
-        var _lp = safeEl('loginPass'); if (_lp) { _lp.focus(); _lp.select(); }
+        if (errText) errText.textContent = errMsg;
+        if (errBox) errBox.classList.remove('d-none');
+        if (modalContent) {
+          modalContent.classList.remove('shake-error');
+          void modalContent.offsetWidth; // restart animasi
+          modalContent.classList.add('shake-error');
+        }
+        // [FIX] Tidak pakai Swal/notify.error di sini karena popup bisa tertutup
+        // di belakang modal Login (z-index conflict). Cukup inline error + shake.
+        var _lp = safeEl('loginPass'); if (_lp) { _lp.value = ''; _lp.focus(); }
       }
     })
     .withFailureHandler(err => {
       if(loginBtn) { loginBtn.disabled = false; loginBtn.innerHTML = '<i class="ph ph-sign-in"></i>MASUK SISTEM'; }
+      if (errText) errText.textContent = 'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.';
+      if (errBox) errBox.classList.remove('d-none');
       Swal.fire({
         icon: 'error',
         title: '<i class="ph ph-wifi-x"></i> Koneksi Gagal',
@@ -5707,13 +6018,16 @@ function simpanEdit() {
     
     const newNama = nama.toUpperCase();
     const newNik = nikEdit;
+    // [FIX] Tampilkan data awal DAN data baru (bukan cuma "diubah" tanpa detail),
+    // konsisten dengan yang dicatat di server (updateDataPendataan).
+    const _trunc = s => { s = String(s || ''); return s.length > 30 ? s.substring(0, 30) + '...' : s; };
     if (origNama !== newNama) diffs.push('Nama: ' + origNama + ' > ' + newNama);
-    if (origNik !== newNik) diffs.push('ID: ' + origNik + ' > ' + newNik);
-    if (origAlamat !== editAlamat) diffs.push('Alamat diubah');
-    if (origTgl !== editTglLahir) diffs.push('Tgl Lahir diubah');
+    if (origNik !== newNik) diffs.push('ID: ' + (origNik || '-') + ' > ' + newNik);
+    if (origAlamat !== editAlamat) diffs.push('Alamat: ' + _trunc(origAlamat) + ' > ' + _trunc(editAlamat));
+    if (origTgl !== editTglLahir) diffs.push('Tgl Lahir: ' + (origTgl || '-') + ' > ' + (editTglLahir || '-'));
     if (origJk !== editJk) diffs.push('JK: ' + origJk + ' > ' + (editJk || '-'));
-    if (origOrtu !== editOrtu) diffs.push('Ortu diubah');
-    if (origAlergi !== editAlergi) diffs.push('Alergi diubah');
+    if (origOrtu !== editOrtu) diffs.push('Ortu: ' + (origOrtu || '-') + ' > ' + (editOrtu || '-'));
+    if (origAlergi !== editAlergi) diffs.push('Alergi: ' + _trunc(origAlergi) + ' > ' + _trunc(editAlergi));
     if (origInst !== (editInstansi || originalInstansi).toUpperCase()) diffs.push('Instansi: ' + origInst + ' > ' + (editInstansi || originalInstansi).toUpperCase());
     changeLog = diffs.length > 0 ? diffs.join(' | ') : '';
   }
@@ -6015,6 +6329,7 @@ function loadAdminData() {
       _riwayatCache = _riwayatCache.filter(function(e) { return isWithin24h(e); });
       
       allAdminData = adminData;
+      updateWelcomeStats();
       updateAdminStats(allAdminData);
       renderPKPBStats(allAdminData);
       renderCategoryChart(allAdminData);
@@ -6496,31 +6811,33 @@ function toggleExpandInstansi(key) {
 }
 
 function buildDataItemHtml(r, idx) {
-  const jkIcon = (r.jk||'').toUpperCase() === 'PRIA'
-    ? '<i class="ph ph-gender-male" style="color:#60a5fa"></i>'
-    : (r.jk||'').toUpperCase() === 'WANITA'
-      ? '<i class="ph ph-gender-female" style="color:#f472b6"></i>'
+  const jkUp = (r.jk||'').toUpperCase();
+  const jkColor = jkUp==='PRIA' ? '#3b82f6' : jkUp==='WANITA' ? '#ec4899' : '#94a3b8';
+  const jkBg = jkUp==='PRIA' ? 'rgba(59,130,246,.1)' : jkUp==='WANITA' ? 'rgba(236,72,153,.1)' : 'rgba(148,163,184,.1)';
+  const jkIcon = jkUp==='PRIA'
+    ? '<i class="ph ph-gender-male" style="color:'+jkColor+';font-size:.78rem"></i>'
+    : jkUp==='WANITA'
+      ? '<i class="ph ph-gender-female" style="color:'+jkColor+';font-size:.78rem"></i>'
       : '';
   const nikStr = String(r.nik||'').replace(/\D/g,'');
   const nikLen = nikStr.length;
   const nikLabel = nikLen===16?'NIK': nikLen===10?'NISN': nikLen===18?'NIP':'ID';
-  const nikBg    = nikLen===16?'#dbeafe': nikLen===10?'#d1fae5': nikLen===18?'#fef3c7':'var(--input)';
-  const nikColor = nikLen===16?'#1d4ed8': nikLen===10?'#065f46': nikLen===18?'#92400e':'var(--muted)';
-  return '<div class="data-item">' +
-    '<div class="idx-badge">' + (idx+1) + '</div>' +
-    '<div class="avatar-modern">' + (r.nama ? r.nama.charAt(0).toUpperCase() : '?') + '</div>' +
-    '<div class="data-info" style="flex:1;min-width:0">' +
-      '<div class="data-name d-flex align-items-center gap-1">' + jkIcon + esc(r.nama) + '</div>' +
-      '<div class="data-meta flex-wrap">' +
+  const nikTagCls = nikLen===16?'id-tag': nikLen===10?'nisn-tag': nikLen===18?'nip-tag':'id-tag';
+  const alergiIcon = (r.alergi && r.alergi !== '-') ? '<i class="ph ph-warning-circle" style="color:#f59e0b;font-size:.72rem" title="'+esc(r.alergi)+'"></i>' : '';
+  return '<div class="db-data-row">' +
+    '<div class="db-row-avatar">' + (r.nama ? r.nama.charAt(0).toUpperCase() : '?') + '</div>' +
+    '<div class="db-row-info">' +
+      '<div class="db-row-name">' + jkIcon + esc(r.nama) + alergiIcon + '</div>' +
+      '<div class="db-row-meta">' +
         (r.nik && r.nik!=='-'
-          ? '<span class="meta-nik" style="background:' + nikBg + ';color:' + nikColor + '"><i class="ph ph-identification-card"></i><span style="font-size:.6rem;font-weight:700">' + nikLabel + '</span> ' + esc(r.nik) + '</span>'
-          : '<span class="meta-nik" style="opacity:.5"><i class="ph ph-identification-card"></i>–</span>') +
-        '<span class="meta-usia"><i class="ph ph-cake"></i>' + esc(getUsiaDisplay(r.tglLahir, r.usia)) + '</span>' +
+          ? '<span class="db-meta-tag '+nikTagCls+'"><i class="ph ph-identification-card" style="font-size:.68rem"></i> '+nikLabel+' '+esc(r.nik)+'</span>'
+          : '') +
+        '<span class="db-meta-tag usia-tag"><i class="ph ph-cake" style="font-size:.68rem"></i> '+esc(getUsiaDisplay(r.tglLahir, r.usia))+'</span>' +
       '</div>' +
     '</div>' +
-    '<div class="data-actions flex-shrink-0">' +
-      '<button class="btn btn-sm btn-light rounded-circle" style="width:28px;height:28px;padding:0" onclick="bukaModalEdit(' + (r.rowIndex||r.row) + ')" title="Edit"><i class="ph ph-pencil-simple"></i></button>' +
-      '<button class="btn btn-sm btn-light text-danger rounded-circle" style="width:28px;height:28px;padding:0" onclick="hapusData(' + (r.rowIndex||r.row) + ')" title="Hapus"><i class="ph ph-trash-simple"></i></button>' +
+    '<div class="db-row-actions">' +
+      '<button class="db-btn-edit" onclick="bukaModalEdit('+(r.rowIndex||r.row)+')" title="Edit"><i class="ph ph-pencil-simple"></i></button>' +
+      '<button class="db-btn-del" onclick="hapusData('+(r.rowIndex||r.row)+')" title="Hapus"><i class="ph ph-trash-simple"></i></button>' +
     '</div>' +
   '</div>';
 }
@@ -6617,36 +6934,38 @@ function renderAdminGrid(data, sortBy) {
 
     var usiaOrder = ['0\u20135','6\u201312','13\u201317','18\u201325','26\u201340','41+','?'];
     var usiaChips = usiaOrder.filter(function(k){return usiaGroups[k];}).map(function(k){
-      return '<span class="badge rounded-pill me-1 mb-1" style="background:var(--primary-l);color:var(--primary);font-size:.66rem"><i class="ph ph-cake"></i> ' + k + 'th: ' + usiaGroups[k] + '</span>';
+      return '<span class="db-chip db-chip-usia"><i class="ph ph-cake"></i> ' + k + 'th: ' + usiaGroups[k] + '</span>';
     }).join('');
 
     var safeKey2 = key.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    return '<div class="modern-card">' +
-      '<div class="adm-hd p-3 text-white" style="background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%)">' +
-        '<div class="d-flex justify-content-between align-items-start mb-2">' +
-          '<div style="flex:1;min-width:0">' +
-            '<h6 class="mb-0 fw-bold text-truncate" title="' + esc(group.instansi) + '">' + esc(group.instansi) + '</h6>' +
-            '<small class="opacity-75 d-block"><i class="ph ph-user-circle me-1"></i>' + esc(group.pic) + '</small>' +
+    var instAvatar = esc((group.instansi||'?').trim().charAt(0).toUpperCase() || '?');
+    return '<div class="db-group-card">' +
+      '<div class="db-group-header">' +
+        '<div style="display:flex;justify-content:space-between;align-items:start;gap:10px">' +
+          '<div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">' +
+            '<div class="db-group-avatar">' + instAvatar + '</div>' +
+            '<div style="flex:1;min-width:0">' +
+              '<h6 style="margin:0;font-weight:800;color:#fff;font-size:.95rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + esc(group.instansi) + '">' + esc(group.instansi) + '</h6>' +
+              '<div style="display:flex;align-items:center;gap:4px;margin-top:3px;color:rgba(255,255,255,.8);font-size:.75rem;font-weight:600"><i class="ph ph-user-circle"></i>' + esc(group.pic) + '</div>' +
+            '</div>' +
           '</div>' +
-          '<div class="d-flex gap-1 flex-shrink-0">' +
-            '<button class="btn btn-sm text-white px-2" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25)" onclick="cetakInvoiceByGroup(\'' + safeKey2 + '\')"><i class="ph ph-printer"></i></button>' +
-            '<button class="btn btn-sm text-white px-2" style="background:rgba(251,191,36,.3);border:1px solid rgba(255,255,255,.25)" onclick="bulkRenameInstansiPic(\'' + safeKey2 + '\')" title="Ubah Nama Instansi/PIC"><i class="ph ph-pencil-simple"></i></button>' +
-            '<button class="btn btn-sm text-white px-2" style="background:rgba(239,68,68,.25);border:1px solid rgba(255,255,255,.2)" onclick="hapusSatuGrup(\'' + safeKey2 + '\')"><i class="ph ph-trash"></i></button>' +
+          '<div class="db-group-actions">' +
+            '<button class="db-act-btn-new" style="background:rgba(255,255,255,.15)" onclick="cetakInvoiceByGroup(\'' + safeKey2 + '\')" title="Cetak Invoice"><i class="ph ph-printer"></i></button>' +
+            '<button class="db-act-btn-new" style="background:rgba(251,191,36,.3)" onclick="bulkRenameInstansiPic(\'' + safeKey2 + '\')" title="Ubah Nama Instansi/PIC"><i class="ph ph-pencil-simple"></i></button>' +
+            '<button class="db-act-btn-new" style="background:rgba(239,68,68,.3)" onclick="hapusSatuGrup(\'' + safeKey2 + '\')" title="Hapus Semua Data Grup Ini"><i class="ph ph-trash"></i></button>' +
           '</div>' +
         '</div>' +
-        '<div class="d-flex gap-3">' +
-          '<div class="text-center"><div class="fw-bold fs-5">' + l.length + '</div><div style="font-size:.65rem;opacity:.8">TOTAL</div></div>' +
-          '<div class="text-center"><div class="fw-bold fs-5" style="color:#bfdbfe">' + totalP + '</div><div style="font-size:.65rem;opacity:.8">\u2642 L</div></div>' +
-          '<div class="text-center"><div class="fw-bold fs-5" style="color:#fbcfe8">' + totalW + '</div><div style="font-size:.65rem;opacity:.8">\u2640 P</div></div>' +
+        '<div class="db-group-stats">' +
+          '<div class="db-group-stat"><div class="val">' + l.length + '</div><div class="lbl"><i class="ph ph-users-three"></i> Total</div></div>' +
+          '<div class="db-group-stat"><div class="val" style="color:#bfdbfe">' + totalP + '</div><div class="lbl">\u2642 Laki-laki</div></div>' +
+          '<div class="db-group-stat"><div class="val" style="color:#fbcfe8">' + totalW + '</div><div class="lbl">\u2640 Perempuan</div></div>' +
         '</div>' +
       '</div>' +
-      '<div class="px-3 py-2" style="background:linear-gradient(135deg,rgba(99,102,241,.05),rgba(139,92,246,.05));border-bottom:1px solid var(--border)">' +
-        '<div class="d-flex flex-wrap gap-1 mb-1">' +
-          sortedCats.map(function(e){return '<span class="badge rounded-pill" style="background:var(--primary-l);color:var(--primary);font-size:.66rem">' + esc(e[0]) + ': ' + e[1] + '</span>';}).join('') +
-        '</div>' +
-        (usiaChips ? '<div class="d-flex flex-wrap gap-0">' + usiaChips + '</div>' : '') +
+      '<div class="db-group-chips">' +
+        sortedCats.map(function(e){return '<span class="db-chip-new"><i class="ph ph-tag"></i>' + esc(e[0]) + ': ' + e[1] + '</span>';}).join('') +
+        (usiaChips ? usiaChips : '') +
       '</div>' +
-      '<div class="data-list-modern custom-scroll">' + rowsHtml + '</div>' +
+      '<div class="db-data-list custom-scroll">' + rowsHtml + '</div>' +
       moreBtn +
     '</div>';
   }).join('');
@@ -7788,10 +8107,10 @@ function clearDataHistory() {
 let riwayatFilter = 'all';
 function filterRiwayat(type) {
   riwayatFilter = type;
-  document.querySelectorAll('.riwayat-filter button').forEach(btn => btn.style.opacity = '0.6');
-  const map = { all: '.rf-all', add: '.rf-add', del: '.rf-del', mod: '.rf-mod' };
+  document.querySelectorAll('.rwt-filter-btn').forEach(btn => btn.classList.remove('active'));
+  const map = { all: '.f-all', add: '.f-add', del: '.f-del', mod: '.f-mod' };
   const activeBtn = document.querySelector(map[type]);
-  if (activeBtn) activeBtn.style.opacity = '1';
+  if (activeBtn) activeBtn.classList.add('active');
   renderRiwayatFromCache(type);
 }
 
@@ -7801,14 +8120,14 @@ function renderRiwayat(type) {
   const el = document.getElementById('riwayatContainer');
   const countEl = document.getElementById('riwayatCount');
   if (!el) return;
-  el.innerHTML = `<div class="riwayat-empty" style="padding:32px"><i class="ph ph-spinner-gap d-block fs-3 mb-2" style="animation:spin 1s linear infinite"></i>Memuat riwayat dari server...</div>`;
+  el.innerHTML = `<div class="rwt-empty" style="padding:32px"><i class="ph ph-spinner-gap d-block fs-3 mb-2" style="animation:spin 1s linear infinite"></i>Memuat riwayat dari server...</div>`;
   if (countEl) countEl.textContent = '...';
-  document.querySelectorAll('.riwayat-filter button').forEach(btn => btn.style.opacity = '0.6');
-  const map = { all: '.rf-all', add: '.rf-add', del: '.rf-del', mod: '.rf-mod' };
+  document.querySelectorAll('.rwt-filter-btn').forEach(btn => btn.classList.remove('active'));
+  const map = { all: '.f-all', add: '.f-add', del: '.f-del', mod: '.f-mod' };
   const activeBtn = document.querySelector(map[type]);
-  if (activeBtn) activeBtn.style.opacity = '1';
+  if (activeBtn) activeBtn.classList.add('active');
   google.script.run.withSuccessHandler(res => {
-    if (!res.success) { el.innerHTML = `<div class="riwayat-empty text-danger"><i class="ph ph-warning-circle d-block fs-3 mb-2"></i>Gagal memuat: ${esc(res.message||'Error')}</div>`; return; }
+    if (!res.success) { el.innerHTML = `<div class="rwt-empty text-danger"><i class="ph ph-warning-circle d-block fs-3 mb-2"></i>Gagal memuat: ${esc(res.message||'Error')}</div>`; return; }
     _riwayatCache = res.data || [];
     renderRiwayatFromCache(type);
   }).getRiwayat(currentPass, 'all', 500);
@@ -7862,7 +8181,7 @@ function renderRiwayatFromCache(type) {
   if (countEl) countEl.textContent = hist.length + ' entri';
 
   if (!hist.length) {
-    el.innerHTML = `<div class="riwayat-empty"><i class="ph ph-clock-clockwise d-block fs-3 mb-2"></i>Belum ada riwayat ${typeName}</div>`;
+    el.innerHTML = `<div class="rwt-empty"><i class="ph ph-clock-clockwise d-block fs-3 mb-2"></i>Belum ada riwayat ${typeName}</div>`;
     return;
   }
 
@@ -7897,22 +8216,39 @@ function renderRiwayatFromCache(type) {
       }
       if (!namaLama && !namaBaru) namaBaru = esc(h.nama || '(tanpa nama)');
 
+      // [FIX] Ambil juga data ID (NIK/NISN/NIP) lama -> baru, konsisten dengan Nama,
+      // supaya "data awal" dan "data baru" yang diubah sama-sama terlihat jelas.
+      const idChangePart = parts.find(p => p.toLowerCase().startsWith('id:'));
+      let idLama = '', idBaru = '';
+      if (idChangePart) {
+        const val = idChangePart.replace(/^id:\s*/i, '').trim();
+        const arrowIdx = val.indexOf(' > ');
+        if (arrowIdx > -1) {
+          idLama = val.substring(0, arrowIdx).trim();
+          idBaru = val.substring(arrowIdx + 3).trim();
+        }
+      }
+
       // Bangun baris utama
       let line = '';
       if (namaLama) {
-        line += `<span class="rw-name-old">${esc(namaLama)}</span><span class="rw-arrow">-></span><span class="rw-name">${esc(namaBaru)}</span>`;
+        line += `<span class="rwt-name-old">${esc(namaLama)}</span><span class="rwt-arrow">-></span><span class="rwt-name">${esc(namaBaru)}</span>`;
       } else {
-        line += `<span class="rw-name">${esc(namaBaru)}</span>`;
+        line += `<span class="rwt-name">${esc(namaBaru)}</span>`;
       }
-      if (nik) line += `<span class="rw-sep">,</span> ID. <span class="rw-nik">${esc(nik)}</span>`;
-      if (kat) line += `<span class="rw-sep">,</span> Kat. <span class="rw-kat mod">${esc(kat)}</span>`;
-      if (ctxStr) line += `<span class="rw-sep">.</span> <span class="rw-ctx">(${esc(ctxStr)})</span>`;
-      if (tsStr) line += ` <span class="rw-time">${esc(tsStr)}</span>`;
-      mainHtml = `<div class="riwayat-main">${line}</div>`;
+      if (idBaru) {
+        line += `<span class="rwt-sep">,</span> ID. <span class="rwt-name-old">${esc(idLama || '-')}</span><span class="rwt-arrow">-></span><span class="rwt-nik">${esc(idBaru)}</span>`;
+      } else if (nik) {
+        line += `<span class="rwt-sep">,</span> ID. <span class="rwt-nik">${esc(nik)}</span>`;
+      }
+      if (kat) line += `<span class="rwt-sep">,</span> Kat. <span class="rwt-kat kat-mod">${esc(kat)}</span>`;
+      if (ctxStr) line += `<span class="rwt-sep">.</span> <span class="rwt-ctx">(${esc(ctxStr)})</span>`;
+      if (tsStr) line += ` <span class="rwt-time">${esc(tsStr)}</span>`;
+      mainHtml = `<div class="rwt-main">${line}</div>`;
 
       // Detail: perubahan field lain (selain nama)
       if (parts.length > 0) {
-        const detailParts = parts.filter(p => !p.toLowerCase().startsWith('nama:')).map(p => {
+        const detailParts = parts.filter(p => !p.toLowerCase().startsWith('nama:') && !p.toLowerCase().startsWith('id:')).map(p => {
           const colonIdx = p.indexOf(':');
           if (colonIdx > -1) {
             const field = p.substring(0, colonIdx).trim();
@@ -7930,33 +8266,36 @@ function renderRiwayatFromCache(type) {
           }
           return esc(p);
         });
-        if (detailParts.length) detailBlock = `<div class="riwayat-detail">${detailParts.join(' &nbsp;·&nbsp; ')}</div>`;
+        if (detailParts.length) detailBlock = `<div class="rwt-detail">${detailParts.join(' &nbsp;·&nbsp; ')}</div>`;
       }
 
     } else if (h.type === 'del') {
       // ---- FORMAT HAPUS ----
       // Contoh: dihapus - Aldi Hermawan, ID. 360xxx, Kat. SMA. (SMA PUSAT - MILASARI) 04-08-2026 04:00:34 Wib
-      let line = `<span style="color:#dc2626;font-weight:600">dihapus</span><span class="rw-sep"> -</span> <span class="rw-name">${esc(h.nama || '(tanpa nama)')}</span>`;
-      if (nik) line += `<span class="rw-sep">,</span> ID. <span class="rw-nik">${esc(nik)}</span>`;
-      if (kat) line += `<span class="rw-sep">,</span> Kat. <span class="rw-kat del">${esc(kat)}</span>`;
-      if (ctxStr) line += `<span class="rw-sep">.</span> <span class="rw-ctx">(${esc(ctxStr)})</span>`;
-      if (tsStr) line += ` <span class="rw-time">${esc(tsStr)}</span>`;
-      mainHtml = `<div class="riwayat-main">${line}</div>`;
+      let line = `<span style="color:#dc2626;font-weight:600">dihapus</span><span class="rwt-sep"> -</span> <span class="rwt-name">${esc(h.nama || '(tanpa nama)')}</span>`;
+      if (nik) line += `<span class="rwt-sep">,</span> ID. <span class="rwt-nik">${esc(nik)}</span>`;
+      if (kat) line += `<span class="rwt-sep">,</span> Kat. <span class="rwt-kat kat-del">${esc(kat)}</span>`;
+      if (ctxStr) line += `<span class="rwt-sep">.</span> <span class="rwt-ctx">(${esc(ctxStr)})</span>`;
+      if (tsStr) line += ` <span class="rwt-time">${esc(tsStr)}</span>`;
+      mainHtml = `<div class="rwt-main">${line}</div>`;
 
     } else {
       // ---- FORMAT TAMBAH ----
       // Contoh: + Aldi Hermawan, ID. 360xxx, Kat. SMA. (SMA PUSAT - MILASARI) 04-08-2026 03:30:34 Wib
-      let line = `<span style="color:#059669;font-weight:700">+</span> <span class="rw-name">${esc(h.nama || '(tanpa nama)')}</span>`;
-      if (nik) line += `<span class="rw-sep">,</span> ID. <span class="rw-nik">${esc(nik)}</span>`;
-      if (kat) line += `<span class="rw-sep">,</span> Kat. <span class="rw-kat add">${esc(kat)}</span>`;
-      if (ctxStr) line += `<span class="rw-sep">.</span> <span class="rw-ctx">(${esc(ctxStr)})</span>`;
-      if (tsStr) line += ` <span class="rw-time">${esc(tsStr)}</span>`;
-      mainHtml = `<div class="riwayat-main">${line}</div>`;
+      let line = `<span style="color:#059669;font-weight:700">+</span> <span class="rwt-name">${esc(h.nama || '(tanpa nama)')}</span>`;
+      if (nik) line += `<span class="rwt-sep">,</span> ID. <span class="rwt-nik">${esc(nik)}</span>`;
+      if (kat) line += `<span class="rwt-sep">,</span> Kat. <span class="rwt-kat kat-add">${esc(kat)}</span>`;
+      if (ctxStr) line += `<span class="rwt-sep">.</span> <span class="rwt-ctx">(${esc(ctxStr)})</span>`;
+      if (tsStr) line += ` <span class="rwt-time">${esc(tsStr)}</span>`;
+      mainHtml = `<div class="rwt-main">${line}</div>`;
     }
 
-    return `<div class="riwayat-item">` +
-      `<div class="riwayat-icon ${typeClass}"><i class="ph ${icon}"></i></div>` +
-      `<div class="riwayat-body">` +
+    const badgeCls = h.type==='add'?'badge-add': h.type==='del'?'badge-del':'badge-mod';
+    const badgeLabel = h.type==='add'?'TAMBAH': h.type==='del'?'HAPUS':'UBAH';
+    return `<div class="rwt-card" style="animation-delay:${Math.min(hist.indexOf(h)*0.04, 0.4)}s">` +
+      `<div class="rwt-icon-wrap type-${typeClass}"><i class="ph ${icon}"></i></div>` +
+      `<div class="rwt-body">` +
+        `<span class="rwt-type-badge ${badgeCls}"><i class="ph ${icon}" style="font-size:.65rem"></i>${badgeLabel}</span>` +
         mainHtml +
         detailBlock +
       `</div>` +
