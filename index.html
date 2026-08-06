@@ -158,7 +158,7 @@
     // 1) GANTI URL INI dengan URL Web App hasil Deploy Apps Script kamu
     //    (Deploy > New deployment > Web app > Execute as: Me > Who has access: Anyone > /exec)
     //    Hanya dipakai saat file ini berjalan di LUAR Apps Script (Blogger/Netlify).
-    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwZJd-aYGijt62b6wFrtFd9vYzd6fbRlAYXFU2ESGMhOIxirxx0E37NexnpOKoWyuRb/exec';
+    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxlSmBckTQIylTP63D92CdDaxOyhG1Aqn-xj29xCpjc5Ql3IvcEtkaAv-AHruWXx9r_/exec';
 
     // 2) Peta nama fungsi server -> urutan nama parameter,
     //    HARUS SAMA PERSIS dengan switch(action) di Code.gs (doPost)
@@ -273,6 +273,14 @@
     window.google.script.run = makeRunner(null, null);
     // host/url tidak dipakai di file ini (sudah dicek), tapi disiapkan agar tidak error jika terpanggil
     window.google.script.host = { close: function () {}, setHeight: function () {}, setWidth: function () {} };
+    // [FIX BUG] Flag eksplisit untuk mendeteksi mode shim (Blogger/Netlify/Vercel).
+    // JANGAN pakai "window.google.script.run instanceof Proxy" — Proxy.prototype
+    // memang undefined menurut spec JS, sehingga instanceof Proxy SELALU melempar
+    // TypeError: "Function has non-object prototype 'undefined' in instanceof check".
+    // Error ini muncul sebagai unhandledrejection ("Async: ...") setiap kali
+    // adminLogin gagal (withFailureHandler dipanggil), makanya errornya baru
+    // kelihatan saat proses async gagal.
+    window.__MBG_SHIM_MODE__ = true;
   })();
 
 /* =========================================================
@@ -986,7 +994,11 @@ const notify = {
     .doc-signer-avatar.akuntan{background:linear-gradient(135deg,#10b981,#06b6d4);color:#fff}
     .doc-signer-info{flex:1;min-width:0}
     .doc-signer-role{font-size:.68rem;font-weight:600;color:var(--primary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
-    .doc-save-bar{position:sticky;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;gap:12px;z-index:50;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+    /* [FIX BUG] Sebelumnya position:sticky membuat tombol "mengambang" dan ikut
+       bergeser/scroll mengikuti seluruh halaman secara tidak konsisten (terutama
+       saat pindah tab / resize). Sekarang dibuat statis (mengikuti alur normal
+       dokumen), tetap menempel rapi di bagian bawah kartu konfigurasi. */
+    .doc-save-bar{position:static;background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 20px;display:flex;align-items:center;gap:12px;margin-top:20px;box-shadow:var(--sh-sm)}
     [data-theme="dark"] .doc-save-bar{background:rgba(30,41,59,.92)}
     .doc-save-bar .btn-prim{flex:1;padding:13px 20px;font-size:.88rem}
     .doc-save-bar .doc-save-status{font-size:.72rem;color:var(--muted);display:flex;align-items:center;gap:4px;white-space:nowrap}
@@ -2101,7 +2113,7 @@ const notify = {
           </div>
         </div><!-- /docTabContentPreview -->
 
-        <!-- Sticky Save Bar -->
+        <!-- Save Bar (statis, mengikuti alur halaman) -->
         <div class="doc-save-bar" id="docSaveBar">
           <div class="doc-save-status" id="docSaveStatus"><i class="ph ph-clock"></i>Belum disimpan</div>
           <button class="btn btn-prim" onclick="saveSignatureSettings()"><i class="ph ph-floppy-disk me-2"></i>Simpan Konfigurasi</button>
@@ -4827,9 +4839,12 @@ function processLogin() {
         void modalContent.offsetWidth;
         modalContent.classList.add('shake-error');
       }
-      // Deteksi apakah ini mode shim (Vercel/Blogger/Netlify) — google.script.run adalah Proxy
-      var isShimMode = window.google && window.google.script && window.google.script.run
-        && typeof Proxy !== 'undefined' && window.google.script.run instanceof Proxy;
+      // Deteksi apakah ini mode shim (Vercel/Blogger/Netlify).
+      // [FIX BUG] Sebelumnya pakai "window.google.script.run instanceof Proxy",
+      // tapi itu SELALU melempar TypeError ("Function has non-object prototype
+      // 'undefined' in instanceof check") karena Proxy.prototype memang undefined
+      // menurut spec JS. Sekarang pakai flag boolean yang di-set saat shim dibuat.
+      var isShimMode = !!window.__MBG_SHIM_MODE__;
       var detailHtml = '<div style="text-align:left;font-size:.82rem;line-height:1.6;margin-top:8px">'
         + '<div style="padding:10px 12px;background:#f1f5f9;border-radius:8px;margin-bottom:8px;color:#475569"><strong>Masalah:</strong> ' + esc(errMsg) + '</div>';
       if (isShimMode) {
