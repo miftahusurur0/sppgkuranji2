@@ -158,7 +158,7 @@
     // 1) GANTI URL INI dengan URL Web App hasil Deploy Apps Script kamu
     //    (Deploy > New deployment > Web app > Execute as: Me > Who has access: Anyone > /exec)
     //    Hanya dipakai saat file ini berjalan di LUAR Apps Script (Blogger/Netlify).
-    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx-7S_caNT1ai-uQy-lfetoWQohWLC8m8Bf7t7_IQfm77vSD7uZ_c1AfIfXbSlpMyUy/exec';
+    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwB-iMTLQX4Kz256yLQxbApSR5BSNL4pH0GIWQSRQyCdUxj9WdpFMWJGtDBRWFj7Q7b/exec';
 
     // 2) Peta nama fungsi server -> urutan nama parameter,
     //    HARUS SAMA PERSIS dengan switch(action) di Code.gs (doPost)
@@ -402,7 +402,6 @@ const notify = {
   }
 };
 
-</script>
 </script>
   <style>
     /* SEMUA CSS SAMA PERSIS SEPERTI VERSI ASLI - TIDAK ADA PERUBAHAN */
@@ -1314,6 +1313,7 @@ const notify = {
     </div>
     <nav class="sidebar-nav">
       <button class="anb active" id="anSettings" onclick="switchAdminTab('settings')"><i class="ph ph-gear-six"></i><span>Pengaturan</span></button>
+      <button class="anb" id="anKategori" onclick="switchAdminTab('kategori')"><i class="ph ph-tag"></i><span>Kategori</span></button>
       <button class="anb" id="anSignature" onclick="switchAdminTab('signature')"><i class="ph ph-file-text"></i><span>Dokumen</span></button>
       <button class="anb" id="anRekap" onclick="switchAdminTab('rekap')"><i class="ph ph-table"></i><span>Rekap Data</span></button>
       <button class="anb" id="anData" onclick="switchAdminTab('data')"><i class="ph ph-database"></i><span>Database</span></button>
@@ -1775,24 +1775,6 @@ const notify = {
             <textarea class="form-control" id="adminAnnouncement" rows="2" placeholder="Pesan saat maintenance..."></textarea>
           </div>
 
-          <!-- Kelola Kategori Input Data -->
-          <div class="mb-4">
-            <div class="section-title" style="font-size:.9rem"><i class="ph ph-tag"></i>Kelola Kategori (Menu Input Data)</div>
-            <div class="p-3 rounded mb-2" style="background:var(--input);border:1px solid var(--border);border-radius:var(--r-lg)">
-              <small class="d-block text-muted mb-3" style="font-size:.72rem;line-height:1.5">
-                <i class="ph ph-info me-1"></i>Kategori di bawah ini akan tampil sebagai pilihan pada form <strong>Input Data</strong>.
-                Menghapus kategori di sini <strong>hanya menghilangkannya dari pilihan Input Data</strong> —
-                data yang sudah tersimpan sebelumnya dengan kategori tersebut <strong>tidak akan hilang atau terhapus</strong>
-                dan tetap tampil normal di Data Masuk, Riwayat, maupun Rekap/Laporan.
-              </small>
-              <div id="categoryChipsContainer" class="d-flex flex-wrap gap-2 mb-3"></div>
-              <div class="input-group">
-                <input type="text" id="newCategoryInput" class="form-control" placeholder="Nama kategori baru, contoh: SMP 7-9"
-                  onkeypress="if(event.key==='Enter'){event.preventDefault();addCategoryToManager();}">
-                <button class="btn btn-outline-primary" type="button" onclick="addCategoryToManager()"><i class="ph ph-plus"></i> Tambah</button>
-              </div>
-              <button class="btn btn-prim mt-3 w-100" onclick="saveCategoriesSettings()"><i class="ph ph-floppy-disk me-1"></i>Simpan Daftar Kategori</button>
-            </div>
           </div>
 
           <!-- Admin credentials -->
@@ -1882,6 +1864,47 @@ const notify = {
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- TAB: Kategori -->
+      <div id="admKategori" class="d-none">
+        <div class="admin-info-tip"><i class="ph ph-tag"></i> Kelola daftar kategori untuk form Input Data dan atur batasan usia (min/max) untuk setiap kategori yang memiliki aturan usia.</div>
+
+        <!-- Kelola Kategori -->
+        <div class="modern-card p-4 mb-4">
+          <div class="section-title"><i class="ph ph-tags"></i>Kelola Kategori (Menu Input Data)</div>
+          <div class="p-3 rounded mb-2" style="background:var(--input);border:1px solid var(--border);border-radius:var(--r-lg)">
+            <small class="d-block text-muted mb-3" style="font-size:.72rem;line-height:1.5">
+              <i class="ph ph-info me-1"></i>Kategori di bawah ini akan tampil sebagai pilihan pada form <strong>Input Data</strong>.
+              Menghapus kategori di sini <strong>hanya menghilangkannya dari pilihan Input Data</strong> —
+              data yang sudah tersimpan sebelumnya dengan kategori tersebut <strong>tidak akan hilang atau terhapus</strong>
+              dan tetap tampil normal di Data Masuk, Riwayat, maupun Rekap/Laporan.
+            </small>
+            <div id="categoryChipsContainer" class="d-flex flex-wrap gap-2 mb-3"></div>
+            <div class="input-group">
+              <input type="text" id="newCategoryInput" class="form-control" placeholder="Nama kategori baru, contoh: SMP 7-9"
+                onkeypress="if(event.key==='Enter'){event.preventDefault();addCategoryToManager();}">
+              <button class="btn btn-outline-primary" type="button" onclick="addCategoryToManager()"><i class="ph ph-plus"></i> Tambah</button>
+            </div>
+            <button class="btn btn-prim mt-3 w-100" onclick="saveCategoriesSettings()"><i class="ph ph-floppy-disk me-1"></i>Simpan Daftar Kategori</button>
+          </div>
+        </div>
+
+        <!-- Aturan Usia Kategori -->
+        <div class="modern-card p-4 mb-4">
+          <div class="section-title"><i class="ph ph-ruler"></i>Aturan Usia per Kategori</div>
+          <small class="d-block text-muted mb-3" style="font-size:.72rem;line-height:1.5">
+            <i class="ph ph-info me-1"></i>Atur rentang usia minimum dan maksimum (dalam bulan) untuk kategori yang memerlukan validasi usia.
+            Kategori yang tidak diatur di sini tidak akan memiliki batasan usia.
+            Otomatis menyesuaikan kategori BALITA, ATS < 9, dan ATS < 18 saat usia diinput.
+          </small>
+          <div id="ageRulesContainer"></div>
+          <div class="d-flex gap-2 mt-3">
+            <button class="btn btn-prim flex-grow-1" onclick="saveAgeRules()"><i class="ph ph-floppy-disk me-1"></i>Simpan Aturan Usia</button>
+            <button class="btn btn-outline-secondary" onclick="resetAgeRulesForm()"><i class="ph ph-arrow-counter-clockwise me-1"></i>Reset ke Default</button>
+          </div>
+        </div>
+
       </div>
 
       <div id="admSignature" class="d-none">
@@ -2318,6 +2341,25 @@ const notify = {
               <i class="ph ph-printer me-1"></i>Cetak Rekap Silang
             </button>
           </div>
+          <!-- Filter Timestamp Rekap Silang -->
+          <div class="row g-2 align-items-end mb-3">
+            <div class="col-md-5 col-12">
+              <label class="form-label small fw-semibold text-muted mb-1"><i class="ph ph-calendar"></i> Timestamp Awal</label>
+              <input type="datetime-local" id="pivotTsStart" class="form-control shadow-none" style="font-size:.8rem" onchange="renderPivotWithTsFilter()">
+            </div>
+            <div class="col-md-5 col-12">
+              <label class="form-label small fw-semibold text-muted mb-1"><i class="ph ph-calendar-dots"></i> Timestamp Akhir</label>
+              <input type="datetime-local" id="pivotTsEnd" class="form-control shadow-none" style="font-size:.8rem" onchange="renderPivotWithTsFilter()">
+            </div>
+            <div class="col-md-2 col-12">
+              <button class="btn btn-sm btn-outline-secondary modern-btn w-100" onclick="resetPivotTsFilter()" style="font-size:.75rem">
+                <i class="ph ph-arrow-counter-clockwise me-1"></i>Reset
+              </button>
+            </div>
+          </div>
+          <div class="mb-2" id="pivotTsInfo" style="font-size:.75rem;color:var(--muted);display:none">
+            <i class="ph ph-info me-1"></i><span id="pivotTsInfoText"></span>
+          </div>
           <div id="rekapPivotWrap">
             <div class="text-center text-muted py-4">Memuat...</div>
           </div>
@@ -2533,7 +2575,7 @@ const notify = {
         </div>
 
         <div class="mt-3 text-muted small fst-italic">
-          <i class="ph ph-info"></i> Kelompok Posyandu: BUMIL, BUSUI, BALITA, ATS < 9<br>
+          <i class="ph ph-info"></i> Kelompok Posyandu: BUMIL, BUSUI, BALITA, ATS < 9, ATS < 18<br>
           Kelompok Sekolah/Ponpes: PAUD, RA, TK, SD/MI, SMP/MTs, SMA/MA/SMK, PONPES<br>
           Kelompok Guru/SDM: GURU, TENAGA PENDIDIK
         </div>
@@ -2650,6 +2692,7 @@ const notify = {
   <!-- MOBILE BOTTOM BAR -->
   <div class="mobile-bottom-bar" id="mobileBottomBar">
     <button class="mbb-item active" id="mbSettings" onclick="switchAdminTab('settings')"><i class="ph ph-gear-six"></i><span>Setting</span></button>
+    <button class="mbb-item" id="mbKategori" onclick="switchAdminTab('kategori')"><i class="ph ph-tag"></i><span>Kategori</span></button>
     <button class="mbb-item" id="mbSignature" onclick="switchAdminTab('signature')"><i class="ph ph-file-text"></i><span>Dokumen</span></button>
     <button class="mbb-item" id="mbRekap" onclick="switchAdminTab('rekap')"><i class="ph ph-table"></i><span>Rekap</span></button>
     <button class="mbb-item" id="mbData" onclick="switchAdminTab('data')"><i class="ph ph-database"></i><span>Data</span></button>
@@ -3773,6 +3816,9 @@ function loadSystemData() {
     buildCategorySelects(res);
     manageCategoriesList = res.categories ? res.categories.split(',').map(s=>s.trim()).filter(Boolean) : [];
     renderCategoryManager();
+    // Apply custom age rules from settings
+    if (res.ageRules) { try { const cr = JSON.parse(res.ageRules); if (cr && typeof cr === 'object') { for (var ck in cr) { if (cr.hasOwnProperty(ck)) { var v = cr[ck]; var mn = parseInt(v.minBln); var mx = parseInt(v.maxBln); if (!isNaN(mn) && !isNaN(mx) && mn >= 0 && mx >= mn) { KATEGORI_AGE_RULES[ck] = { minBln: mn, maxBln: mx }; } } } } } catch(e) {}
+    }
     buildAlergiCheckboxes(res.allergies);
     applyMaintenance(res.status, res.announcement);
     loadBroadcast(res.broadcastMessage);
@@ -3874,9 +3920,159 @@ function saveCategoriesSettings() {
     .saveCategoriesSettings(catStr, currentPass);
 }
 
+// ============================================================
+// AGE RULES MANAGEMENT (Menu Kategori)
+// ============================================================
+const DEFAULT_AGE_RULES = {
+  'BALITA':  { minBln: 12, maxBln: 71  },
+  'ATS < 9': { minBln: 72, maxBln: 107 },
+  'ATS < 18':{ minBln: 108,maxBln: 215 },
+  'PAUD':    { minBln: 0,  maxBln: 72  },
+  'TK':      { minBln: 48, maxBln: 72  },
+  'RA':      { minBln: 48, maxBln: 72  }
+};
+
+function blnToThnBln(bln) {
+  const th = Math.floor(bln / 12), bl = bln % 12;
+  if (th > 0 && bl > 0) return th + ' Thn ' + bl + ' Bln';
+  if (th > 0) return th + ' Thn';
+  return bl + ' Bln';
+}
+
+function getActiveAgeRules() {
+  if (SYS && SYS.ageRules) {
+    try {
+      const custom = JSON.parse(SYS.ageRules);
+      if (custom && typeof custom === 'object') return custom;
+    } catch(e) {}
+  }
+  return null;
+}
+
+function getMergedAgeRulesFront() {
+  const custom = getActiveAgeRules();
+  if (!custom) return Object.assign({}, KATEGORI_AGE_RULES);
+  const merged = Object.assign({}, KATEGORI_AGE_RULES);
+  for (const ck in custom) {
+    if (custom.hasOwnProperty(ck)) {
+      const v = custom[ck];
+      const minV = parseInt(v.minBln); const maxV = parseInt(v.maxBln);
+      if (!isNaN(minV) && !isNaN(maxV) && minV >= 0 && maxV >= minV) {
+        merged[ck] = { minBln: minV, maxBln: maxV };
+      }
+    }
+  }
+  return merged;
+}
+
+function renderAgeRulesForm() {
+  const container = document.getElementById('ageRulesContainer');
+  if (!container) return;
+  const rules = getActiveAgeRules() || {};
+  const cats = manageCategoriesList.length ? manageCategoriesList : Object.keys(DEFAULT_AGE_RULES);
+
+  let html = '<div class="row g-3">';
+  cats.forEach((cat, i) => {
+    const key = cat.toUpperCase();
+    const def = DEFAULT_AGE_RULES[key];
+    const custom = rules[key] || null;
+    const minVal = custom ? custom.minBln : (def ? def.minBln : '');
+    const maxVal = custom ? custom.maxBln : (def ? def.maxBln : '');
+    const hasDefault = !!def;
+    const minDisplay = minVal !== '' ? blnToThnBln(parseInt(minVal)) : '-';
+    const maxDisplay = maxVal !== '' ? blnToThnBln(parseInt(maxVal)) : '-';
+
+    html += '<div class="col-md-6 col-lg-4">' +
+      '<div class="p-3 rounded h-100" style="background:var(--input);border:1px solid var(--border);border-radius:var(--r-md)">' +
+      '<div class="fw-bold mb-2" style="font-size:.85rem"><i class="ph ph-tag me-1 text-primary"></i>' + esc(cat) +
+      (hasDefault ? ' <span class="badge bg-secondary" style="font-size:.6rem">DEFAULT</span>' : '') +
+      '</div>' +
+      '<div class="row g-2">' +
+      '<div class="col-6"><label class="form-label small mb-0 text-muted">Min (bulan)</label>' +
+      '<input type="number" class="form-control form-control-sm shadow-none" id="ar_min_' + i + '" data-cat="' + esc(cat) + '" value="' + minVal + '" min="0" placeholder="0">' +
+      '<small class="text-muted" style="font-size:.65rem" id="ar_min_label_' + i + '">' + (minVal !== '' ? blnToThnBln(parseInt(minVal)) : '-') + '</small></div>' +
+      '<div class="col-6"><label class="form-label small mb-0 text-muted">Max (bulan)</label>' +
+      '<input type="number" class="form-control form-control-sm shadow-none" id="ar_max_' + i + '" data-cat="' + esc(cat) + '" value="' + maxVal + '" min="0" placeholder="999">' +
+      '<small class="text-muted" style="font-size:.65rem" id="ar_max_label_' + i + '">' + (maxVal !== '' ? blnToThnBln(parseInt(maxVal)) : '-') + '</small></div>' +
+      '</div></div></div>';
+  });
+  html += '</div>';
+  container.innerHTML = html;
+
+  // Add live preview listeners
+  container.querySelectorAll('input[type=number]').forEach(inp => {
+    inp.addEventListener('input', function() {
+      const labelId = this.id.replace('ar_min_', 'ar_min_label_').replace('ar_max_', 'ar_max_label_');
+      const labelEl = document.getElementById(labelId);
+      if (labelEl && this.value) labelEl.textContent = blnToThnBln(parseInt(this.value));
+      else if (labelEl) labelEl.textContent = '-';
+    });
+  });
+}
+
+function collectAgeRulesFromForm() {
+  const container = document.getElementById('ageRulesContainer');
+  if (!container) return {};
+  const rules = {};
+  container.querySelectorAll('input[type=number]').forEach(inp => {
+    const cat = inp.getAttribute('data-cat');
+    if (!cat) return;
+    if (!rules[cat]) rules[cat] = {};
+    if (inp.id.includes('_min_')) rules[cat].minBln = parseInt(inp.value) || 0;
+    if (inp.id.includes('_max_')) rules[cat].maxBln = parseInt(inp.value) || 0;
+  });
+  return rules;
+}
+
+function saveAgeRules() {
+  const rules = collectAgeRulesFromForm();
+  const jsonStr = JSON.stringify(rules);
+  Swal.fire({ title: 'Menyimpan aturan usia...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+  google.script.run.withSuccessHandler(res => {
+    Swal.close();
+    if (res.success) {
+      if (SYS) SYS.ageRules = jsonStr;
+      // Update frontend rules
+      Object.assign(KATEGORI_AGE_RULES, getMergedAgeRulesFront());
+      Swal.fire({ icon: 'success', title: 'Aturan usia tersimpan!', timer: 1500, showConfirmButton: false });
+    } else {
+      Swal.fire('Gagal', res.message || 'Terjadi kesalahan', 'error');
+    }
+  }).withFailureHandler(err => { Swal.close(); Swal.fire('Error', 'Gagal menyimpan: ' + err.message, 'error'); })
+    .saveAgeRules(jsonStr, currentPass);
+}
+
+function resetAgeRulesForm() {
+  Swal.fire({
+    title: 'Reset ke Default?',
+    text: 'Semua aturan usia kustom akan dihapus dan dikembalikan ke nilai default.',
+    icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444',
+    confirmButtonText: 'Ya, Reset', cancelButtonText: 'Batal'
+  }).then(r => {
+    if (r.isConfirmed) {
+      const jsonStr = '';
+      Swal.fire({ title: 'Mereset...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+      google.script.run.withSuccessHandler(res => {
+        Swal.close();
+        if (res.success) {
+          if (SYS) SYS.ageRules = '';
+          // Reset frontend KATEGORI_AGE_RULES to defaults
+          Object.keys(KATEGORI_AGE_RULES).forEach(k => delete KATEGORI_AGE_RULES[k]);
+          Object.assign(KATEGORI_AGE_RULES, DEFAULT_AGE_RULES);
+          renderAgeRulesForm();
+          Swal.fire({ icon: 'success', title: 'Aturan usia direset ke default', timer: 1500, showConfirmButton: false });
+        } else {
+          Swal.fire('Gagal', res.message || 'Terjadi kesalahan', 'error');
+        }
+      }).withFailureHandler(err => { Swal.close(); Swal.fire('Error', 'Gagal: ' + err.message, 'error'); })
+        .saveAgeRules(jsonStr, currentPass);
+    }
+  });
+}
+
 function buildCategorySelects(res) {
   const cats = res.categories ? res.categories.split(',').map(s=>s.trim()) : [];
-  const POSYANDU = ['BUMIL','BUSUI','BALITA','ATS < 9'];
+  const POSYANDU = ['BUMIL','BUSUI','BALITA','ATS < 9','ATS < 18'];
   const SDM      = ['GURU','TENAGA PENDIDIK'];
   const pos  = cats.filter(c => POSYANDU.some(p => c.toUpperCase() === p));
   const sdm  = cats.filter(c => SDM.some(p => c.toUpperCase() === p));
@@ -4960,7 +5156,7 @@ function logoutAdmin() {
 }
 function switchAdminTab(t) {
   sessionStorage.setItem('mbg_admin_tab', t);
-  const tabIds = ['settings','signature','rekap','data','riwayat'];
+  const tabIds = ['settings','kategori','signature','rekap','data','riwayat'];
   tabIds.forEach(id => {
     const capId = id.charAt(0).toUpperCase() + id.slice(1);
     document.getElementById('adm' + capId).classList.toggle('d-none', id !== t);
@@ -4976,6 +5172,7 @@ function switchAdminTab(t) {
   }
   if(t === 'signature') loadSignatureSettings();
   if(t === 'settings') { renderPKPBStats(allAdminData); renderInstansiCatCards(allAdminData); renderAdmCatSummary(allAdminData); }
+  if(t === 'kategori') { renderCategoryManager(); renderAgeRulesForm(); }
   if(t === 'riwayat') renderRiwayat('all');
   if(t === 'rekap') initRekapTab();
   resetSession();
@@ -5722,7 +5919,8 @@ function _showUploadConfirmation(dataToSend, dupErrorsPre, otherErrorsPre, insta
 // Rentang usia dalam bulan. min & max inklusif.
 const KATEGORI_AGE_RULES = {
   'BALITA':  { minBln: 12, maxBln: 71  }, // 1 Thn 0 Bln - 5 Thn 11 Bln
-  'ATS < 9': { minBln: 72, maxBln: 108 }, // 6 Thn 0 Bln - 9 Thn 0 Bln
+  'ATS < 9': { minBln: 72, maxBln: 107 }, // 6 Thn 0 Bln - 8 Thn 11 Bln
+  'ATS < 18':{ minBln: 108,maxBln: 215 }, // 9 Thn 0 Bln - 17 Thn 11 Bln
   'PAUD':    { minBln: 0,  maxBln: 72  }, // 0 - 6 Tahun
   'TK':      { minBln: 48, maxBln: 72  }, // 4 - 6 Tahun (TK A 4-5, TK B 5-6)
   'RA':      { minBln: 48, maxBln: 72  }  // 4 - 6 Tahun
@@ -5777,42 +5975,73 @@ function checkAgeCategoryRule() {
 
   if (totalMonths < 0) return;
 
-  // BALITA -> otomatis pindah ke ATS < 9 bila usia sudah di atas 5 Thn 11 Bln, selama usia masih <= 9 Tahun dan ATS aktif
+  // BALITA -> otomatis pindah ke ATS < 9 atau ATS < 18 bila usia melebihi 5 Thn 11 Bln
   if (currentCat === 'BALITA' && totalMonths > KATEGORI_AGE_RULES['BALITA'].maxBln) {
-    const atsAktif = isKategoriAktif('ATS < 9');
-    if (atsAktif && totalMonths <= KATEGORI_AGE_RULES['ATS < 9'].maxBln) {
+    const ats9Aktif = isKategoriAktif('ATS < 9');
+    if (ats9Aktif && totalMonths <= KATEGORI_AGE_RULES['ATS < 9'].maxBln) {
       catSelect.value = 'ATS < 9';
       Toast.fire({ icon: 'info', title: 'Kategori Disesuaikan', text: 'Usia > 5 Thn 11 Bln → kategori diganti ke ATS < 9.' });
-      toggleForm();
-    } else {
-      catSelect.value = '';
-      Toast.fire({ icon: 'warning', title: 'Kategori Tidak Sesuai', text: 'Usia ' + ageStr + ' sudah di luar rentang BALITA' + (atsAktif ? ' maupun ATS < 9' : ' dan kategori ATS < 9 sedang nonaktif') + '. Silakan pilih kategori lain secara manual.' });
-      toggleForm();
+      toggleForm(); return;
     }
-    return;
+    const ats18Aktif = isKategoriAktif('ATS < 18');
+    if (ats18Aktif && totalMonths >= KATEGORI_AGE_RULES['ATS < 18'].minBln && totalMonths <= KATEGORI_AGE_RULES['ATS < 18'].maxBln) {
+      catSelect.value = 'ATS < 18';
+      Toast.fire({ icon: 'info', title: 'Kategori Disesuaikan', text: 'Usia 9-17 Tahun → kategori diganti ke ATS < 18.' });
+      toggleForm(); return;
+    }
+    catSelect.value = '';
+    Toast.fire({ icon: 'warning', title: 'Kategori Tidak Sesuai', text: 'Usia ' + ageStr + ' di luar rentang BALITA' + (ats9Aktif || ats18Aktif ? ' maupun ATS < 9 / ATS < 18' : ' dan kategori ATS sedang nonaktif') + '. Silakan pilih kategori lain.' });
+    toggleForm(); return;
   }
 
-  // ATS < 9 -> otomatis kembali ke BALITA bila usia turun ke bawah 6 Tahun (mis. tanggal lahir diperbaiki)
+  // ATS < 9 -> turun ke BALITA atau naik ke ATS < 18
   if (currentCat === 'ATS < 9' && totalMonths < KATEGORI_AGE_RULES['ATS < 9'].minBln) {
     const balitaAktif = isKategoriAktif('BALITA');
     if (balitaAktif && totalMonths >= KATEGORI_AGE_RULES['BALITA'].minBln) {
       catSelect.value = 'BALITA';
       Toast.fire({ icon: 'info', title: 'Kategori Disesuaikan', text: 'Usia < 6 Tahun → kategori diganti ke BALITA.' });
-      toggleForm();
-    } else {
-      catSelect.value = '';
-      Toast.fire({ icon: 'warning', title: 'Kategori Tidak Sesuai', text: 'Usia ' + ageStr + ' berada di luar rentang ATS < 9 maupun BALITA. Silakan pilih kategori lain secara manual.' });
-      toggleForm();
+      toggleForm(); return;
     }
-    return;
+    catSelect.value = '';
+    Toast.fire({ icon: 'warning', title: 'Kategori Tidak Sesuai', text: 'Usia ' + ageStr + ' di luar rentang ATS < 9 maupun BALITA. Silakan pilih kategori lain.' });
+    toggleForm(); return;
+  }
+  if (currentCat === 'ATS < 9' && totalMonths > KATEGORI_AGE_RULES['ATS < 9'].maxBln) {
+    const ats18Aktif = isKategoriAktif('ATS < 18');
+    if (ats18Aktif && totalMonths >= KATEGORI_AGE_RULES['ATS < 18'].minBln && totalMonths <= KATEGORI_AGE_RULES['ATS < 18'].maxBln) {
+      catSelect.value = 'ATS < 18';
+      Toast.fire({ icon: 'info', title: 'Kategori Disesuaikan', text: 'Usia 9-17 Tahun → kategori diganti ke ATS < 18.' });
+      toggleForm(); return;
+    }
+    catSelect.value = '';
+    Toast.fire({ icon: 'warning', title: 'Kategori Tidak Sesuai', text: 'Usia ' + ageStr + ' melebihi batas ATS < 9. Silakan pilih kategori lain.' });
+    toggleForm(); return;
   }
 
-  // ATS < 9 -> usia melebihi 9 Tahun, tidak boleh tetap di ATS
-  if (currentCat === 'ATS < 9' && totalMonths > KATEGORI_AGE_RULES['ATS < 9'].maxBln) {
-    catSelect.value = '';
-    Toast.fire({ icon: 'warning', title: 'Kategori Tidak Sesuai', text: 'Usia ' + ageStr + ' sudah melebihi batas maksimal ATS < 9 (9 Tahun). Silakan pilih kategori lain.' });
-    toggleForm();
-    return;
+  // ATS < 18 -> turun ke ATS < 9 atau BALITA
+  if (currentCat === 'ATS < 18') {
+    if (totalMonths < KATEGORI_AGE_RULES['ATS < 18'].minBln) {
+      const ats9Aktif = isKategoriAktif('ATS < 9');
+      if (ats9Aktif && totalMonths >= KATEGORI_AGE_RULES['ATS < 9'].minBln) {
+        catSelect.value = 'ATS < 9';
+        Toast.fire({ icon: 'info', title: 'Kategori Disesuaikan', text: 'Usia < 9 Tahun → kategori diganti ke ATS < 9.' });
+        toggleForm(); return;
+      }
+      const balitaAktif = isKategoriAktif('BALITA');
+      if (balitaAktif && totalMonths >= KATEGORI_AGE_RULES['BALITA'].minBln) {
+        catSelect.value = 'BALITA';
+        Toast.fire({ icon: 'info', title: 'Kategori Disesuaikan', text: 'Usia < 6 Tahun → kategori diganti ke BALITA.' });
+        toggleForm(); return;
+      }
+      catSelect.value = '';
+      Toast.fire({ icon: 'warning', title: 'Kategori Tidak Sesuai', text: 'Usia ' + ageStr + ' di luar rentang ATS < 18. Silakan pilih kategori lain.' });
+      toggleForm(); return;
+    }
+    if (totalMonths > KATEGORI_AGE_RULES['ATS < 18'].maxBln) {
+      catSelect.value = '';
+      Toast.fire({ icon: 'warning', title: 'Kategori Tidak Sesuai', text: 'Usia ' + ageStr + ' melebihi batas ATS < 18 (17 Tahun 11 Bln). Silakan pilih kategori lain.' });
+      toggleForm(); return;
+    }
   }
 
   // Validasi umum untuk kategori lain yang punya aturan usia (PAUD, TK, RA, dst.)
@@ -6436,7 +6665,7 @@ function buildReportHTML(instansi, pic, data, noHp) {
 // ============================================================
 let pubGroupChartInstance = null;
 function updatePublicGroupChart(data) {
-  const posyanduCats = ['BUMIL','BUSUI','BALITA','ATS < 9'];
+  const posyanduCats = ['BUMIL','BUSUI','BALITA','ATS < 9','ATS < 18'];
   const sekolahCats = ['PAUD','RA','TK','MI 1-3','MI 4-6','SD 1-3','SD 4-6','MTs','MTS','MTSN','SMP 7-9','SMA 10-12','SMK','MA','MAK','PONPES'];
   const sdmCats = ['GURU','TENAGA PENDIDIK'];
   let posTotal=0,posPria=0,posWanita=0,sekTotal=0,sekPria=0,sekWanita=0,sdmTotal=0,sdmPria=0,sdmWanita=0;
@@ -6482,7 +6711,7 @@ function updatePublicGroupChart(data) {
 }
 
 function updateGroupCharts(data) {
-  const posyanduCats = ['BUMIL','BUSUI','BALITA','ATS < 9'];
+  const posyanduCats = ['BUMIL','BUSUI','BALITA','ATS < 9','ATS < 18'];
   const sekolahCats = ['PAUD','RA','TK','MI 1-3','MI 4-6','SD 1-3','SD 4-6','MTs','MTS','MTSN','SMP 7-9','SMA 10-12','SMK','MA','MAK','PONPES'];
   const sdmCats = ['GURU','TENAGA PENDIDIK'];
   
@@ -6579,7 +6808,7 @@ function updateGroupCharts(data) {
 }
 
 function renderGroupCategoryDetails(data) {
-  const posyanduCats = ['BUMIL', 'BUSUI', 'BALITA', 'ATS < 9'];
+  const posyanduCats = ['BUMIL', 'BUSUI', 'BALITA', 'ATS < 9', 'ATS < 18'];
   const sekolahCats = ['PAUD','RA','TK','MI 1-3','MI 4-6','SD 1-3','SD 4-6','MTs','MTS','MTSN','SMP 7-9','SMA 10-12','SMK','MA','MAK','PONPES'];
   const sdmCats = ['GURU', 'TENAGA PENDIDIK'];
 
@@ -6821,7 +7050,7 @@ function updateAdminStats(data) {
 function renderPKPBStats(data) {
   const el = document.getElementById('pkpbStats');
   if(!data || !data.length) { el.innerHTML = `<div class="text-center text-muted small py-3 border rounded" style="border-color:var(--border)">Belum ada data untuk ringkasan kategori.</div>`; return; }
-  const PORSI_KECIL = ['BALITA', 'ATS < 9', 'PAUD', 'RA', 'TK', 'MI 1-3', 'SD 1-3'];
+  const PORSI_KECIL = ['BALITA', 'ATS < 9', 'ATS < 18', 'PAUD', 'RA', 'TK', 'MI 1-3', 'SD 1-3'];
 const PORSI_BESAR = ['BUMIL', 'BUSUI', 'MI 4-6', 'SD 4-6', 'MTs', 'MTS', 'MTSN', 'SMP 7-9', 'SMA 10-12', 'SMK', 'MA', 'MAK', 'PONPES', 'GURU', 'TENAGA PENDIDIK'];
   let pk = 0, pb = 0;
   data.forEach(item => {
@@ -8179,6 +8408,61 @@ function resetRekapFilter() {
 }
 
 // ============================================================
+// FILTER TIMESTAMP REKAP SILANG
+// ============================================================
+function getPivotTsFiltered() {
+  const tsStart = (document.getElementById('pivotTsStart') || {}).value || '';
+  const tsEnd   = (document.getElementById('pivotTsEnd') || {}).value || '';
+  if (!tsStart && !tsEnd) return allAdminData.slice();
+
+  const msStart = tsStart ? new Date(tsStart).getTime() : 0;
+  const msEnd   = tsEnd ? new Date(tsEnd).getTime() : Infinity;
+
+  return allAdminData.filter(function(d) {
+    if (!d.timestamp && !d.timestampRaw) return false;
+    const raw = d.timestamp || d.timestampRaw || '';
+    const ms = new Date(raw).getTime();
+    if (isNaN(ms)) return false;
+    return ms >= msStart && ms <= msEnd;
+  });
+}
+
+function renderPivotWithTsFilter() {
+  const filtered = getPivotTsFiltered();
+  const total = allAdminData.length;
+  const shown = filtered.length;
+  const infoEl = document.getElementById('pivotTsInfo');
+  const infoText = document.getElementById('pivotTsInfoText');
+  if (infoEl && infoText) {
+    if (shown < total || (document.getElementById('pivotTsStart').value || document.getElementById('pivotTsEnd').value)) {
+      const tsS = document.getElementById('pivotTsStart').value;
+      const tsE = document.getElementById('pivotTsEnd').value;
+      let label = '';
+      if (tsS && tsE) {
+        label = 'Filter: ' + new Date(tsS).toLocaleString('id-ID',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) + ' s/d ' + new Date(tsE).toLocaleString('id-ID',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+      } else if (tsS) {
+        label = 'Filter: mulai ' + new Date(tsS).toLocaleString('id-ID',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+      } else if (tsE) {
+        label = 'Filter: sampai ' + new Date(tsE).toLocaleString('id-ID',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+      }
+      infoText.textContent = label + ' \u2014 <strong>' + shown + '</strong> dari <strong>' + total + '</strong> data ditampilkan';
+      infoEl.style.display = '';
+    } else {
+      infoEl.style.display = 'none';
+    }
+  }
+  renderRekapPivotTable(filtered);
+}
+
+function resetPivotTsFilter() {
+  document.getElementById('pivotTsStart').value = '';
+  document.getElementById('pivotTsEnd').value = '';
+  var infoEl = document.getElementById('pivotTsInfo');
+  if (infoEl) infoEl.style.display = 'none';
+  renderRekapPivotTable(allAdminData);
+}
+
+// ============================================================
 // REKAP SILANG (PIVOT): Kelompok/Instansi x Kategori (L/P)
 // ============================================================
 function buildRekapPivotData(data) {
@@ -8281,9 +8565,20 @@ function renderRekapPivotTable(data) {
 }
 
 function cetakRekapPivot() {
-  const data = getRekapFiltered();
+  const data = getPivotTsFiltered();
   if (!data.length) { Swal.fire('Info', 'Tidak ada data untuk dicetak', 'info'); return; }
   const pv = buildRekapPivotData(data);
+
+  const tsS = (document.getElementById('pivotTsStart') || {}).value || '';
+  const tsE = (document.getElementById('pivotTsEnd') || {}).value || '';
+  let tsLabel = '';
+  if (tsS && tsE) {
+    tsLabel = ' | Timestamp: ' + new Date(tsS).toLocaleString('id-ID',{day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}) + ' s/d ' + new Date(tsE).toLocaleString('id-ID',{day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  } else if (tsS) {
+    tsLabel = ' | Timestamp: mulai ' + new Date(tsS).toLocaleString('id-ID',{day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  } else if (tsE) {
+    tsLabel = ' | Timestamp: sampai ' + new Date(tsE).toLocaleString('id-ID',{day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  }
 
   const periodeStart = (document.getElementById('periodeStart') || {}).value || '';
   const periodeEnd   = (document.getElementById('periodeEnd') || {}).value || '';
@@ -8314,7 +8609,7 @@ function cetakRekapPivot() {
     'tfoot td{background:#fde047;font-weight:800}' +
     '@media print{body{margin:0}@page{margin:10mm;size:landscape}}' +
     '</style></head><body>' +
-    '<div class="hdr"><h1>DATA TERBARU TAMBAHAN PM</h1><h2>PERIODE: ' + esc(periodeLabel).toUpperCase() + '</h2></div>' +
+    '<div class="hdr"><h1>DATA TERBARU TAMBAHAN PM</h1><h2>PERIODE: ' + esc(periodeLabel).toUpperCase() + tsLabel.toUpperCase() + '</h2></div>' +
     '<table><thead><tr>' + theadRow1 + '</tr><tr>' + theadRow2 + '</tr></thead>' +
     '<tbody>' + bodyRows + '</tbody>' +
     '<tfoot><tr><td colspan="2">GRAND TOTAL</td>' + footCells + '<td>' + pv.grandTotal + '</td></tr></tfoot>' +
