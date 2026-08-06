@@ -158,7 +158,7 @@
     // 1) GANTI URL INI dengan URL Web App hasil Deploy Apps Script kamu
     //    (Deploy > New deployment > Web app > Execute as: Me > Who has access: Anyone > /exec)
     //    Hanya dipakai saat file ini berjalan di LUAR Apps Script (Blogger/Netlify).
-    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwB-iMTLQX4Kz256yLQxbApSR5BSNL4pH0GIWQSRQyCdUxj9WdpFMWJGtDBRWFj7Q7b/exec';
+    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz4C_SOIjlAupzSlv_9trRFTICXvYmWPKR9YeOJIo1eEq9MQ8OH9ehL04ZdNCtJE3Ok/exec';
 
     // 2) Peta nama fungsi server -> urutan nama parameter,
     //    HARUS SAMA PERSIS dengan switch(action) di Code.gs (doPost)
@@ -195,7 +195,8 @@
       getMaintenanceScheduleFromDB: ['adminPassword'],
       getMaintenanceSchedulePublic: [],
       clearMaintenanceScheduleFromDB: ['adminPassword'],
-      saveInstansiContact: ['instansi', 'pic', 'noHp', 'email']
+      saveInstansiContact: ['instansi', 'pic', 'noHp', 'email'],
+      getRiwayatByInstansiPic: ['instansi', 'pic', 'limit']
     };
 
     function callServer(action, args, successCb, failureCb) {
@@ -1314,7 +1315,6 @@ const notify = {
     <nav class="sidebar-nav">
       <button class="anb active" id="anSettings" onclick="switchAdminTab('settings')"><i class="ph ph-gear-six"></i><span>Pengaturan</span></button>
       <button class="anb" id="anKategori" onclick="switchAdminTab('kategori')"><i class="ph ph-tag"></i><span>Kategori</span></button>
-      <button class="anb" id="anSignature" onclick="switchAdminTab('signature')"><i class="ph ph-file-text"></i><span>Dokumen</span></button>
       <button class="anb" id="anRekap" onclick="switchAdminTab('rekap')"><i class="ph ph-table"></i><span>Rekap Data</span></button>
       <button class="anb" id="anData" onclick="switchAdminTab('data')"><i class="ph ph-database"></i><span>Database</span></button>
       <button class="anb" id="anRiwayat" onclick="switchAdminTab('riwayat')"><i class="ph ph-clock-clockwise"></i><span>Riwayat</span></button>
@@ -1644,6 +1644,7 @@ const notify = {
             <span class="badge rounded-pill px-3 py-2" style="background:var(--primary);font-size:.85rem"><span id="todayCount">0</span> Jiwa</span>
           </div>
           <div id="dataListContainer"></div>
+
         </div>
 
     </div><!-- end userApp -->
@@ -2693,7 +2694,6 @@ const notify = {
   <div class="mobile-bottom-bar" id="mobileBottomBar">
     <button class="mbb-item active" id="mbSettings" onclick="switchAdminTab('settings')"><i class="ph ph-gear-six"></i><span>Setting</span></button>
     <button class="mbb-item" id="mbKategori" onclick="switchAdminTab('kategori')"><i class="ph ph-tag"></i><span>Kategori</span></button>
-    <button class="mbb-item" id="mbSignature" onclick="switchAdminTab('signature')"><i class="ph ph-file-text"></i><span>Dokumen</span></button>
     <button class="mbb-item" id="mbRekap" onclick="switchAdminTab('rekap')"><i class="ph ph-table"></i><span>Rekap</span></button>
     <button class="mbb-item" id="mbData" onclick="switchAdminTab('data')"><i class="ph ph-database"></i><span>Data</span></button>
     <button class="mbb-item" id="mbRiwayat" onclick="switchAdminTab('riwayat')"><i class="ph ph-clock-clockwise"></i><span>Riwayat</span></button>
@@ -2995,7 +2995,8 @@ window.onload = function() {
   const handleInputChange = () => { 
     refreshSummary(); 
     if(document.getElementById('tabData').classList.contains('active')) {
-      refreshData(); 
+      refreshData();
+      loadUserRiwayat();
     } else {
       const i = instansiInput.value.trim();
       const p = picInput.value.trim();
@@ -3016,12 +3017,14 @@ window.onload = function() {
     if(instansiInput.value.trim() && picInput.value.trim()) {
       refreshData();
       autoFillNoHp();
+      if(document.getElementById('tabData').classList.contains('active')) loadUserRiwayat();
     }
   });
   picInput.addEventListener('change', () => {
     if(instansiInput.value.trim() && picInput.value.trim()) {
       refreshData();
       autoFillNoHp();
+      if(document.getElementById('tabData').classList.contains('active')) loadUserRiwayat();
     }
   });
 
@@ -5211,7 +5214,7 @@ function switchTab(t) {
   document.getElementById('panelData').style.display = t === 'data' ? 'block' : 'none';
   document.getElementById('tabForm').classList.toggle('active', t === 'form');
   document.getElementById('tabData').classList.toggle('active', t === 'data');
-  if(t === 'data') refreshData();
+  if(t === 'data') { refreshData(); loadUserRiwayat(); }
 }
 function togglePetunjuk() {
   const petunjukBox = document.getElementById('petunjukBox');
@@ -5495,6 +5498,7 @@ function hapusDataUser(idx) {
           // Refresh tampilan user
           refreshData();
           refreshSummary();
+          setTimeout(loadUserRiwayat, 1200);
         } else {
           Swal.fire('Gagal', (res && res.message) ? res.message : 'Gagal menghapus data.', 'error');
         }
@@ -5906,6 +5910,7 @@ function _showUploadConfirmation(dataToSend, dupErrorsPre, otherErrorsPre, insta
       });
       refreshData();
       refreshSummary();
+      setTimeout(loadUserRiwayat, 1200);
     }).withFailureHandler(err => {
       Swal.close();
       Swal.fire('Error', 'Gagal mengirim data ke server: ' + (err && err.message ? err.message : err), 'error');
@@ -6392,6 +6397,7 @@ function _proceedSimpan(instansi, pic, noHp, email, btn) {
       setTimeout(() => {
         if (typeof refreshInstansiCards === 'function') refreshInstansiCards();
         if (typeof renderInstansiCatCards === 'function' && allAdminData && allAdminData.length) renderInstansiCatCards(allAdminData);
+        loadUserRiwayat();
       }, 1500);
     } else if(r.isWarning) Swal.fire('Peringatan',r.message,'warning');
     else Swal.fire('Gagal',r.message,'error');
@@ -6631,6 +6637,7 @@ function simpanEdit() {
         } else if(typeof refreshInstansiCards === 'function') {
           refreshInstansiCards();
         }
+        loadUserRiwayat();
       }, 1500);
     } else if(r.isWarning) {
       Swal.fire('Peringatan', r.message, 'warning');
@@ -8927,6 +8934,153 @@ function renderRiwayatFromCache(type) {
         detailBlock +
       `</div>` +
     `</div>`;
+  }).join('');
+
+  el.innerHTML = html;
+}
+
+// ============================================================
+// RIWAYAT AKTIVITAS USER (per Instansi & PIC)
+// ============================================================
+let _userRiwayatCache = [];
+let _userRiwayatFilter = 'all';
+
+function loadUserRiwayat() {
+  return; // Riwayat Aktivitas sudah dihilangkan dari halaman user
+  const instansi = document.getElementById('instansi').value.trim();
+  const pic      = document.getElementById('pic').value.trim();
+  const section  = document.getElementById('userRiwayatSection');
+  const el       = document.getElementById('userRiwayatContainer');
+  const countEl  = document.getElementById('userRiwayatCount');
+  const label    = document.getElementById('userRiwayatInstansiLabel');
+
+  if (!instansi || !pic) {
+    if (section) section.style.display = 'none';
+    return;
+  }
+  if (section) section.style.display = '';
+  if (label) label.textContent = '— ' + instansi + ' / ' + pic;
+  if (el) el.innerHTML = '<div class="rwt-empty" style="padding:24px"><i class="ph ph-spinner-gap d-block fs-3 mb-2" style="animation:spin 1s linear infinite"></i>Memuat riwayat...</div>';
+  if (countEl) countEl.textContent = '...';
+
+  google.script.run
+    .withSuccessHandler(function(res) {
+      if (!res || !res.success) {
+        if (el) el.innerHTML = '<div class="rwt-empty text-danger"><i class="ph ph-warning-circle d-block fs-3 mb-2"></i>Gagal memuat riwayat</div>';
+        return;
+      }
+      _userRiwayatCache = res.data || [];
+      renderUserRiwayatFromCache(_userRiwayatFilter);
+    })
+    .withFailureHandler(function() {
+      if (el) el.innerHTML = '<div class="rwt-empty text-danger"><i class="ph ph-warning-circle d-block fs-3 mb-2"></i>Gagal memuat riwayat</div>';
+    })
+    .getRiwayatByInstansiPic(instansi, pic, 100);
+}
+
+function filterUserRiwayat(type) {
+  _userRiwayatFilter = type;
+  const bar = document.getElementById('userRiwayatFilterBar');
+  if (bar) {
+    bar.querySelectorAll('.rwt-filter-btn').forEach(btn => btn.classList.remove('active'));
+    const map = { all: '.f-all', add: '.f-add', del: '.f-del', mod: '.f-mod' };
+    const activeBtn = bar.querySelector(map[type]);
+    if (activeBtn) activeBtn.classList.add('active');
+  }
+  renderUserRiwayatFromCache(type);
+}
+
+function renderUserRiwayatFromCache(type) {
+  const el      = document.getElementById('userRiwayatContainer');
+  const countEl = document.getElementById('userRiwayatCount');
+  if (!el) return;
+
+  let hist = _userRiwayatCache.slice();
+  if (type !== 'all') hist = hist.filter(function(h) { return h.type === type; });
+
+  if (countEl) countEl.textContent = hist.length + ' entri';
+
+  if (!hist.length) {
+    const typeName = type === 'all' ? 'aktivitas' : type === 'add' ? 'penambahan' : type === 'del' ? 'penghapusan' : 'perubahan';
+    el.innerHTML = '<div class="rwt-empty"><i class="ph ph-clock-clockwise d-block fs-3 mb-2"></i>Belum ada riwayat ' + typeName + '</div>';
+    return;
+  }
+
+  const iconMap = { add: 'ph-plus-circle', del: 'ph-minus-circle', mod: 'ph-pencil-simple' };
+
+  const html = hist.map(function(h, idx) {
+    const icon      = iconMap[h.type] || 'ph-info';
+    const typeClass = h.type || 'add';
+    const tsStr     = formatRiwayatTimestamp(h);
+    const nik       = (h.nik && h.nik !== '-') ? h.nik.trim() : '';
+    const kat       = (h.kategori && h.kategori !== '-') ? h.kategori.trim() : '';
+    let mainHtml = '', detailBlock = '';
+
+    if (h.type === 'mod') {
+      const parts = (h.keterangan && h.keterangan !== '-' && !h.keterangan.startsWith('Data diperbarui'))
+        ? h.keterangan.split('|').map(function(s) { return s.trim(); }).filter(Boolean) : [];
+      const namaChangePart = parts.find(function(p) { return p.toLowerCase().startsWith('nama:'); });
+      let namaLama = '', namaBaru = '';
+      if (namaChangePart) {
+        const val = namaChangePart.replace(/^nama:\s*/i, '').trim();
+        const arrowIdx = val.indexOf(' > ');
+        if (arrowIdx > -1) { namaLama = val.substring(0, arrowIdx).trim(); namaBaru = val.substring(arrowIdx + 3).trim(); }
+      }
+      if (!namaLama && !namaBaru) namaBaru = esc(h.nama || '(tanpa nama)');
+      const idChangePart = parts.find(function(p) { return p.toLowerCase().startsWith('id:'); });
+      let idLama = '', idBaru = '';
+      if (idChangePart) {
+        const val2 = idChangePart.replace(/^id:\s*/i, '').trim();
+        const arrowIdx2 = val2.indexOf(' > ');
+        if (arrowIdx2 > -1) { idLama = val2.substring(0, arrowIdx2).trim(); idBaru = val2.substring(arrowIdx2 + 3).trim(); }
+      }
+      let line = '';
+      if (namaLama) line += '<span class="rwt-name-old">' + esc(namaLama) + '</span><span class="rwt-arrow">-></span><span class="rwt-name">' + esc(namaBaru) + '</span>';
+      else line += '<span class="rwt-name">' + esc(namaBaru) + '</span>';
+      if (idBaru) line += '<span class="rwt-sep">,</span> ID. <span class="rwt-name-old">' + esc(idLama || '-') + '</span><span class="rwt-arrow">-></span><span class="rwt-nik">' + esc(idBaru) + '</span>';
+      else if (nik) line += '<span class="rwt-sep">,</span> ID. <span class="rwt-nik">' + esc(nik) + '</span>';
+      if (kat) line += '<span class="rwt-sep">,</span> Kat. <span class="rwt-kat kat-mod">' + esc(kat) + '</span>';
+      if (tsStr) line += ' <span class="rwt-time">' + esc(tsStr) + '</span>';
+      mainHtml = '<div class="rwt-main">' + line + '</div>';
+      if (parts.length > 0) {
+        const detailParts = parts.filter(function(p) { return !p.toLowerCase().startsWith('nama:') && !p.toLowerCase().startsWith('id:'); }).map(function(p) {
+          const colonIdx = p.indexOf(':');
+          if (colonIdx > -1) {
+            const field = p.substring(0, colonIdx).trim();
+            const val3  = p.substring(colonIdx + 1).trim();
+            const aIdx  = val3.indexOf(' > ');
+            if (aIdx > -1) {
+              return '<span style="opacity:.7">' + esc(field) + ':</span> <span style="text-decoration:line-through;opacity:.55">' + esc(val3.substring(0, aIdx).trim()) + '</span> <i class="ph ph-arrow-right" style="font-size:.7em;opacity:.5"></i> <span class="chg">' + esc(val3.substring(aIdx + 3).trim()) + '</span>';
+            }
+            return '<span style="opacity:.7">' + esc(field) + ':</span> <span class="chg">' + esc(val3) + '</span>';
+          }
+          return esc(p);
+        });
+        if (detailParts.length) detailBlock = '<div class="rwt-detail">' + detailParts.join(' &nbsp;·&nbsp; ') + '</div>';
+      }
+    } else if (h.type === 'del') {
+      let line = '<span style="color:#dc2626;font-weight:600">dihapus</span><span class="rwt-sep"> -</span> <span class="rwt-name">' + esc(h.nama || '(tanpa nama)') + '</span>';
+      if (nik) line += '<span class="rwt-sep">,</span> ID. <span class="rwt-nik">' + esc(nik) + '</span>';
+      if (kat) line += '<span class="rwt-sep">,</span> Kat. <span class="rwt-kat kat-del">' + esc(kat) + '</span>';
+      if (tsStr) line += ' <span class="rwt-time">' + esc(tsStr) + '</span>';
+      mainHtml = '<div class="rwt-main">' + line + '</div>';
+    } else {
+      let line = '<span style="color:#059669;font-weight:700">+</span> <span class="rwt-name">' + esc(h.nama || '(tanpa nama)') + '</span>';
+      if (nik) line += '<span class="rwt-sep">,</span> ID. <span class="rwt-nik">' + esc(nik) + '</span>';
+      if (kat) line += '<span class="rwt-sep">,</span> Kat. <span class="rwt-kat kat-add">' + esc(kat) + '</span>';
+      if (tsStr) line += ' <span class="rwt-time">' + esc(tsStr) + '</span>';
+      mainHtml = '<div class="rwt-main">' + line + '</div>';
+    }
+
+    const badgeCls   = h.type==='add'?'badge-add': h.type==='del'?'badge-del':'badge-mod';
+    const badgeLabel = h.type==='add'?'TAMBAH': h.type==='del'?'HAPUS':'UBAH';
+    return '<div class="rwt-card" style="animation-delay:' + Math.min(idx * 0.04, 0.4) + 's">' +
+      '<div class="rwt-icon-wrap type-' + typeClass + '"><i class="ph ' + icon + '"></i></div>' +
+      '<div class="rwt-body">' +
+        '<span class="rwt-type-badge ' + badgeCls + '"><i class="ph ' + icon + '" style="font-size:.65rem"></i>' + badgeLabel + '</span>' +
+        mainHtml + detailBlock +
+      '</div>' +
+    '</div>';
   }).join('');
 
   el.innerHTML = html;
