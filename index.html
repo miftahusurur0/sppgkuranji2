@@ -158,7 +158,7 @@
     // 1) GANTI URL INI dengan URL Web App hasil Deploy Apps Script kamu
     //    (Deploy > New deployment > Web app > Execute as: Me > Who has access: Anyone > /exec)
     //    Hanya dipakai saat file ini berjalan di LUAR Apps Script (Blogger/Netlify).
-    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz5fa2I7u97qmYy1G06L2lAQG4XFT4HCuaWwGxaH2T1NjzZVpmpbEucnBCnDu6EFTvv/exec';
+    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx-7S_caNT1ai-uQy-lfetoWQohWLC8m8Bf7t7_IQfm77vSD7uZ_c1AfIfXbSlpMyUy/exec';
 
     // 2) Peta nama fungsi server -> urutan nama parameter,
     //    HARUS SAMA PERSIS dengan switch(action) di Code.gs (doPost)
@@ -224,15 +224,28 @@
       })
         .then(function (res) {
           clearTimeout(timeoutId);
-          // Cek Content-Type — Google sering kembalikan HTML redirect (bukan JSON)
-          var ct = (res.headers.get('content-type') || '').toLowerCase();
-          if (ct.indexOf('text/html') !== -1 || ct.indexOf('text/plain') !== -1) {
-            // Google redirect page — bukan response JSON yang valid
-            return res.text().then(function(txt) {
-              throw new Error('SERVER_REDIRECT');
-            });
-          }
-          return res.json();
+          // [FIX BUG] Sebelumnya kode ini menolak response hanya berdasarkan
+          // header Content-Type ("text/plain"/"text/html"). Padahal Apps Script
+          // Web App yang diakses lewat URL /exec dari domain LUAR (Vercel/
+          // Netlify/Blogger) — karena di-proxy lewat script.googleusercontent.com —
+          // SERING mengembalikan header Content-Type "text/plain;charset=utf-8"
+          // WALAUPUN isinya JSON valid (setMimeType(JSON) di server diabaikan
+          // oleh proxy tsb). Akibatnya setiap request yang SUKSES pun selalu
+          // dianggap "SERVER_REDIRECT" dan gagal — inilah penyebab
+          // "Koneksi Gagal" yang terus muncul saat dibuka dari Vercel.
+          // Sekarang: selalu baca body sebagai teks, coba JSON.parse. Hanya
+          // dianggap redirect/halaman login kalau isinya betul-betul HTML.
+          return res.text().then(function (txt) {
+            try {
+              return JSON.parse(txt);
+            } catch (parseErr) {
+              var looksLikeHtml = /^\s*<(!doctype|html)/i.test(txt);
+              if (looksLikeHtml) {
+                throw new Error('SERVER_REDIRECT');
+              }
+              throw new Error('Response tidak valid: ' + txt.substring(0, 200));
+            }
+          });
         })
         .then(function (data) { if (successCb) successCb(data); })
         .catch(function (err) {
@@ -4845,8 +4858,16 @@ function processLogin() {
       // 'undefined' in instanceof check") karena Proxy.prototype memang undefined
       // menurut spec JS. Sekarang pakai flag boolean yang di-set saat shim dibuat.
       var isShimMode = !!window.__MBG_SHIM_MODE__;
+      var rawErr = (err && err.name ? err.name + ': ' : '') + ((err && err.message) ? err.message : String(err));
+      var isFailedToFetch = /failed to fetch|networkerror|load failed/i.test(rawErr);
       var detailHtml = '<div style="text-align:left;font-size:.82rem;line-height:1.6;margin-top:8px">'
-        + '<div style="padding:10px 12px;background:#f1f5f9;border-radius:8px;margin-bottom:8px;color:#475569"><strong>Masalah:</strong> ' + esc(errMsg) + '</div>';
+        + '<div style="padding:10px 12px;background:#f1f5f9;border-radius:8px;margin-bottom:8px;color:#475569"><strong>Masalah:</strong> ' + esc(errMsg) + '</div>'
+        + '<div style="padding:8px 12px;background:#f8fafc;border-radius:8px;margin-bottom:8px;color:#64748b;font-size:.72rem;font-family:monospace;word-break:break-word"><strong>Detail teknis:</strong> ' + esc(rawErr) + '</div>';
+      if (isShimMode && isFailedToFetch) {
+        detailHtml += '<div style="padding:10px 12px;background:#fef2f2;border-radius:8px;border-left:4px solid #ef4444;color:#991b1b;font-size:.78rem;margin-bottom:8px">'
+          + '<strong>Kemungkinan besar: diblokir CORS/redirect</strong><br>'
+          + '"Failed to fetch" dari luar Apps Script biasanya BUKAN salah URL, tapi browser gagal membaca response karena masalah CORS saat request di-redirect Google. Buka DevTools &gt; tab Network, klik request ke script.google.com, lihat status code dan pesan CORS di tab Console.</div>';
+      }
       if (isShimMode) {
         detailHtml += '<div style="padding:10px 12px;background:#fffbeb;border-radius:8px;border-left:4px solid #f59e0b;color:#92400e;font-size:.78rem">'
           + '<strong>Mode Hosting Eksternal Terdeteksi</strong><br>'
@@ -5700,7 +5721,7 @@ function _showUploadConfirmation(dataToSend, dupErrorsPre, otherErrorsPre, insta
 // ============================================================
 // Rentang usia dalam bulan. min & max inklusif.
 const KATEGORI_AGE_RULES = {
-  'BALITA':  { minBln: 24, maxBln: 71  }, // 2 Thn 0 Bln - 5 Thn 11 Bln
+  'BALITA':  { minBln: 12, maxBln: 71  }, // 1 Thn 0 Bln - 5 Thn 11 Bln
   'ATS < 9': { minBln: 72, maxBln: 108 }, // 6 Thn 0 Bln - 9 Thn 0 Bln
   'PAUD':    { minBln: 0,  maxBln: 72  }, // 0 - 6 Tahun
   'TK':      { minBln: 48, maxBln: 72  }, // 4 - 6 Tahun (TK A 4-5, TK B 5-6)
