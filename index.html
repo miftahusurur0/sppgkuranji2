@@ -158,7 +158,7 @@
     // 1) GANTI URL INI dengan URL Web App hasil Deploy Apps Script kamu
     //    (Deploy > New deployment > Web app > Execute as: Me > Who has access: Anyone > /exec)
     //    Hanya dipakai saat file ini berjalan di LUAR Apps Script (Blogger/Netlify).
-    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNtOwZltQGUEfGCe1owcnGsWEEbq0iwkfM7-decnCaI-Hc3tpNmhYsDt-yQc1Y0TnL/exec';
+    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw65tOeyDljfJOk7tKkrnzfoeQmyw3YfEgFNpIMS76DLWxs4zYIeEnCTJfuev6-9ok6/exec';
 
     // 2) Peta nama fungsi server -> urutan nama parameter,
     //    HARUS SAMA PERSIS dengan switch(action) di Code.gs (doPost)
@@ -1325,7 +1325,10 @@ const notify = {
     }
 
     /* --- Segmented Tabs Modern (Input Data / Data Masuk) --- */
-    .mbg-tabs{display:flex;gap:6px;background:var(--input);border:1px solid var(--border);border-radius:var(--r-lg);padding:6px;margin:16px 0;position:sticky;top:0;z-index:20;backdrop-filter:blur(6px)}
+    .mbg-tabs-fixed-wrap{flex-shrink:0;background:var(--bg);border-bottom:1px solid var(--border);padding:10px 20px;z-index:90}
+    .mbg-tabs-inner{max-width:900px;margin:0 auto;width:100%}
+    .mbg-tabs{display:flex;gap:6px;background:var(--input);border:1px solid var(--border);border-radius:var(--r-lg);padding:6px}
+    @media(max-width:768px){.mbg-tabs-fixed-wrap{padding:8px 14px}}
     .mbg-tab{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;border:none;background:transparent;color:var(--muted);font-weight:700;font-size:.86rem;padding:11px 10px;border-radius:calc(var(--r-lg) - 3px);cursor:pointer;transition:all .25s cubic-bezier(.4,0,.2,1);position:relative}
     .mbg-tab i{font-size:1.1rem;transition:transform .25s}
     .mbg-tab:hover:not(.active){color:var(--text);background:rgba(99,102,241,.06)}
@@ -1347,12 +1350,54 @@ const notify = {
     /* --- Kartu form utama --- */
     .mbg-form-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-xl);box-shadow:var(--sh-sm)}
 
+    /* --- Header kecil untuk form utama --- */
+    .mbg-form-head{display:flex;align-items:center;gap:12px;padding:2px 2px 16px}
+    .mbg-form-head-icon{width:40px;height:40px;border-radius:12px;background:var(--primary-grad);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.15rem;flex-shrink:0;box-shadow:0 4px 12px rgba(99,102,241,.25)}
+    .mbg-form-head-text h5{margin:0;font-size:1rem;font-weight:800;color:var(--text)}
+    .mbg-form-head-text p{margin:2px 0 0;font-size:.78rem;color:var(--muted)}
+    .mbg-form-head-note{margin-left:auto;font-size:.68rem;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:4px;flex-shrink:0}
+    .mbg-form-head-note i{color:#ef4444}
+
+    /* --- Kartu Import Data Massal (modernized) --- */
+    .import-massal-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;box-shadow:var(--sh-xs)}
+    .import-massal-head{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+    .import-massal-icon{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,#10b981,#34d399);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-size:1.15rem;box-shadow:0 3px 10px rgba(16,185,129,.28)}
+    .import-massal-headtext{min-width:0;flex:1}
+    .import-massal-headtext h6{margin:0;font-weight:800;font-size:.92rem;color:var(--text)}
+    .import-massal-headtext p{margin:2px 0 0;font-size:.76rem;color:var(--muted)}
+    .import-massal-safebadge{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:.03em;background:rgba(16,185,129,.12);color:#059669;flex-shrink:0;white-space:nowrap}
+    [data-theme="dark"] .import-massal-safebadge{background:rgba(16,185,129,.18);color:#34d399}
+
+    .import-steps{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+    .import-step{display:flex;align-items:center;gap:9px;background:var(--input);border-radius:12px;padding:9px 12px;flex:1;min-width:150px}
+    .import-step-num{width:22px;height:22px;border-radius:50%;background:var(--primary);color:#fff;font-size:.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .import-step-body{display:flex;flex-direction:column;line-height:1.25;min-width:0}
+    .import-step-body strong{font-size:.78rem;color:var(--text)}
+    .import-step-body span{font-size:.68rem;color:var(--muted)}
+    .import-step-final .import-step-num{background:#10b981}
+    .import-step-arrow{color:var(--muted);font-size:.85rem;flex-shrink:0}
+
+    .upload-dropzone{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px;padding:26px 16px;border:2px dashed var(--border);border-radius:14px;background:var(--input);cursor:pointer;transition:all .25s ease}
+    .upload-dropzone:hover,.upload-dropzone:focus-visible{border-color:var(--primary);background:var(--primary-l)}
+    .upload-dropzone.dragover{border-color:var(--primary);background:var(--primary-l);box-shadow:0 0 0 4px rgba(99,102,241,.12);transform:scale(1.01)}
+    .upload-dropzone-icon{font-size:1.6rem;color:var(--primary);margin-bottom:2px}
+    .upload-dropzone-text strong{display:block;font-size:.86rem;color:var(--text)}
+    .upload-dropzone-text span{display:block;font-size:.74rem;color:var(--muted);margin-top:1px}
+    .upload-dropzone-hint{display:flex;align-items:center;gap:4px;font-size:.68rem;color:var(--muted);margin-top:8px;max-width:440px;line-height:1.4}
+
+    @media(max-width:576px){
+      .import-step-arrow{display:none}
+      .import-steps{flex-direction:column;align-items:stretch}
+      .import-step{width:100%}
+      .import-massal-safebadge{margin-left:0}
+      .mbg-form-head-note{display:none}
+    }
+
     /* --- Panel wrapper spacing --- */
     .mbg-panel{animation:fadeInUp .35s ease-out both}
 
     /* --- Responsif tambahan untuk semua perangkat --- */
     @media(max-width:576px){
-      .mbg-tabs{margin:12px 0}
       .idp-title{font-size:.95rem}
     }
     @media(min-width:1200px){
@@ -1403,6 +1448,20 @@ const notify = {
       <button class="btn-hdr modern-btn" onclick="toggleTheme()" title="Ganti Tema"><i class="ph ph-moon-stars" id="themeIcon"></i></button>
       <button class="btn-hdr modern-btn" onclick="openAdminLogin()" title="Admin Panel" id="btnAdminPanel"><i class="ph ph-gear"></i></button>
       <button class="btn-hdr modern-btn" onclick="logoutAdmin()" title="Logout" id="btnLogout" style="display:none"><i class="ph ph-sign-out"></i></button>
+    </div>
+  </div>
+
+  <!-- TABS BAR (di luar area scroll — selalu diam di tempat, tidak ikut bergerak saat scroll atau saat konten di atasnya berubah tinggi) -->
+  <div class="mbg-tabs-fixed-wrap" id="mbgTabsFixedWrap">
+    <div class="mbg-tabs-inner">
+      <div class="mbg-tabs" role="tablist">
+        <button class="mbg-tab active" id="tabForm" onclick="switchTab('form')" role="tab" aria-selected="true">
+          <i class="ph ph-pencil-simple-line"></i><span class="mbg-tab-label">Input Data</span>
+        </button>
+        <button class="mbg-tab" id="tabData" onclick="switchTab('data')" role="tab" aria-selected="false">
+          <i class="ph ph-squares-four"></i><span class="mbg-tab-label">Data Masuk</span><span class="mbg-tab-count" id="tabDataCount">0</span>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -1495,14 +1554,6 @@ const notify = {
         </div>
 
         <!-- Tabs -->
-        <div class="mbg-tabs" role="tablist">
-          <button class="mbg-tab active" id="tabForm" onclick="switchTab('form')" role="tab" aria-selected="true">
-            <i class="ph ph-pencil-simple-line"></i><span class="mbg-tab-label">Input Data</span>
-          </button>
-          <button class="mbg-tab" id="tabData" onclick="switchTab('data')" role="tab" aria-selected="false">
-            <i class="ph ph-squares-four"></i><span class="mbg-tab-label">Data Masuk</span><span class="mbg-tab-count" id="tabDataCount">0</span>
-          </button>
-        </div>
 
         <!-- PANEL FORM (dibungkus mnt-wrap: HANYA panel Input Data yang terkena overlay Maintenance) -->
         <div class="mnt-wrap" id="mntWrap">
@@ -1587,23 +1638,60 @@ const notify = {
                 </div>
               </div>
 
-              <!-- UPLOAD DATA VIA TEMPLATE EXCEL -->
-              <div class="modern-card p-3 mb-0">
-                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 upload-card-inner">
-                  <div class="d-flex align-items-center gap-2" style="min-width:0">
-                    <div style="width:36px;height:36px;border-radius:10px;background:#10b981;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                      <i class="ph ph-file-xls text-white" style="font-size:1.1rem;"></i>
+              <!-- UPLOAD DATA VIA TEMPLATE EXCEL (modernized) -->
+              <div class="import-massal-card">
+                <div class="import-massal-head">
+                  <div class="import-massal-icon"><i class="ph ph-file-xls"></i></div>
+                  <div class="import-massal-headtext">
+                    <h6>Import Data Massal via Excel</h6>
+                    <p>Untuk memasukkan banyak data sekaligus tanpa mengetik satu per satu.</p>
+                  </div>
+                  <span class="import-massal-safebadge"><i class="ph ph-shield-check"></i>Anti-Duplikat Otomatis</span>
+                </div>
+
+                <div class="import-steps">
+                  <div class="import-step">
+                    <span class="import-step-num">1</span>
+                    <div class="import-step-body">
+                      <strong>Unduh Template</strong>
+                      <span>Format kolom baku</span>
                     </div>
-                    <div style="min-width:0">
-                      <h6 class="mb-0 fw-bold" style="font-size:.9rem;">Upload Data Massal via Template Excel</h6>
-                      <small class="text-muted" style="font-size:.75rem;">Unduh template, isi data, lalu upload. NIK duplikat otomatis dilewati, data baru langsung tersimpan.</small>
+                    <button type="button" class="btn btn-outline-primary btn-sm fw-bold rounded-pill flex-shrink-0" onclick="downloadTemplateExcel()">
+                      <i class="ph ph-download-simple me-1"></i><span class="btn-label">Unduh</span>
+                    </button>
+                  </div>
+                  <div class="import-step-arrow"><i class="ph ph-arrow-right"></i></div>
+                  <div class="import-step">
+                    <span class="import-step-num">2</span>
+                    <div class="import-step-body">
+                      <strong>Isi Data</strong>
+                      <span>Lengkapi sesuai kolom</span>
                     </div>
                   </div>
-                  <div class="d-flex gap-2 flex-shrink-0 upload-actions">
-                    <button type="button" class="btn btn-outline-primary btn-sm fw-bold rounded-pill" onclick="downloadTemplateExcel()"><i class="ph ph-download-simple me-1"></i><span class="btn-label">Unduh Template</span></button>
-                    <button type="button" class="btn btn-success btn-sm fw-bold rounded-pill" onclick="document.getElementById('uploadTemplateFile').click()"><i class="ph ph-upload-simple me-1"></i><span class="btn-label">Upload Data</span></button>
-                    <input type="file" id="uploadTemplateFile" accept=".xlsx,.xls" style="display:none" onchange="handleTemplateUpload(event)">
+                  <div class="import-step-arrow"><i class="ph ph-arrow-right"></i></div>
+                  <div class="import-step import-step-final">
+                    <span class="import-step-num">3</span>
+                    <div class="import-step-body">
+                      <strong>Upload &amp; Verifikasi</strong>
+                      <span>Duplikat otomatis dilewati</span>
+                    </div>
                   </div>
+                </div>
+
+                <div class="upload-dropzone" id="uploadDropzone"
+                     onclick="document.getElementById('uploadTemplateFile').click()"
+                     ondragover="handleDropzoneDragOver(event)"
+                     ondragleave="handleDropzoneDragLeave(event)"
+                     ondrop="handleDropzoneDrop(event)"
+                     role="button" tabindex="0"
+                     onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('uploadTemplateFile').click();}">
+                  <input type="file" id="uploadTemplateFile" accept=".xlsx,.xls" style="display:none" onchange="handleTemplateUpload(event)">
+                  <i class="ph ph-upload-simple upload-dropzone-icon"></i>
+                  <div class="upload-dropzone-text">
+                    <strong>Tarik &amp; lepas file Excel di sini</strong>
+                    <span>atau klik untuk memilih file (.xlsx / .xls)</span>
+                  </div>
+                  <span class="upload-dropzone-hint"><i class="ph ph-info me-1"></i>Setiap baris otomatis dicek NIK/NISN/NIP-nya terhadap data yang sudah ada — baris yang ganda dilewati &amp; dilaporkan, hanya data baru yang tersimpan.</span>
                 </div>
               </div>
 
@@ -1611,6 +1699,15 @@ const notify = {
           </div>
 
           <div class="mbg-form-card p-3 p-md-4">
+
+            <div class="mbg-form-head">
+              <div class="mbg-form-head-icon"><i class="ph ph-user-focus"></i></div>
+              <div class="mbg-form-head-text">
+                <h5>Formulir Input Data Satuan</h5>
+                <p>Isi satu data individu. NIK/NISN/NIP akan otomatis dicek terhadap data yang sudah tersimpan.</p>
+              </div>
+              <span class="mbg-form-head-note"><i class="ph ph-asterisk"></i>Wajib diisi</span>
+            </div>
 
             <!-- NIK / NIP -->
             <div class="mb-3">
@@ -4831,6 +4928,54 @@ function clearBroadcast() {
     }
   });
 }
+// [FIX ANTI-BYPASS MAINTENANCE] Overlay visual saja TIDAK cukup untuk mengunci form —
+// field di baliknya masih bisa dicapai lewat keyboard (Tab) atau screen reader karena
+// secara teknis elemen tsb masih aktif/focusable. Fungsi ini benar-benar menonaktifkan
+// (disabled) semua input/select/textarea/button di dalam panel Input Data saat
+// Maintenance aktif, dan mengembalikannya ke kondisi semula saat Maintenance selesai.
+function setMaintenanceFormLock(locked) {
+  const panel = document.getElementById('panelForm');
+  if (!panel) return;
+  const els = panel.querySelectorAll('input, select, textarea, button');
+  els.forEach(function(el) {
+    if (locked) {
+      if (!el.hasAttribute('data-mnt-prev-disabled')) {
+        el.setAttribute('data-mnt-prev-disabled', el.disabled ? '1' : '0');
+      }
+      el.disabled = true;
+      el.setAttribute('aria-disabled', 'true');
+      el.setAttribute('tabindex', '-1');
+    } else {
+      const prev = el.getAttribute('data-mnt-prev-disabled');
+      el.disabled = (prev === '1');
+      el.removeAttribute('data-mnt-prev-disabled');
+      el.removeAttribute('aria-disabled');
+      el.removeAttribute('tabindex');
+    }
+  });
+  // File input upload template juga ikut dikunci/dibuka via loop di atas (termasuk
+  // tombol "Upload Data" dan input file tersembunyi), sehingga upload data massal pun
+  // otomatis ikut terkunci saat maintenance aktif.
+
+  // Dropzone drag & drop bukan elemen form native (<input>/<button>/dst), jadi
+  // dikunci terpisah: hilangkan dari urutan Tab, tandai aria-disabled, dan blok
+  // pointer-events supaya klik/drag file tidak bisa memicu upload saat maintenance.
+  const zone = panel.querySelector('#uploadDropzone');
+  if (zone) {
+    if (locked) {
+      zone.setAttribute('aria-disabled', 'true');
+      zone.setAttribute('tabindex', '-1');
+      zone.style.pointerEvents = 'none';
+      zone.style.opacity = '.55';
+    } else {
+      zone.removeAttribute('aria-disabled');
+      zone.setAttribute('tabindex', '0');
+      zone.style.pointerEvents = '';
+      zone.style.opacity = '';
+    }
+  }
+}
+
 function applyMaintenance(status, msg, endTime) {
   const wrap = document.getElementById('mntWrap');
   const cdEl = document.getElementById('maintCountdown');
@@ -4843,6 +4988,7 @@ function applyMaintenance(status, msg, endTime) {
     wrap.classList.add('active');
     document.getElementById('mntMsgText').textContent = msg || 'Kami sedang meningkatkan kualitas layanan.';
     cdEl.classList.remove('d-none');
+    setMaintenanceFormLock(true);
     if(endTime) {
       startMaintenanceCountdown(endTime);
     } else {
@@ -4858,6 +5004,7 @@ function applyMaintenance(status, msg, endTime) {
     wrap.classList.remove('active');
     cdEl.classList.add('d-none');
     stopMaintenanceCountdown();
+    setMaintenanceFormLock(false);
   }
 }
 function toggleMaintenanceMode() {
@@ -5176,6 +5323,7 @@ function processLogin() {
 }
 function enterAdminPanel(fromRefresh) {
   document.getElementById('userApp').classList.add('d-none');
+  const mtw1 = document.getElementById('mbgTabsFixedWrap'); if (mtw1) mtw1.classList.add('d-none');
   document.getElementById('adminDash').classList.remove('d-none');
   document.getElementById('adminSidebar').classList.add('show');
   document.getElementById('mobileBottomBar').classList.add('show');
@@ -5228,6 +5376,7 @@ function logoutAdmin() {
   sessionStorage.removeItem('mbg_admin_tab');
   document.getElementById('adminDash').classList.add('d-none');
   document.getElementById('userApp').classList.remove('d-none');
+  const mtw2 = document.getElementById('mbgTabsFixedWrap'); if (mtw2) mtw2.classList.remove('d-none');
   document.getElementById('adminSidebar').classList.remove('show');
   document.getElementById('adminSidebar').classList.remove('minimalis');
   document.getElementById('mobileBottomBar').classList.remove('show');
@@ -5755,6 +5904,39 @@ function downloadTemplateExcel() {
   XLSX.utils.book_append_sheet(wb, wsInfo, 'Petunjuk');
 
   XLSX.writeFile(wb, 'Template_Input_Data_MBG.xlsx');
+}
+
+// ============================================================
+// DROPZONE DRAG & DROP untuk Import Massal Excel
+// ============================================================
+function handleDropzoneDragOver(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  const zone = document.getElementById('uploadDropzone');
+  if (zone) zone.classList.add('dragover');
+}
+function handleDropzoneDragLeave(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  const zone = document.getElementById('uploadDropzone');
+  if (zone) zone.classList.remove('dragover');
+}
+function handleDropzoneDrop(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  const zone = document.getElementById('uploadDropzone');
+  if (zone) zone.classList.remove('dragover');
+  if (zone && zone.getAttribute('aria-disabled') === 'true') return; // terkunci saat maintenance
+  const files = e.dataTransfer && e.dataTransfer.files;
+  if (!files || !files.length) return;
+  const file = files[0];
+  if (!/\.(xlsx|xls)$/i.test(file.name)) {
+    Swal.fire('Format Tidak Didukung', 'Mohon unggah file Excel (.xlsx atau .xls) hasil dari template yang telah diunduh.', 'warning');
+    return;
+  }
+  const inputEl = document.getElementById('uploadTemplateFile');
+  try { inputEl.files = files; } catch (err) { /* beberapa browser lama tidak mendukung assignment ini */ }
+  handleTemplateUpload({ target: inputEl });
 }
 
 function handleTemplateUpload(event) {
