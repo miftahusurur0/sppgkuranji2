@@ -1325,10 +1325,9 @@ const notify = {
     }
 
     /* --- Segmented Tabs Modern (Input Data / Data Masuk) --- */
-    .mbg-tabs-fixed-wrap{flex-shrink:0;background:var(--bg);border-bottom:1px solid var(--border);padding:10px 20px;z-index:90}
-    .mbg-tabs-inner{max-width:900px;margin:0 auto;width:100%}
+    .mbg-tabs-fixed-wrap{background:transparent;padding:0;margin-bottom:12px}
+    .mbg-tabs-inner{width:100%}
     .mbg-tabs{display:flex;gap:6px;background:var(--input);border:1px solid var(--border);border-radius:var(--r-lg);padding:6px}
-    @media(max-width:768px){.mbg-tabs-fixed-wrap{padding:8px 14px}}
     .mbg-tab{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;border:none;background:transparent;color:var(--muted);font-weight:700;font-size:.86rem;padding:11px 10px;border-radius:calc(var(--r-lg) - 3px);cursor:pointer;transition:all .25s cubic-bezier(.4,0,.2,1);position:relative}
     .mbg-tab i{font-size:1.1rem;transition:transform .25s}
     .mbg-tab:hover:not(.active){color:var(--text);background:rgba(99,102,241,.06)}
@@ -1451,20 +1450,6 @@ const notify = {
     </div>
   </div>
 
-  <!-- TABS BAR (di luar area scroll — selalu diam di tempat, tidak ikut bergerak saat scroll atau saat konten di atasnya berubah tinggi) -->
-  <div class="mbg-tabs-fixed-wrap" id="mbgTabsFixedWrap">
-    <div class="mbg-tabs-inner">
-      <div class="mbg-tabs" role="tablist">
-        <button class="mbg-tab active" id="tabForm" onclick="switchTab('form')" role="tab" aria-selected="true">
-          <i class="ph ph-pencil-simple-line"></i><span class="mbg-tab-label">Input Data</span>
-        </button>
-        <button class="mbg-tab" id="tabData" onclick="switchTab('data')" role="tab" aria-selected="false">
-          <i class="ph ph-squares-four"></i><span class="mbg-tab-label">Data Masuk</span><span class="mbg-tab-count" id="tabDataCount">0</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
   <!-- SCROLL BODY -->
   <div class="scroll-body" id="mainScroll">
 
@@ -1553,7 +1538,19 @@ const notify = {
           </div>
         </div>
 
-        <!-- Tabs -->
+        <!-- Tabs (dipindah ke bawah Identitas Pelapor) -->
+        <div class="mbg-tabs-fixed-wrap" id="mbgTabsFixedWrap">
+          <div class="mbg-tabs-inner">
+            <div class="mbg-tabs" role="tablist">
+              <button class="mbg-tab active" id="tabForm" onclick="switchTab('form')" role="tab" aria-selected="true">
+                <i class="ph ph-pencil-simple-line"></i><span class="mbg-tab-label">Input Data</span>
+              </button>
+              <button class="mbg-tab" id="tabData" onclick="switchTab('data')" role="tab" aria-selected="false">
+                <i class="ph ph-squares-four"></i><span class="mbg-tab-label">Data Masuk</span><span class="mbg-tab-count" id="tabDataCount">0</span>
+              </button>
+            </div>
+          </div>
+        </div>
 
         <!-- PANEL FORM (dibungkus mnt-wrap: HANYA panel Input Data yang terkena overlay Maintenance) -->
         <div class="mnt-wrap" id="mntWrap">
@@ -5464,9 +5461,17 @@ function updateIdpStatusBadge() {
   if (!badge) return;
   const instansi = safeVal('instansi').trim();
   const pic = safeVal('pic').trim();
+  const noHpEl = document.getElementById('noHp');
+  const emailEl = document.getElementById('emailPelapor');
+  const noHp = noHpEl ? noHpEl.value.trim() : '';
+  const email = emailEl ? emailEl.value.trim() : '';
+  // contactSection hanya muncul setelah instansi & PIC terisi,
+  // sehingga noHp & email hanya diperiksa jika instansi & PIC sudah ada
+  const contactVisible = instansi && pic;
+  const isLengkap = instansi && pic && contactVisible && noHp && email;
   const icon = badge.querySelector('i');
   const span = badge.querySelector('span');
-  if (instansi && pic) {
+  if (isLengkap) {
     badge.classList.add('ok');
     if (icon) icon.className = 'ph ph-check-circle';
     if (span) span.textContent = 'Lengkap';
@@ -5483,9 +5488,12 @@ function updateTabDataCount(n) {
 }
 
 (function initMbgUiHooks() {
-  ['instansi', 'pic'].forEach(function(id) {
+  ['instansi', 'pic', 'noHp', 'emailPelapor'].forEach(function(id) {
     const el = safeEl(id);
-    if (el) el.addEventListener('input', updateIdpStatusBadge);
+    if (el) {
+      el.addEventListener('input', updateIdpStatusBadge);
+      el.addEventListener('change', updateIdpStatusBadge);
+    }
   });
   document.addEventListener('DOMContentLoaded', updateIdpStatusBadge);
   window.addEventListener('load', updateIdpStatusBadge);
