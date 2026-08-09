@@ -158,7 +158,7 @@
     // 1) GANTI URL INI dengan URL Web App hasil Deploy Apps Script kamu
     //    (Deploy > New deployment > Web app > Execute as: Me > Who has access: Anyone > /exec)
     //    Hanya dipakai saat file ini berjalan di LUAR Apps Script (Blogger/Netlify).
-    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz8wCXYmBHg1OKz30pVeQ5NYid1lYkiacUifut_4J2-tognQa_hD8zJfrAQ1IdUGoN1/exec';
+    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNtOwZltQGUEfGCe1owcnGsWEEbq0iwkfM7-decnCaI-Hc3tpNmhYsDt-yQc1Y0TnL/exec';
 
     // 2) Peta nama fungsi server -> urutan nama parameter,
     //    HARUS SAMA PERSIS dengan switch(action) di Code.gs (doPost)
@@ -1297,6 +1297,68 @@ const notify = {
     .admin-overview-grid .admin-stat-card:nth-child(5){animation-delay:.25s}
     .admin-overview-grid .admin-stat-card:nth-child(6){animation-delay:.3s}
 
+    /* ============================================================
+       REDESIGN TAMPILAN USER (Identitas Pelapor, Input Data, Data Masuk)
+       ============================================================ */
+    .mbg-user-shell{max-width:900px;margin:0 auto;width:100%}
+
+    /* --- Kartu Identitas Pelapor --- */
+    .idp-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-xl);box-shadow:var(--sh-sm);overflow:hidden;animation:fadeInUp .4s ease-out both}
+    .idp-card-head{position:relative;display:flex;align-items:center;gap:14px;padding:18px 20px;background:var(--primary-grad);background-size:200% 200%;animation:gradientShift 8s ease infinite;color:#fff;overflow:hidden}
+    .idp-card-head::before{content:'';position:absolute;top:-60%;right:-10%;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.08);pointer-events:none}
+    .idp-avatar{position:relative;z-index:1;width:46px;height:46px;border-radius:14px;background:rgba(255,255,255,.18);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;border:1px solid rgba(255,255,255,.3)}
+    .idp-head-text{position:relative;z-index:1;flex:1;min-width:0}
+    .idp-title{font-family:'Poppins',sans-serif;font-weight:700;font-size:1.02rem;line-height:1.25}
+    .idp-sub{font-size:.74rem;opacity:.9;margin-top:1px}
+    .idp-status{position:relative;z-index:1;display:flex;align-items:center;gap:5px;font-size:.68rem;font-weight:700;padding:5px 11px;border-radius:20px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);white-space:nowrap;flex-shrink:0;transition:all .3s}
+    .idp-status.ok{background:rgba(16,185,129,.85);border-color:rgba(16,185,129,.9)}
+    .idp-body{padding:18px 20px 20px}
+    .idp-divider{height:1px;background:var(--border);margin:14px 0;opacity:.6}
+    @media(max-width:480px){
+      .idp-card-head{padding:15px 16px;gap:10px}
+      .idp-avatar{width:40px;height:40px;font-size:1.2rem;border-radius:12px}
+      .idp-title{font-size:.92rem}
+      .idp-sub{font-size:.68rem}
+      .idp-status{font-size:.62rem;padding:4px 8px}
+      .idp-status span{display:none}
+      .idp-body{padding:14px}
+    }
+
+    /* --- Segmented Tabs Modern (Input Data / Data Masuk) --- */
+    .mbg-tabs{display:flex;gap:6px;background:var(--input);border:1px solid var(--border);border-radius:var(--r-lg);padding:6px;margin:16px 0;position:sticky;top:0;z-index:20;backdrop-filter:blur(6px)}
+    .mbg-tab{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;border:none;background:transparent;color:var(--muted);font-weight:700;font-size:.86rem;padding:11px 10px;border-radius:calc(var(--r-lg) - 3px);cursor:pointer;transition:all .25s cubic-bezier(.4,0,.2,1);position:relative}
+    .mbg-tab i{font-size:1.1rem;transition:transform .25s}
+    .mbg-tab:hover:not(.active){color:var(--text);background:rgba(99,102,241,.06)}
+    .mbg-tab.active{background:var(--card);color:var(--primary);box-shadow:var(--sh-sm)}
+    .mbg-tab.active i{transform:scale(1.1)}
+    .mbg-tab-count{background:var(--primary);color:#fff;border-radius:20px;font-size:.62rem;font-weight:800;padding:1px 7px;min-width:18px;line-height:1.5}
+    .mbg-tab:not(.active) .mbg-tab-count{background:var(--light);opacity:.7}
+    @media(max-width:480px){.mbg-tab span.mbg-tab-label{display:none}.mbg-tab{padding:12px 6px;gap:0}.mbg-tab i{font-size:1.25rem}.mbg-tab-count{position:absolute;top:4px;right:16%}}
+
+    /* --- Kartu utilitas (Statistik / Panduan / Import) yang bisa dilipat --- */
+    .mbg-util-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:16px;overflow:hidden;box-shadow:var(--sh-xs)}
+    .mbg-util-toggle{width:100%;display:flex;align-items:center;gap:10px;padding:13px 16px;background:linear-gradient(135deg,var(--primary-l),transparent);border:none;cursor:pointer;font-weight:700;font-size:.84rem;color:var(--text);text-align:left}
+    .mbg-util-toggle i.ph-sliders-horizontal{color:var(--primary);font-size:1.05rem}
+    .mbg-util-toggle .mbg-util-arrow{margin-left:auto;transition:transform .3s;color:var(--muted)}
+    .mbg-util-toggle.open .mbg-util-arrow{transform:rotate(180deg)}
+    .mbg-util-body{padding:16px;border-top:1px solid var(--border);animation:docFadeIn .25s ease-out}
+    .mbg-util-body>*:last-child{margin-bottom:0!important}
+
+    /* --- Kartu form utama --- */
+    .mbg-form-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-xl);box-shadow:var(--sh-sm)}
+
+    /* --- Panel wrapper spacing --- */
+    .mbg-panel{animation:fadeInUp .35s ease-out both}
+
+    /* --- Responsif tambahan untuk semua perangkat --- */
+    @media(max-width:576px){
+      .mbg-tabs{margin:12px 0}
+      .idp-title{font-size:.95rem}
+    }
+    @media(min-width:1200px){
+      .mbg-user-shell{max-width:960px}
+    }
+
   </style>
 </head>
 <body>
@@ -1348,7 +1410,7 @@ const notify = {
   <div class="scroll-body" id="mainScroll">
 
     <!-- USER APP -->
-    <div id="userApp">
+    <div id="userApp" class="mbg-user-shell">
 
         <!-- Broadcast -->
         <div class="broadcast-bar hidden" id="broadcastBar">
@@ -1378,9 +1440,16 @@ const notify = {
         </div>
 
         <!-- Identity Context -->
-        <div class="modern-card mb-4" style="position: relative;">
-          <div class="floating-badge"><i class="ph ph-user-circle me-1"></i>Identitas Pelapor</div>
-          <div class="p-3 pt-4 p-md-3">
+        <div class="idp-card mb-3" id="idpCard">
+          <div class="idp-card-head">
+            <div class="idp-avatar"><i class="ph ph-user-circle"></i></div>
+            <div class="idp-head-text">
+              <div class="idp-title">Identitas Pelapor</div>
+              <div class="idp-sub">Isi Instansi &amp; PIC sebelum mulai mendata</div>
+            </div>
+            <div class="idp-status" id="idpStatusBadge"><i class="ph ph-circle-dashed"></i><span>Belum Lengkap</span></div>
+          </div>
+          <div class="idp-body">
             <!-- Baris 1: Instansi & PIC -->
             <div class="row g-3 g-md-3 mb-2">
               <div class="col-sm-6 col-md-6">
@@ -1396,7 +1465,7 @@ const notify = {
               </div>
             </div>
             <!-- Pemisah -->
-            <div style="height:1px;background:var(--border);margin:10px 0;opacity:.5"></div>
+            <div class="idp-divider"></div>
             <!-- Baris 2: No HP & Email (muncul setelah Instansi + PIC terisi) -->
             <div id="contactSection" class="row g-3 g-md-3" style="display:none; animation: fadeInUp 0.4s ease-out;">
               <div class="col-sm-6 col-md-4">
@@ -1426,11 +1495,13 @@ const notify = {
         </div>
 
         <!-- Tabs -->
-        <div class="modern-card mb-4 p-2">
-          <div class="tabs-bar" style="border-bottom: none; margin-bottom: 0; gap: 4px;">
-            <div class="ti"><button class="tab-btn active" id="tabForm" onclick="switchTab('form')" style="border-radius: var(--r-md);"><i class="ph ph-pencil-simple-line me-1"></i>Input Data</button></div>
-            <div class="ti"><button class="tab-btn" id="tabData" onclick="switchTab('data')" style="border-radius: var(--r-md);"><i class="ph ph-squares-four me-1"></i>Data Masuk</button></div>
-          </div>
+        <div class="mbg-tabs" role="tablist">
+          <button class="mbg-tab active" id="tabForm" onclick="switchTab('form')" role="tab" aria-selected="true">
+            <i class="ph ph-pencil-simple-line"></i><span class="mbg-tab-label">Input Data</span>
+          </button>
+          <button class="mbg-tab" id="tabData" onclick="switchTab('data')" role="tab" aria-selected="false">
+            <i class="ph ph-squares-four"></i><span class="mbg-tab-label">Data Masuk</span><span class="mbg-tab-count" id="tabDataCount">0</span>
+          </button>
         </div>
 
         <!-- PANEL FORM (dibungkus mnt-wrap: HANYA panel Input Data yang terkena overlay Maintenance) -->
@@ -1471,9 +1542,9 @@ const notify = {
         </div>
 
         <!-- PANEL FORM -->
-        <div id="panelForm">
+        <div id="panelForm" class="mbg-panel">
           <!-- SUMMARY CONTAINER -->
-          <div id="summaryContainer" class="glass-card mb-4" style="display:none; border-radius: var(--r-xl); padding: 24px;">
+          <div id="summaryContainer" class="glass-card mbg-stats-card mb-4" style="display:none; border-radius: var(--r-xl); padding: 24px;">
             <div class="text-center mb-4">
               <div class="d-inline-flex align-items-center gap-2 px-4 py-2 rounded-pill" 
                    style="background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.1)); border: 1px solid rgba(99,102,241,0.2);">
@@ -1486,48 +1557,60 @@ const notify = {
             <div id="summaryContent" class="row g-3"></div>
           </div>
 
-          <!-- PETUNJUK -->
-          <div class="mb-3">
-            <div class="d-flex justify-content-between align-items-center mb-1">
-              <span class="fw-bold small">
-                <i class="ph ph-info me-1"></i>Petunjuk Pengisian
-              </span>
-              <button class="btn btn-sm btn-outline-secondary py-1 px-2" id="btnPetunjuk" onclick="togglePetunjuk()">
-                <i class="ph ph-eye me-1"></i>Tampilkan
-              </button>
-            </div>
+          <!-- PANDUAN & IMPORT (dilipat agar form utama jadi fokus) -->
+          <div class="mbg-util-card">
+            <button type="button" class="mbg-util-toggle" id="mbgUtilToggle" onclick="toggleMbgUtil()">
+              <i class="ph ph-sliders-horizontal"></i>
+              <span>Petunjuk Pengisian &amp; Import Massal Excel</span>
+              <i class="ph ph-caret-down mbg-util-arrow"></i>
+            </button>
+            <div class="mbg-util-body" id="mbgUtilBody" style="display:none">
 
-            <div id="petunjukBox" class="petunjuk-box" style="display:none">
-              <strong class="d-block mb-1" style="color:#92400e;font-size:.82rem">Petunjuk:</strong>
-              <ul class="mb-0 ps-3 small" style="color:#92400e">
-                <li><strong>POSYANDU</strong>: NIK Disarankan</li>
-                <li><strong>SEKOLAH/PONPES</strong>: NIK (16) / NISN (10)</li>
-                <li><strong>GURU / SDM</strong>: Gunakan NIP (18 digit) untuk isi otomatis</li>
-              </ul>
+              <!-- PETUNJUK -->
+              <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <span class="fw-bold small">
+                    <i class="ph ph-info me-1"></i>Petunjuk Pengisian
+                  </span>
+                  <button class="btn btn-sm btn-outline-secondary py-1 px-2" id="btnPetunjuk" onclick="togglePetunjuk()">
+                    <i class="ph ph-eye me-1"></i>Tampilkan
+                  </button>
+                </div>
+
+                <div id="petunjukBox" class="petunjuk-box" style="display:none">
+                  <strong class="d-block mb-1" style="color:#92400e;font-size:.82rem">Petunjuk:</strong>
+                  <ul class="mb-0 ps-3 small" style="color:#92400e">
+                    <li><strong>POSYANDU</strong>: NIK Disarankan</li>
+                    <li><strong>SEKOLAH/PONPES</strong>: NIK (16) / NISN (10)</li>
+                    <li><strong>GURU / SDM</strong>: Gunakan NIP (18 digit) untuk isi otomatis</li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- UPLOAD DATA VIA TEMPLATE EXCEL -->
+              <div class="modern-card p-3 mb-0">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 upload-card-inner">
+                  <div class="d-flex align-items-center gap-2" style="min-width:0">
+                    <div style="width:36px;height:36px;border-radius:10px;background:#10b981;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                      <i class="ph ph-file-xls text-white" style="font-size:1.1rem;"></i>
+                    </div>
+                    <div style="min-width:0">
+                      <h6 class="mb-0 fw-bold" style="font-size:.9rem;">Upload Data Massal via Template Excel</h6>
+                      <small class="text-muted" style="font-size:.75rem;">Unduh template, isi data, lalu upload. NIK duplikat otomatis dilewati, data baru langsung tersimpan.</small>
+                    </div>
+                  </div>
+                  <div class="d-flex gap-2 flex-shrink-0 upload-actions">
+                    <button type="button" class="btn btn-outline-primary btn-sm fw-bold rounded-pill" onclick="downloadTemplateExcel()"><i class="ph ph-download-simple me-1"></i><span class="btn-label">Unduh Template</span></button>
+                    <button type="button" class="btn btn-success btn-sm fw-bold rounded-pill" onclick="document.getElementById('uploadTemplateFile').click()"><i class="ph ph-upload-simple me-1"></i><span class="btn-label">Upload Data</span></button>
+                    <input type="file" id="uploadTemplateFile" accept=".xlsx,.xls" style="display:none" onchange="handleTemplateUpload(event)">
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
 
-          <!-- UPLOAD DATA VIA TEMPLATE EXCEL -->
-          <div class="modern-card p-3 mb-3">
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 upload-card-inner">
-              <div class="d-flex align-items-center gap-2" style="min-width:0">
-                <div style="width:36px;height:36px;border-radius:10px;background:#10b981;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                  <i class="ph ph-file-xls text-white" style="font-size:1.1rem;"></i>
-                </div>
-                <div style="min-width:0">
-                  <h6 class="mb-0 fw-bold" style="font-size:.9rem;">Upload Data Massal via Template Excel</h6>
-                  <small class="text-muted" style="font-size:.75rem;">Unduh template, isi data, lalu upload. NIK duplikat otomatis dilewati, data baru langsung tersimpan.</small>
-                </div>
-              </div>
-              <div class="d-flex gap-2 flex-shrink-0 upload-actions">
-                <button type="button" class="btn btn-outline-primary btn-sm fw-bold rounded-pill" onclick="downloadTemplateExcel()"><i class="ph ph-download-simple me-1"></i><span class="btn-label">Unduh Template</span></button>
-                <button type="button" class="btn btn-success btn-sm fw-bold rounded-pill" onclick="document.getElementById('uploadTemplateFile').click()"><i class="ph ph-upload-simple me-1"></i><span class="btn-label">Upload Data</span></button>
-                <input type="file" id="uploadTemplateFile" accept=".xlsx,.xls" style="display:none" onchange="handleTemplateUpload(event)">
-              </div>
-            </div>
-          </div>
-
-          <div class="modern-card p-3 p-md-4">
+          <div class="mbg-form-card p-3 p-md-4">
 
             <!-- NIK / NIP -->
             <div class="mb-3">
@@ -1622,8 +1705,7 @@ const notify = {
         </div><!-- end mntWrap -->
 
         <!-- PANEL DATA -->
-        <div id="panelData" style="display:none">
-
+        <div id="panelData" class="mbg-panel" style="display:none">
 
           <div class="modern-card p-3 mb-3">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
@@ -1864,8 +1946,7 @@ const notify = {
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        </div><!-- end admSettings -->
 
       <!-- TAB: Kategori -->
       <div id="admKategori" class="d-none">
@@ -5216,6 +5297,57 @@ function switchTab(t) {
   document.getElementById('tabData').classList.toggle('active', t === 'data');
   if(t === 'data') { refreshData(); loadUserRiwayat(); }
 }
+
+// ============================================================
+// REDESIGN UI HELPERS (kartu Identitas Pelapor, panel lipat, badge)
+// ============================================================
+function toggleMbgUtil() {
+  const body = safeEl('mbgUtilBody');
+  const btn = safeEl('mbgUtilToggle');
+  if (!body || !btn) return;
+  const willOpen = (body.style.display === 'none' || !body.style.display);
+  body.style.display = willOpen ? 'block' : 'none';
+  btn.classList.toggle('open', willOpen);
+}
+
+function updateIdpStatusBadge() {
+  const badge = safeEl('idpStatusBadge');
+  if (!badge) return;
+  const instansi = safeVal('instansi').trim();
+  const pic = safeVal('pic').trim();
+  const icon = badge.querySelector('i');
+  const span = badge.querySelector('span');
+  if (instansi && pic) {
+    badge.classList.add('ok');
+    if (icon) icon.className = 'ph ph-check-circle';
+    if (span) span.textContent = 'Lengkap';
+  } else {
+    badge.classList.remove('ok');
+    if (icon) icon.className = 'ph ph-circle-dashed';
+    if (span) span.textContent = 'Belum Lengkap';
+  }
+}
+
+function updateTabDataCount(n) {
+  const el = safeEl('tabDataCount');
+  if (el) el.textContent = (n === undefined || n === null) ? (safeVal('todayCount') || '0') : n;
+}
+
+(function initMbgUiHooks() {
+  ['instansi', 'pic'].forEach(function(id) {
+    const el = safeEl(id);
+    if (el) el.addEventListener('input', updateIdpStatusBadge);
+  });
+  document.addEventListener('DOMContentLoaded', updateIdpStatusBadge);
+  window.addEventListener('load', updateIdpStatusBadge);
+  // Amati perubahan pada badge Total Penerima (todayCount) agar ikut tampil di tab "Data Masuk"
+  const obsTarget = document.getElementById('todayCount');
+  if (obsTarget && window.MutationObserver) {
+    const mo = new MutationObserver(function() { updateTabDataCount(obsTarget.textContent); });
+    mo.observe(obsTarget, { childList: true, characterData: true, subtree: true });
+  }
+})();
+
 function togglePetunjuk() {
   const petunjukBox = document.getElementById('petunjukBox');
   const btn = document.getElementById('btnPetunjuk');
