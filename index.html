@@ -3,7 +3,7 @@
 <head>
   <base target="_top">
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Sistem Pendataan MBG</title>
   <meta name="theme-color" content="#6366f1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -158,7 +158,7 @@
     // 1) GANTI URL INI dengan URL Web App hasil Deploy Apps Script kamu
     //    (Deploy > New deployment > Web app > Execute as: Me > Who has access: Anyone > /exec)
     //    Hanya dipakai saat file ini berjalan di LUAR Apps Script (Blogger/Netlify).
-    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw65tOeyDljfJOk7tKkrnzfoeQmyw3YfEgFNpIMS76DLWxs4zYIeEnCTJfuev6-9ok6/exec';
+    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzCFTwikpgCNYiz_dXrta1i4pRF_ZfMLrG98wffd97jNUQjfWMh0SSVDDJDPePPyHaK/exec';
 
     // 2) Peta nama fungsi server -> urutan nama parameter,
     //    HARUS SAMA PERSIS dengan switch(action) di Code.gs (doPost)
@@ -167,6 +167,7 @@
       getSystemSettings: [],
       saveSystemSettings: ['settings', 'adminPassword'],
       saveCategoriesSettings: ['categoriesStr', 'adminPassword'],
+      saveAgeRules: ['ageRulesJson', 'adminPassword'],
       saveBroadcastMessage: ['msg', 'adminPassword'],
       getSignatureSettings: [],
       saveSignatureSettings: ['settings', 'adminPassword'],
@@ -432,6 +433,95 @@ const notify = {
       --sh-sm: 0 1px 3px rgba(0,0,0,.4); --sh-md: 0 4px 12px rgba(0,0,0,.5);
       --sh-lg: 0 12px 24px rgba(0,0,0,.6); --sh-xl: 0 20px 36px rgba(0,0,0,.6);
       --sh-glow: 0 0 40px rgba(129,140,248,.2);
+    }
+
+    /* === MODERN UI POLISH 2026 === */
+    html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    body { -webkit-tap-highlight-color: transparent; }
+    button, .btn, .tab-btn, .anb, .mbb-item, .db-btn-edit, .db-btn-del, .rwt-filter-btn {
+      touch-action: manipulation;
+      min-height: 44px; /* better touch target */
+    }
+    .mbb-item { min-height: 52px; }
+    .form-control, .form-select, input, select, textarea {
+      font-size: 16px !important; /* prevent iOS zoom on focus */
+      border-radius: 12px;
+      transition: border-color .2s, box-shadow .2s, background .2s;
+    }
+    .form-control:focus, .form-select:focus, input:focus, select:focus, textarea:focus {
+      border-color: var(--border-f) !important;
+      box-shadow: 0 0 0 3px rgba(99,102,241,.18) !important;
+      outline: none;
+    }
+    .btn-primary, .btn-hdr, .swal2-confirm {
+      background: var(--primary-grad) !important;
+      border: none !important;
+      border-radius: 12px !important;
+      font-weight: 700;
+      letter-spacing: .01em;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .btn-primary:hover, .btn-hdr:hover { transform: translateY(-1px); }
+    .btn-primary:active, .btn-hdr:active { transform: translateY(0); }
+    /* Safe area for notched phones */
+    .app-header { padding-top: max(14px, env(safe-area-inset-top, 0px)); }
+    .scroll-body { padding-bottom: max(16px, env(safe-area-inset-bottom, 0px)); }
+    /* Smoother cards on mobile */
+    @media (max-width: 768px) {
+      .stat-card, .cat-card, .data-card, .db-group-card, .ctx-card, .rwt-card {
+        border-radius: 14px;
+      }
+      .stat-val { font-size: 1.55rem; }
+      .header-title h2 { font-size: 1.1rem; }
+      .tabs-bar .tab-btn { font-size: .82rem; padding: 10px 6px; }
+      .cat-grid { grid-template-columns: 1fr; gap: 12px; }
+    }
+    @media (max-width: 480px) {
+      .app-header { padding-left: 12px; padding-right: 12px; }
+      .scroll-body { padding-left: 10px; padding-right: 10px; }
+      .btn-hdr { width: 38px; height: 38px; border-radius: 11px; font-size: 1rem; }
+    }
+    /* === DESKTOP/MOBILE LAYOUT 2026 === */
+    .scroll-body > * { max-width: 1180px; margin-left: auto; margin-right: auto; }
+    @media (min-width: 1200px) {
+      .scroll-body { padding: 22px 28px; }
+      .stat-val { font-size: 2.05rem; }
+      .idp-card, .ctx-card, .data-card, .cat-card { box-shadow: var(--sh-md); }
+      .cat-grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; }
+    }
+    @media (min-width: 993px) {
+      .mobile-bottom-bar { display: none !important; }
+      .data-toolbar-btns .btn { min-height: 40px; }
+    }
+    /* Tables: horizontal scroll on small screens */
+    .table-responsive, .rekap-pivot-scroll, .db-data-list {
+      -webkit-overflow-scrolling: touch;
+    }
+    table.table { font-size: .85rem; }
+    @media (max-width: 768px) {
+      table.table { font-size: .78rem; }
+      table.table th, table.table td { padding: 8px 6px; }
+      .idp-body .row > [class*="col-"] { margin-bottom: 4px; }
+      .swal2-popup { width: calc(100% - 16px) !important; margin: 8px !important; }
+      .swal2-html-container { font-size: .88rem !important; }
+    }
+    /* Sticky identity card header feel on mobile */
+    @media (max-width: 768px) {
+      .idp-card { border-radius: 16px; margin-bottom: 14px; }
+      .btn-simpan-main, #btnSimpanData {
+        width: 100%;
+        min-height: 48px;
+        font-size: 1rem;
+        border-radius: 14px;
+      }
+    }
+    /* Prefer reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
     }
     *{box-sizing:border-box}
     html,body{height:100%;margin:0;padding:0;overflow:hidden}
@@ -3764,6 +3854,8 @@ function onPicChange() {
   markKontakAsSaved(savedRawHp2, savedEmail2);
   saveToLocal();
   showContactSection();
+  // Muat data + cek duplikat setelah identitas lengkap
+  try { if (typeof refreshData === 'function') refreshData(); } catch(e) {}
 }
 
 function hideInstansiPicHint() {
@@ -3881,6 +3973,7 @@ function setPicValidFeedback(state, msg) {
 // SHOW/HIDE CONTACT SECTION (No HP & Email)
 // Muncul hanya setelah Instansi DAN PIC terisi dan tervalidasi
 // ============================================================
+let _refreshAfterIdentityTimer = null;
 function showContactSection() {
   const instansi = document.getElementById('instansi').value.trim();
   const pic = document.getElementById('pic').value.trim();
@@ -3893,6 +3986,11 @@ function showContactSection() {
       el.offsetHeight; // trigger reflow
       el.style.animation = 'fadeInUp 0.4s ease-out';
     }
+    // Setelah identitas lengkap: muat data + cek duplikat (debounce)
+    clearTimeout(_refreshAfterIdentityTimer);
+    _refreshAfterIdentityTimer = setTimeout(function() {
+      try { if (typeof refreshData === 'function') refreshData(); } catch(e) {}
+    }, 500);
   } else {
     el.style.display = 'none';
   }
@@ -5620,8 +5718,10 @@ function refreshData() {
     updatePublicGroupChart(allDataCache);
     if (allDataCache.length > 0) {
       cekNikKosongPadaData(allDataCache, instansi, pic);
+      // Cek NIK duplikat antar instansi untuk data milik PIC ini
+      cekDuplikatSetelahIdentitas(instansi, pic, allDataCache);
       const noHpEl = document.getElementById('noHp');
-      if (!noHpEl.value.trim()) {
+      if (noHpEl && !noHpEl.value.trim()) {
         const found = allDataCache.find(d => d.noHp && d.noHp.trim() && d.noHp.trim() !== '-');
         if (found && found.noHp) {
           let rawHp = found.noHp.replace(/[^0-9]/g,'');
@@ -5630,6 +5730,9 @@ function refreshData() {
           if (rawHp && rawHp.length >= 8) _applyNoHpAutofill(noHpEl, rawHp, 'server');
         }
       }
+    } else {
+      // Tetap cek global untuk instansi ini (mungkin data di PIC lain)
+      cekDuplikatSetelahIdentitas(instansi, pic, []);
     }
   }).getTodayInputs(instansi, pic);
 }
@@ -5804,10 +5907,43 @@ function scanNIKDuplicates() {
   Swal.fire({ title: 'Scan Duplikat NIK', text: 'Memeriksa duplikasi di seluruh database...', allowOutsideClick: false, showCloseButton: true, didOpen: () => Swal.showLoading() });
   google.script.run.withSuccessHandler(res => {
     Swal.close();
-    if(!res.duplicates || !res.duplicates.length) { Swal.fire({ icon: 'info', title: 'Info', text: 'Tidak ditemukan NIK duplikat antar instansi.', showCloseButton: true }); return; }
-    let html = '<div style="max-height:380px;overflow-y:auto">';
-    res.duplicates.forEach(d => { html += `<div class="mb-3 p-2 border rounded"><strong class="text-danger">NIK: ${esc(d.nik)}</strong><br>`; d.entries.forEach(e => { html += `• ${esc(e.nama)} (${esc(e.instansi)})<br>`; }); html += '</div>'; });
-    Swal.fire({ title: `Ditemukan ${res.duplicates.length} NIK Duplikat`, html: html + '</div>', icon: 'warning', confirmButtonText: 'Tutup', showCloseButton: true });
+    if(!res.duplicates || !res.duplicates.length) {
+      Swal.fire({ icon: 'success', title: 'Tidak ada duplikat', text: 'Tidak ditemukan NIK/NISN/NIP yang terdaftar di lebih dari satu instansi.', showCloseButton: true });
+      return;
+    }
+    let rows = '';
+    res.duplicates.forEach(d => {
+      (d.entries || []).forEach(e => {
+        rows += `<tr>
+          <td style="padding:8px 10px;font-weight:700;text-transform:uppercase;font-size:.8rem">${esc(e.nama||'–')}</td>
+          <td style="padding:8px 10px;font-family:ui-monospace,monospace;font-size:.78rem">${esc(d.nik||'–')}</td>
+          <td style="padding:8px 10px;font-size:.78rem"><span style="background:#f1f5f9;padding:2px 8px;border-radius:999px;font-weight:600">${esc(e.instansi||'–')}</span></td>
+        </tr>`;
+      });
+    });
+    const html = `<div style="text-align:left">
+      <p style="margin:0 0 10px;font-size:.9rem">Ditemukan <strong style="color:#dc2626">${res.duplicates.length} NIK/NISN/NIP</strong> yang muncul di lebih dari satu instansi. Mohon perbaiki agar setiap ID hanya terdaftar di satu tempat.</p>
+      <div style="max-height:min(48vh,380px);overflow:auto;border:1px solid #e2e8f0;border-radius:12px">
+        <table style="width:100%;border-collapse:collapse">
+          <thead><tr style="background:#0f172a;color:#fff;position:sticky;top:0">
+            <th style="padding:9px 10px;text-align:left;font-size:.72rem">NAMA</th>
+            <th style="padding:9px 10px;text-align:left;font-size:.72rem">NIK / NISN / NIP</th>
+            <th style="padding:9px 10px;text-align:left;font-size:.72rem">INSTANSI</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>`;
+    Swal.fire({
+      icon: 'warning',
+      title: `<i class="ph ph-copy-simple"></i> ${res.duplicates.length} NIK Duplikat`,
+      html: html,
+      width: Math.min(640, window.innerWidth - 24),
+      confirmButtonText: 'Tutup',
+      confirmButtonColor: '#d97706',
+      showCloseButton: true,
+      customClass: { popup: 'nik-duplikat-popup' }
+    });
   }).scanAllNIKDuplicates();
 }
 function toggleForm() {
@@ -6764,7 +6900,129 @@ function cekNikKosongPadaData(data, instansi, pic) {
   }
   return false;
 }
+
+/**
+ * Setelah Nama Instansi + PIC Kader diisi, cek apakah ada NIK/NISN/NIP
+ * yang duplikat antar instansi. Tampilkan popup modern berisi:
+ * Nama | NIK/NISN/NIP | Instansi — minta user memperbaiki.
+ * Hanya ditampilkan 1x per sesi (sessionStorage) per pasangan instansi+PIC.
+ */
+function cekDuplikatSetelahIdentitas(instansi, pic, localData) {
+  try {
+    instansi = String(instansi || '').trim();
+    pic = String(pic || '').trim();
+    if (!instansi || !pic) return;
+
+    const sessionKey = 'mbg_dup_alert_' + instansi.toUpperCase() + '_' + pic.toUpperCase();
+    if (sessionStorage.getItem(sessionKey) === '1') return;
+
+    // Hindari bentrok dengan popup NIK kosong / Swal lain yang sedang terbuka
+    if (typeof Swal !== 'undefined' && Swal.isVisible && Swal.isVisible()) {
+      setTimeout(function(){ cekDuplikatSetelahIdentitas(instansi, pic, localData); }, 1800);
+      return;
+    }
+
+    google.script.run
+      .withSuccessHandler(function(res) {
+        try {
+          const allDups = (res && res.duplicates) ? res.duplicates : [];
+          const instUp = instansi.toUpperCase();
+          // Filter: hanya NIK yang menyentuh instansi user saat ini
+          const relevant = allDups.filter(function(d) {
+            return (d.entries || []).some(function(e) {
+              return String(e.instansi || '').trim().toUpperCase() === instUp;
+            });
+          });
+          if (!relevant.length) return;
+
+          sessionStorage.setItem(sessionKey, '1');
+
+          let rowsHtml = '';
+          relevant.forEach(function(d) {
+            (d.entries || []).forEach(function(e) {
+              const isMine = String(e.instansi || '').trim().toUpperCase() === instUp;
+              rowsHtml +=
+                '<tr style="' + (isMine ? 'background:rgba(239,68,68,.08);' : '') + '">' +
+                  '<td style="padding:8px 10px;font-weight:700;text-transform:uppercase;font-size:.8rem">' + esc(e.nama || '–') + '</td>' +
+                  '<td style="padding:8px 10px;font-family:ui-monospace,monospace;font-size:.78rem;letter-spacing:.02em">' + esc(d.nik || '–') + '</td>' +
+                  '<td style="padding:8px 10px;font-size:.78rem">' +
+                    (isMine
+                      ? '<span style="display:inline-flex;align-items:center;gap:4px;background:#fee2e2;color:#b91c1c;padding:2px 8px;border-radius:999px;font-weight:700;font-size:.72rem"><i class="ph ph-map-pin"></i>' + esc(e.instansi || '–') + ' (Anda)</span>'
+                      : '<span style="display:inline-flex;align-items:center;gap:4px;background:#f1f5f9;color:#475569;padding:2px 8px;border-radius:999px;font-weight:600;font-size:.72rem"><i class="ph ph-buildings"></i>' + esc(e.instansi || '–') + '</span>') +
+                  '</td>' +
+                '</tr>';
+            });
+          });
+
+          const html =
+            '<div style="text-align:left">' +
+              '<p style="margin:0 0 12px;font-size:.9rem;line-height:1.55;color:var(--text,#1e293b)">' +
+                'Ditemukan <strong style="color:#dc2626">' + relevant.length + ' NIK/NISN/NIP</strong> yang terdaftar di lebih dari satu instansi, ' +
+                'termasuk data milik <strong>' + esc(instansi) + '</strong>.' +
+              '</p>' +
+              '<div style="max-height:min(42vh,320px);overflow:auto;border:1px solid #e2e8f0;border-radius:12px">' +
+                '<table style="width:100%;border-collapse:collapse">' +
+                  '<thead><tr style="background:#0f172a;color:#fff;position:sticky;top:0">' +
+                    '<th style="padding:9px 10px;text-align:left;font-size:.72rem;font-weight:700;letter-spacing:.04em">NAMA</th>' +
+                    '<th style="padding:9px 10px;text-align:left;font-size:.72rem;font-weight:700;letter-spacing:.04em">NIK / NISN / NIP</th>' +
+                    '<th style="padding:9px 10px;text-align:left;font-size:.72rem;font-weight:700;letter-spacing:.04em">INSTANSI</th>' +
+                  '</tr></thead>' +
+                  '<tbody>' + rowsHtml + '</tbody>' +
+                '</table>' +
+              '</div>' +
+              '<div style="margin-top:14px;padding:12px 14px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.35);border-radius:12px;font-size:.82rem;line-height:1.5;color:#92400e">' +
+                '<i class="ph ph-warning-circle" style="vertical-align:middle"></i> ' +
+                '<strong>Mohon perbaiki:</strong> buka tab <strong>Data Masuk</strong>, cari nama di atas, lalu <strong>Edit</strong> atau <strong>Hapus</strong> data yang salah agar NIK hanya terdaftar di satu instansi.' +
+              '</div>' +
+            '</div>';
+
+          Swal.fire({
+            icon: 'warning',
+            title: '<i class="ph ph-copy-simple"></i> Data Duplikat Terdeteksi',
+            html: html,
+            width: Math.min(640, window.innerWidth - 24),
+            showCloseButton: true,
+            confirmButtonText: '<i class="ph ph-pencil-simple"></i> Saya akan perbaiki',
+            confirmButtonColor: '#d97706',
+            showCancelButton: true,
+            cancelButtonText: 'Tutup',
+            cancelButtonColor: '#64748b',
+            reverseButtons: true,
+            customClass: { popup: 'nik-duplikat-popup' },
+            allowOutsideClick: false
+          }).then(function(r) {
+            if (r.isConfirmed) {
+              // Arahkan ke tab Data Masuk jika ada
+              try {
+                const tabBtn = document.querySelector('[data-tab="data"], .tab-btn[onclick*="data"], #tabData, button[onclick*="showTab"]');
+                const dataTab = document.querySelector('.tab-btn[data-bs-target="#dataMasuk"], .tab-btn[onclick*="Data"]');
+                // Coba klik tombol tab "Data Masuk" jika tersedia
+                document.querySelectorAll('.tab-btn, .ti button, [role="tab"]').forEach(function(btn) {
+                  const t = (btn.textContent || '').toLowerCase();
+                  if (t.indexOf('data masuk') !== -1 || t.indexOf('data') !== -1 && t.indexOf('masuk') !== -1) {
+                    btn.click();
+                  }
+                });
+                const list = document.getElementById('dataListContainer');
+                if (list) list.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              } catch (e) {}
+            }
+          });
+        } catch (e) {
+          console.warn('cekDuplikatSetelahIdentitas render error:', e);
+        }
+      })
+      .withFailureHandler(function(err) {
+        console.warn('cekDuplikatSetelahIdentitas failed:', err);
+      })
+      .scanAllNIKDuplicates();
+  } catch (e) {
+    console.warn('cekDuplikatSetelahIdentitas error:', e);
+  }
+}
+
 function resetNikKosongAlert() {
+
   const instansi = document.getElementById('instansi').value.trim();
   const pic = document.getElementById('pic').value.trim();
   if (!instansi || !pic) return;
@@ -6786,8 +7044,19 @@ function checkNikReminder() {
     setTimeout(() => { nikField.style.boxShadow = ''; nikField.style.borderColor = ''; }, 3000);
   } else if (nik) nikReminderShown = false;
 }
-document.getElementById('instansi').addEventListener('change', resetNikKosongAlert);
-document.getElementById('pic').addEventListener('change', resetNikKosongAlert);
+document.getElementById('instansi').addEventListener('change', function(){
+  resetNikKosongAlert();
+  try {
+    const i = document.getElementById('instansi').value.trim().toUpperCase();
+    Object.keys(sessionStorage).forEach(function(k){ if(k.indexOf('mbg_dup_alert_')===0) sessionStorage.removeItem(k); });
+  } catch(e){}
+});
+document.getElementById('pic').addEventListener('change', function(){
+  resetNikKosongAlert();
+  try {
+    Object.keys(sessionStorage).forEach(function(k){ if(k.indexOf('mbg_dup_alert_')===0) sessionStorage.removeItem(k); });
+  } catch(e){}
+});
 document.getElementById('instansi').addEventListener('input', checkNikReminder);
 document.getElementById('pic').addEventListener('input', checkNikReminder);
 document.getElementById('nik').addEventListener('input', () => { if (document.getElementById('nik').value.trim()) { nikReminderShown = false; document.getElementById('nik').style.boxShadow = ''; document.getElementById('nik').style.borderColor = ''; } });
@@ -8708,7 +8977,7 @@ function renderRekapUsiaTable(data) {
   });
 
   if (rows.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-3">Tidak ada数据</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-3">Tidak ada data</td></tr>';
   } else {
     tbody.innerHTML = rows.join('');
   }
@@ -8723,7 +8992,7 @@ function renderRekapUsiaTable(data) {
     <td class="text-center">${totalW}</td>
     <td class="text-center">${grandTotal}</td>
     <td class="text-center">100%</td>
-  </table>`;
+  </tr>`;
 }
 
 function resetRekapFilter() {
