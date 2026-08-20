@@ -158,7 +158,7 @@
     // 1) GANTI URL INI dengan URL Web App hasil Deploy Apps Script kamu
     //    (Deploy > New deployment > Web app > Execute as: Me > Who has access: Anyone > /exec)
     //    Hanya dipakai saat file ini berjalan di LUAR Apps Script (Blogger/Netlify).
-    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzCFTwikpgCNYiz_dXrta1i4pRF_ZfMLrG98wffd97jNUQjfWMh0SSVDDJDPePPyHaK/exec';
+    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyNaVos9vuFpkZJpFNYWSrXpPePbLDL-ZBUSfcVfUqo-RySivh7f95K-mM9Us3FTUXq/exec';
 
     // 2) Peta nama fungsi server -> urutan nama parameter,
     //    HARUS SAMA PERSIS dengan switch(action) di Code.gs (doPost)
@@ -1559,8 +1559,8 @@ const notify = {
         <div class="maint-announcement-bar hidden" id="maintAnnouncementBar">
           <div class="ma-badge"><i class="ph ph-clock-countdown"></i></div>
           <div class="ma-content">
-            <div class="ma-title">Pengumuman Maintenance</div>
-            <div class="ma-text" id="maintAnnounceText">Sistem akan maintenance dalam waktu dekat</div>
+            <div class="ma-title">Pengumuman Penutupan Sementara</div>
+            <div class="ma-text" id="maintAnnounceText">Sistem akan ditutup sementara dalam waktu dekat</div>
             <div class="ma-countdown" id="maintAnnounceCountdown">
               <span class="ma-cd-unit"><span id="maCdDays">00</span><small>Hari</small></span>
               <span class="ma-cd-sep">:</span>
@@ -1648,11 +1648,11 @@ const notify = {
         <!-- Maintenance msg -->
         <div class="mnt-msg" id="mntMsg">
           <i class="ph ph-gear-six" style="font-size:46px;color:var(--primary);display:block;margin-bottom:14px"></i>
-          <h5 class="fw-bold mb-2">SYSTEM MAINTENANCE</h5>
-          <p id="mntMsgText" class="text-muted small">Kami sedang meningkatkan kualitas layanan.</p>
+          <h5 class="fw-bold mb-2">SISTEM DITUTUP SEMENTARA</h5>
+          <p id="mntMsgText" class="text-muted small">Sistem sedang ditutup sementara. Silakan coba kembali nanti.</p>
           <!-- Countdown Timer -->
           <div id="maintCountdown" class="maint-countdown-wrap d-none">
-            <div class="maint-countdown-label"><i class="ph ph-clock me-1"></i>Sisa Waktu Maintenance</div>
+            <div class="maint-countdown-label"><i class="ph ph-clock me-1"></i>Sisa Waktu Penutupan</div>
             <div class="maint-countdown-timer">
               <div class="maint-countdown-unit">
                 <span class="maint-countdown-value" id="maintCdHours">00</span>
@@ -1990,23 +1990,23 @@ const notify = {
             <!-- Manual Toggle -->
             <div class="form-check form-switch mb-3">
               <input class="form-check-input" type="checkbox" id="maintenanceToggle" style="width:3em;height:1.5em" onchange="toggleMaintenanceMode()">
-              <label class="form-check-label fw-bold" for="maintenanceToggle">Mode Maintenance Manual</label>
+              <label class="form-check-label fw-bold" for="maintenanceToggle">Mode Tutup Sementara (Manual)</label>
             </div>
 
             <!-- Scheduled Maintenance -->
             <div class="p-3 rounded mb-3" style="background: linear-gradient(135deg, #fef3c7, #fde68a); border: 1px solid #f59e0b; border-radius: var(--r-lg);">
               <div class="d-flex align-items-center gap-2 mb-2">
                 <i class="ph ph-clock-countdown" style="color: #92400e; font-size: 1.2rem;"></i>
-                <span class="fw-bold" style="color: #92400e; font-size: 0.9rem;">Maintenance Terjadwal</span>
+                <span class="fw-bold" style="color: #92400e; font-size: 0.9rem;">Penutupan Sementara Terjadwal</span>
               </div>
 
               <div class="row g-2 mb-2">
                 <div class="col-md-6">
-                  <label class="fml small" style="color: #92400e;">Mulai Maintenance</label>
+                  <label class="fml small" style="color: #92400e;">Mulai Ditutup</label>
                   <input type="datetime-local" class="form-control" id="maintStartTime" onchange="updateMaintenanceSchedule()">
                 </div>
                 <div class="col-md-6">
-                  <label class="fml small" style="color: #92400e;">Selesai Maintenance</label>
+                  <label class="fml small" style="color: #92400e;">Buka Kembali</label>
                   <input type="datetime-local" class="form-control" id="maintEndTime" onchange="updateMaintenanceSchedule()">
                 </div>
               </div>
@@ -5081,7 +5081,7 @@ function applyMaintenance(status, msg, endTime) {
   
   if(status === 'Maintenance') {
     wrap.classList.add('active');
-    document.getElementById('mntMsgText').textContent = msg || 'Kami sedang meningkatkan kualitas layanan.';
+    document.getElementById('mntMsgText').textContent = msg || 'Sistem sedang ditutup sementara. Silakan coba kembali nanti.';
     cdEl.classList.remove('d-none');
     setMaintenanceFormLock(true);
     if(endTime) {
@@ -5134,7 +5134,7 @@ function setMaintenanceScheduleCache(schedule) {
 function saveMaintenanceSchedule() {
   const startTime = document.getElementById('maintStartTime').value;
   const endTime = document.getElementById('maintEndTime').value;
-  if(!startTime || !endTime) { Swal.fire('Info', 'Isi waktu mulai dan selesai maintenance', 'info'); return; }
+  if(!startTime || !endTime) { Swal.fire('Info', 'Isi waktu mulai ditutup dan waktu buka kembali', 'info'); return; }
   const start = new Date(startTime), end = new Date(endTime), now = new Date();
   if(end <= start) { Swal.fire('Error', 'Waktu selesai harus setelah waktu mulai', 'error'); return; }
   if(end <= now) { Swal.fire('Error', 'Waktu selesai sudah lewat', 'error'); return; }
@@ -5145,14 +5145,14 @@ function saveMaintenanceSchedule() {
     if (res && res.success) {
       updateMaintenanceScheduleStatus();
       checkMaintenanceSchedule();
-      Swal.fire({ icon: 'success', title: 'Jadwal Tersimpan!', text: `Maintenance akan mulai ${start.toLocaleString('id-ID')} dan selesai ${end.toLocaleString('id-ID')}`, timer: 3000, showConfirmButton: false });
+      Swal.fire({ icon: 'success', title: 'Jadwal Tersimpan!', text: `Sistem akan ditutup sementara mulai ${start.toLocaleString('id-ID')} dan dibuka kembali ${end.toLocaleString('id-ID')}`, timer: 3000, showConfirmButton: false });
     } else {
       Swal.fire('Warning', 'Gagal simpan ke database: ' + (res ? res.message : 'Error'), 'warning');
     }
   }).saveMaintenanceScheduleToDB(schedule, currentPass);
 }
 function clearMaintenanceSchedule() {
-  Swal.fire({ title: 'Hapus Jadwal?', text: 'Jadwal maintenance terjadwal akan dihapus.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Ya, Hapus', cancelButtonText: 'Batal' }).then((result) => {
+  Swal.fire({ title: 'Hapus Jadwal?', text: 'Jadwal penutupan sementara akan dihapus.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Ya, Hapus', cancelButtonText: 'Batal' }).then((result) => {
     if(result.isConfirmed) {
       setMaintenanceScheduleCache(null);
       document.getElementById('maintStartTime').value = '';
@@ -5172,9 +5172,9 @@ function updateMaintenanceScheduleStatus() {
   const statusEl = document.getElementById('maintScheduleStatus');
   if(!schedule) { statusEl.textContent = ''; return; }
   const now = Date.now(), start = schedule.startTimestamp, end = schedule.endTimestamp;
-  if(now < start) { const diff = start - now; const hours = Math.floor(diff / 3600000), minutes = Math.floor((diff % 3600000) / 60000); statusEl.innerHTML = `<i class="ph ph-clock me-1"></i>Mulai dalam ${hours}j ${minutes}m`; statusEl.style.color = '#92400e'; }
-  else if(now >= start && now < end) { const diff = end - now; const hours = Math.floor(diff / 3600000), minutes = Math.floor((diff % 3600000) / 60000); statusEl.innerHTML = `<i class="ph ph-warning-circle me-1"></i>Sedang berlangsung, sisa ${hours}j ${minutes}m`; statusEl.style.color = '#dc2626'; }
-  else { statusEl.innerHTML = `<i class="ph ph-check-circle me-1"></i>Jadwal sudah selesai`; statusEl.style.color = '#16a34a'; }
+  if(now < start) { const diff = start - now; const hours = Math.floor(diff / 3600000), minutes = Math.floor((diff % 3600000) / 60000); statusEl.innerHTML = `<i class="ph ph-clock me-1"></i>Akan ditutup dalam ${hours}j ${minutes}m`; statusEl.style.color = '#92400e'; }
+  else if(now >= start && now < end) { const diff = end - now; const hours = Math.floor(diff / 3600000), minutes = Math.floor((diff % 3600000) / 60000); statusEl.innerHTML = `<i class="ph ph-warning-circle me-1"></i>Sedang ditutup, buka kembali dalam ${hours}j ${minutes}m`; statusEl.style.color = '#dc2626'; }
+  else { statusEl.innerHTML = `<i class="ph ph-check-circle me-1"></i>Jadwal penutupan sudah selesai`; statusEl.style.color = '#16a34a'; }
 }
 function checkMaintenanceSchedule() {
   const schedule = getMaintenanceSchedule();
@@ -5194,7 +5194,7 @@ function showMaintenanceAnnouncement(schedule) {
   const textEl = document.getElementById('maintAnnounceText');
   if(!bar || !schedule) return;
   bar.classList.remove('hidden');
-  textEl.textContent = schedule.announcement || 'Sistem akan maintenance dalam waktu dekat. Mohon selesaikan pekerjaan Anda.';
+  textEl.textContent = schedule.announcement || 'Sistem akan ditutup sementara dalam waktu dekat. Mohon selesaikan pekerjaan Anda.';
   startMaintenanceAnnouncementCountdown(schedule.startTimestamp);
 }
 function hideMaintenanceAnnouncement() {
@@ -5261,7 +5261,7 @@ setInterval(function() {
       if (res.status !== curStatus) {
         applyMaintenance(res.status, res.announcement);
         if (res.status === 'Maintenance') {
-          Swal.fire({ icon:'warning', title:'⚠️ Sistem Maintenance', text: res.announcement || 'Sistem sedang dalam perbaikan. Mohon tunggu.', confirmButtonText:'Mengerti', confirmButtonColor:'#6366f1' });
+          Swal.fire({ icon:'warning', title:'⚠️ Sistem Ditutup Sementara', text: res.announcement || 'Sistem sedang ditutup sementara. Silakan coba kembali nanti.', confirmButtonText:'Mengerti', confirmButtonColor:'#6366f1' });
         }
       }
       if (res.broadcastMessage !== undefined) loadBroadcast(res.broadcastMessage);
@@ -8582,7 +8582,7 @@ function toggleMaintenanceMode() {
       if (r && r.success) {
         SYS.status = status; SYS.announcement = announcement;
         const Toast = Swal.mixin({ toast:true, position:'top-end', showConfirmButton:false, timer:2000 });
-        Toast.fire({ icon: status==='Maintenance' ? 'warning' : 'success', title: status==='Maintenance' ? '🔒 Maintenance aktif – semua user akan melihat' : '✅ Sistem kembali Online' });
+        Toast.fire({ icon: status==='Maintenance' ? 'warning' : 'success', title: status==='Maintenance' ? '🔒 Sistem ditutup sementara – semua user akan melihat' : '✅ Sistem dibuka kembali' });
       }
     })
     .withFailureHandler(() => {})
