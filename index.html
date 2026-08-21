@@ -158,7 +158,11 @@
     // 1) GANTI URL INI dengan URL Web App hasil Deploy Apps Script kamu
     //    (Deploy > New deployment > Web app > Execute as: Me > Who has access: Anyone > /exec)
     //    Hanya dipakai saat file ini berjalan di LUAR Apps Script (Blogger/Netlify).
-    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyNaVos9vuFpkZJpFNYWSrXpPePbLDL-ZBUSfcVfUqo-RySivh7f95K-mM9Us3FTUXq/exec';
+    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyckzahXse0Z_lgPZxQ8SVGxMaf1vifk1bWzYIq8yLwA270hRIgaML6W43JXAUvSN1T/exec';
+
+    // Realtime WebSocket (opsional). Contoh: wss://your-relay.example.com/ws
+    // Jika kosong, sistem memakai polling. Bisa juga diisi dari Pengaturan Admin.
+    window.MBG_WS_URL = window.MBG_WS_URL || '';
 
     // 2) Peta nama fungsi server -> urutan nama parameter,
     //    HARUS SAMA PERSIS dengan switch(action) di Code.gs (doPost)
@@ -169,6 +173,7 @@
       saveCategoriesSettings: ['categoriesStr', 'adminPassword'],
       saveAgeRules: ['ageRulesJson', 'adminPassword'],
       saveBroadcastMessage: ['msg', 'adminPassword'],
+      saveRealtimeSettings: ['webhookUrl', 'wsUrl', 'adminPassword'],
       getSignatureSettings: [],
       saveSignatureSettings: ['settings', 'adminPassword'],
       getInstansiSummary: ['instansi', 'pic'],
@@ -453,7 +458,7 @@ const notify = {
       box-shadow: 0 0 0 3px rgba(99,102,241,.18) !important;
       outline: none;
     }
-    .btn-primary, .btn-hdr, .swal2-confirm {
+    .btn-primary, .swal2-confirm {
       background: var(--primary-grad) !important;
       border: none !important;
       border-radius: 12px !important;
@@ -461,8 +466,8 @@ const notify = {
       letter-spacing: .01em;
       transition: transform .2s, box-shadow .2s;
     }
-    .btn-primary:hover, .btn-hdr:hover { transform: translateY(-1px); }
-    .btn-primary:active, .btn-hdr:active { transform: translateY(0); }
+    .btn-primary:hover { transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
     /* Safe area for notched phones */
     .app-header { padding-top: max(14px, env(safe-area-inset-top, 0px)); }
     .scroll-body { padding-bottom: max(16px, env(safe-area-inset-bottom, 0px)); }
@@ -531,95 +536,475 @@ const notify = {
     /* LAYOUT: Sidebar + Main */
     .main-area{display:flex;flex-direction:column;flex:1;min-width:0;min-height:0;overflow:hidden}
 
-    /* HEADER */
+    /* =========================================================
+       HEADER 2026 — modern glass + refined brand
+       ========================================================= */
     .app-header{
-      background:var(--primary-grad);color:#fff;padding:14px 20px;
-      display:flex;align-items:center;justify-content:space-between;gap:12px;
-      position:relative;overflow:hidden;flex-shrink:0;z-index:100;
+      background:linear-gradient(135deg,#4f46e5 0%,#6366f1 40%,#8b5cf6 100%);
+      color:#fff;
+      padding:12px 18px 12px 16px;
+      display:flex;align-items:center;justify-content:space-between;gap:14px;
+      position:relative;overflow:visible;flex-shrink:0;z-index:1000;
+      box-shadow:0 4px 24px -4px rgba(79,70,229,.35),0 1px 0 rgba(255,255,255,.12) inset;
+      border-bottom:1px solid rgba(255,255,255,.08);
     }
-    .app-header::before{content:'';position:absolute;top:-80px;right:-120px;width:320px;height:320px;background:rgba(255,255,255,.07);border-radius:50%;pointer-events:none}
-    .app-header::after{content:'';position:absolute;bottom:-60px;left:-80px;width:240px;height:240px;background:rgba(255,255,255,.04);border-radius:50%;pointer-events:none}
+    .app-header::before{
+      content:'';position:absolute;top:-90px;right:-100px;width:280px;height:280px;
+      background:radial-gradient(circle,rgba(255,255,255,.14) 0%,transparent 70%);
+      border-radius:50%;pointer-events:none;z-index:0;
+    }
+    .app-header::after{
+      content:'';position:absolute;bottom:-70px;left:-60px;width:200px;height:200px;
+      background:radial-gradient(circle,rgba(167,139,250,.2) 0%,transparent 70%);
+      border-radius:50%;pointer-events:none;z-index:0;
+    }
+    .app-header > *{position:relative;z-index:1}
     .header-brand{display:flex;align-items:center;gap:12px;z-index:2;flex:1;min-width:0}
-    .header-logo{width:44px;height:44px;border-radius:12px;object-fit:contain;background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.3);flex-shrink:0;display:none}
+    .header-logo{
+      width:42px;height:42px;border-radius:14px;object-fit:contain;flex-shrink:0;display:none;
+      background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.28);
+      box-shadow:0 4px 12px rgba(0,0,0,.12);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+    }
     .header-logo.visible{display:block}
-    .header-title h2{margin:0;font-weight:700;font-size:1.3rem;letter-spacing:-.02em;font-family:'Poppins',sans-serif;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .header-sub{opacity:.88;font-size:.78rem;font-weight:400;margin-top:2px;letter-spacing:.3px}
-    .header-actions{display:flex;gap:8px;z-index:2;flex-shrink:0;align-items:center}
+    .header-title h2{
+      margin:0;font-weight:700;font-size:1.15rem;letter-spacing:-.02em;
+      font-family:'Poppins',sans-serif;line-height:1.2;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+      text-shadow:0 1px 2px rgba(0,0,0,.12);
+    }
+    .header-sub{
+      opacity:.9;font-size:.72rem;font-weight:500;margin-top:3px;letter-spacing:.2px;
+      display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
+    .header-sub .hdr-chip{
+      display:inline-flex;align-items:center;gap:4px;
+      background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.22);
+      border-radius:20px;padding:1px 8px;font-size:.65rem;font-weight:600;
+      backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    }
+    .header-actions{display:flex;gap:8px;z-index:5;flex-shrink:0;align-items:center}
+    .btn-hdr{
+      width:40px;height:40px;border-radius:12px;
+      background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);
+      color:#fff;display:flex;align-items:center;justify-content:center;
+      cursor:pointer;transition:all .25s cubic-bezier(.4,0,.2,1);font-size:1.05rem;flex-shrink:0;
+      backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+    }
+    .btn-hdr:hover{
+      background:rgba(255,255,255,.28);transform:translateY(-2px);
+      box-shadow:0 6px 16px rgba(0,0,0,.18);border-color:rgba(255,255,255,.4);
+    }
+    .btn-hdr:active{transform:translateY(0)}
+    .btn-hdr#btnLogout{background:rgba(239,68,68,.25);border-color:rgba(239,68,68,.4)}
+    .btn-hdr#btnLogout:hover{background:rgba(239,68,68,.4)}
 
-    /* ADMIN SIDEBAR (Desktop only) */
+    /* =========================================================
+       HEADER NOTIFICATION CENTER — modern UI
+       ========================================================= */
+    .hdr-notif-wrap{position:relative;z-index:1100}
+    .hdr-notif-btn{position:relative}
+    .hdr-notif-badge{
+      position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;padding:0 5px;
+      border-radius:999px;background:linear-gradient(135deg,#f43f5e,#e11d48);color:#fff;
+      font-size:.6rem;font-weight:800;display:none;align-items:center;justify-content:center;
+      box-shadow:0 2px 8px rgba(244,63,94,.5);border:2px solid rgba(99,102,241,.95);
+      line-height:1;pointer-events:none;animation:notifPulse 1.8s ease-in-out infinite;
+    }
+    .hdr-notif-badge.show{display:flex}
+    .hdr-ws-dot{
+      position:absolute;bottom:1px;left:1px;width:8px;height:8px;border-radius:50%;
+      background:#94a3b8;border:1.5px solid rgba(255,255,255,.55);pointer-events:none;
+    }
+    .hdr-ws-dot.connected{background:#22c55e;box-shadow:0 0 6px rgba(34,197,94,.75)}
+    .hdr-ws-dot.connecting{background:#f59e0b;animation:notifPulse 1s ease-in-out infinite}
+    .hdr-ws-dot.error{background:#ef4444}
+    @keyframes notifPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+
+    .hdr-notif-backdrop{
+      position:fixed !important;inset:0 !important;
+      z-index:2147483640 !important;
+      background:rgba(15,23,42,.4);
+      backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+      display:none !important;border:none;padding:0;margin:0;cursor:pointer;
+    }
+    .hdr-notif-backdrop.open{display:block !important}
+
+    .hdr-notif-panel{
+      position:fixed !important;
+      top:0 !important; left:0 !important; right:0 !important; bottom:auto !important;
+      width:100% !important; max-width:100% !important; margin:0 !important;
+      max-height:min(82vh, 600px) !important;
+      background:var(--card) !important; color:var(--text);
+      border:none !important;
+      border-radius:0 0 22px 22px !important;
+      box-shadow:0 20px 50px -12px rgba(15,23,42,.35) !important;
+      display:none !important; flex-direction:column !important;
+      overflow:hidden !important;
+      z-index:2147483646 !important;
+      animation:notifDropIn .3s cubic-bezier(.22,1,.36,1);
+      padding-top:env(safe-area-inset-top, 0px);
+    }
+    .hdr-notif-panel.open{display:flex !important}
+    @keyframes notifDropIn{
+      from{opacity:0;transform:translateY(-28px)}
+      to{opacity:1;transform:translateY(0)}
+    }
+
+    /* —— Header panel —— */
+    .hdr-notif-head{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      padding:14px 14px 12px;
+      background:linear-gradient(135deg,#4f46e5 0%,#6366f1 45%,#8b5cf6 100%);
+      color:#fff; flex-shrink:0;
+      position:relative; overflow:hidden;
+    }
+    .hdr-notif-head::before{
+      content:'';position:absolute;top:-40px;right:-30px;width:120px;height:120px;
+      background:rgba(255,255,255,.12);border-radius:50%;pointer-events:none;
+    }
+    .hdr-notif-head h6{
+      margin:0;font-size:.95rem;font-weight:800;letter-spacing:-.01em;
+      display:flex;align-items:center;gap:8px;position:relative;z-index:1;
+      font-family:'Poppins',sans-serif;
+    }
+    .hdr-notif-head h6 i{
+      width:32px;height:32px;border-radius:10px;
+      background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.25);
+      display:inline-flex;align-items:center;justify-content:center;
+      font-size:1.05rem;color:#fff;
+    }
+    .hdr-notif-actions{
+      display:flex;align-items:center;gap:6px;flex-shrink:0;position:relative;z-index:1;
+    }
+    .hdr-notif-actions button{
+      display:inline-flex;align-items:center;justify-content:center;gap:4px;
+      border:1px solid rgba(255,255,255,.28);
+      background:rgba(255,255,255,.15);
+      color:#fff; border-radius:10px;
+      padding:7px 10px; min-height:34px;
+      font-size:.68rem;font-weight:700;cursor:pointer;
+      transition:all .18s ease; white-space:nowrap;
+      backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    }
+    .hdr-notif-actions button:hover{
+      background:rgba(255,255,255,.3);border-color:rgba(255,255,255,.45);
+      transform:translateY(-1px);
+    }
+    .hdr-notif-actions button:active{transform:translateY(0)}
+    .hdr-notif-actions button i{font-size:.95rem}
+    .hdr-notif-actions .nbtn-icon{
+      width:34px;height:34px;padding:0;border-radius:10px;
+    }
+
+    /* —— Tabs —— */
+    .hdr-notif-tabs{
+      display:flex;gap:4px;padding:10px 12px 8px;
+      border-bottom:1px solid var(--border);
+      background:var(--card); flex-shrink:0;
+    }
+    .hdr-notif-tab{
+      flex:1; border:none; cursor:pointer;
+      background:var(--input); color:var(--muted);
+      font-size:.72rem; font-weight:700;
+      padding:8px 6px; border-radius:10px;
+      transition:all .18s ease;
+      display:flex;align-items:center;justify-content:center;gap:4px;
+      min-height:36px;
+    }
+    .hdr-notif-tab:hover{color:var(--primary);background:rgba(99,102,241,.08)}
+    .hdr-notif-tab.active{
+      background:linear-gradient(135deg,rgba(99,102,241,.16),rgba(139,92,246,.1));
+      color:var(--primary);
+      box-shadow:inset 0 0 0 1.5px rgba(99,102,241,.28);
+      font-weight:800;
+    }
+
+    /* —— List & items —— */
+    .hdr-notif-list{
+      flex:1 1 auto; min-height:120px;
+      overflow-y:auto !important; padding:8px 10px 12px;
+      scrollbar-width:thin; scrollbar-color:rgba(99,102,241,.25) transparent;
+      -webkit-overflow-scrolling:touch;
+      background:var(--card);
+    }
+    .hdr-notif-list::-webkit-scrollbar{width:4px}
+    .hdr-notif-list::-webkit-scrollbar-thumb{background:rgba(99,102,241,.25);border-radius:4px}
+
+    .hdr-notif-item{
+      display:flex;gap:12px;align-items:flex-start;
+      padding:12px; border-radius:14px; cursor:pointer;
+      transition:all .18s ease;
+      border:1px solid transparent; margin-bottom:6px;
+      background:var(--input);
+    }
+    .hdr-notif-item:hover{
+      border-color:rgba(99,102,241,.2);
+      background:rgba(99,102,241,.06);
+      transform:translateY(-1px);
+      box-shadow:0 4px 12px -4px rgba(99,102,241,.15);
+    }
+    .hdr-notif-item.unread{
+      background:linear-gradient(135deg,rgba(99,102,241,.1),rgba(139,92,246,.05));
+      border-color:rgba(99,102,241,.18);
+      position:relative;
+    }
+    .hdr-notif-item.unread::after{
+      content:'';position:absolute;top:12px;right:12px;
+      width:8px;height:8px;border-radius:50%;
+      background:linear-gradient(135deg,#6366f1,#8b5cf6);
+      box-shadow:0 0 6px rgba(99,102,241,.5);
+    }
+    .hdr-notif-icon{
+      width:40px;height:40px;border-radius:12px;
+      display:flex;align-items:center;justify-content:center;
+      flex-shrink:0;font-size:1.15rem;
+    }
+    .hdr-notif-icon.type-add{background:rgba(16,185,129,.14);color:#059669}
+    .hdr-notif-icon.type-mod{background:rgba(245,158,11,.14);color:#d97706}
+    .hdr-notif-icon.type-del{background:rgba(239,68,68,.14);color:#dc2626}
+    .hdr-notif-icon.type-sys{background:rgba(99,102,241,.14);color:var(--primary)}
+    .hdr-notif-icon.type-warn{background:rgba(245,158,11,.16);color:#b45309}
+    .hdr-notif-body{flex:1;min-width:0;padding-right:12px}
+    .hdr-notif-title{
+      font-size:.8rem;font-weight:700;line-height:1.4;color:var(--text);
+      display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+    }
+    .hdr-notif-meta{
+      font-size:.68rem;color:var(--muted);margin-top:4px;
+      display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;
+    }
+    .hdr-notif-meta span{display:inline-flex;align-items:center;gap:3px}
+    .hdr-notif-meta i{font-size:.75rem;opacity:.8}
+    .hdr-notif-time{
+      font-weight:700;color:var(--primary);
+      background:rgba(99,102,241,.1);padding:2px 8px;border-radius:20px;
+      font-size:.65rem !important;
+    }
+    [data-theme="dark"] .hdr-notif-time{background:rgba(129,140,248,.15);color:#a5b4fc}
+
+    .hdr-notif-empty{
+      text-align:center;padding:48px 20px;color:var(--muted);font-size:.82rem;font-weight:500;
+    }
+    .hdr-notif-empty i{
+      font-size:2.4rem;opacity:.35;display:block;margin-bottom:12px;color:var(--primary);
+    }
+    .hdr-notif-empty small{display:block;margin-top:6px;font-size:.72rem;opacity:.8}
+
+    .hdr-notif-foot{
+      padding:12px 14px;border-top:1px solid var(--border);text-align:center;
+      font-size:.75rem;font-weight:700;color:var(--primary);cursor:pointer;
+      background:linear-gradient(180deg,transparent,rgba(99,102,241,.04));
+      flex-shrink:0; transition:background .18s;
+      display:flex;align-items:center;justify-content:center;gap:6px;
+      min-height:44px;
+    }
+    .hdr-notif-foot:hover{background:rgba(99,102,241,.1)}
+
+    [data-theme="dark"] .hdr-notif-panel{
+      box-shadow:0 24px 56px -12px rgba(0,0,0,.55) !important;
+    }
+    [data-theme="dark"] .hdr-notif-item{background:rgba(30,41,59,.6)}
+    [data-theme="dark"] .hdr-notif-item:hover{background:rgba(99,102,241,.12)}
+    [data-theme="dark"] .hdr-notif-item.unread{
+      background:linear-gradient(135deg,rgba(99,102,241,.18),rgba(139,92,246,.08));
+    }
+    [data-theme="dark"] .hdr-notif-tabs{background:#1e293b;border-bottom-color:#334155}
+    [data-theme="dark"] .hdr-notif-tab{background:#0f172a}
+    [data-theme="dark"] .hdr-notif-backdrop{background:rgba(0,0,0,.55)}
+
+    /* Desktop / tablet card */
+    @media(min-width:520px){
+      .hdr-notif-panel{
+        left:auto !important; right:16px !important;
+        top:12px !important;
+        width:min(420px, calc(100vw - 32px)) !important;
+        border-radius:20px !important;
+        max-height:min(82vh, 600px) !important;
+        border:1px solid var(--border) !important;
+        padding-top:0 !important;
+      }
+      .hdr-notif-head{border-radius:19px 19px 0 0; padding:16px 16px 14px}
+    }
+
+    /* Mobile: larger touch targets, compact labels */
+    @media(max-width:519px){
+      .hdr-notif-actions button.nbtn-label span{display:none}
+      .hdr-notif-actions button.nbtn-label{
+        width:36px;height:36px;padding:0;border-radius:10px;
+      }
+      .hdr-notif-tab{font-size:.68rem;padding:8px 4px}
+      .hdr-notif-item{padding:11px;gap:10px}
+      .hdr-notif-icon{width:38px;height:38px;border-radius:11px}
+      .hdr-notif-title{font-size:.78rem}
+    }
+
+    /* Very small screens */
+    @media(max-width:360px){
+      .hdr-notif-head h6{font-size:.85rem}
+      .hdr-notif-head h6 i{width:28px;height:28px;font-size:.95rem}
+      .hdr-notif-tab{font-size:.64rem}
+    }
+
+    /* =========================================================
+       ADMIN SIDEBAR 2026 — dark glass, clear hierarchy
+       ========================================================= */
     .admin-sidebar{
-      display:none;width:220px;flex-shrink:0;
-      background:var(--primary-grad);color:#fff;
-      flex-direction:column;z-index:110;
-      border-right:1px solid rgba(255,255,255,.1);
+      display:none;width:240px;flex-shrink:0;
+      background:linear-gradient(180deg,#0f172a 0%,#1e1b4b 55%,#312e81 100%);
+      color:#fff;flex-direction:column;z-index:110;
+      border-right:1px solid rgba(255,255,255,.06);
       transition:width .3s cubic-bezier(.4,0,.2,1);
       overflow:hidden;
+      box-shadow:4px 0 24px -8px rgba(15,23,42,.4);
     }
-    /* .show hanya efektif di desktop (>=993px); di mobile sidebar tetap tersembunyi
-       walau class .show ditambahkan, supaya tidak tumpang tindih dengan bottom bar */
     @media(min-width:993px){.admin-sidebar.show{display:flex}}
     @media(max-width:992px){.admin-sidebar.show{display:none}}
-    .admin-sidebar.minimalis{width:64px}
-    .sidebar-header{display:flex;align-items:center;gap:10px;padding:16px 14px;border-bottom:1px solid rgba(255,255,255,.12);flex-shrink:0}
-    .sidebar-logo{width:36px;height:36px;border-radius:10px;object-fit:contain;background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.3);flex-shrink:0;display:none}
+    .admin-sidebar.minimalis{width:72px}
+    .sidebar-header{
+      display:flex;align-items:center;gap:12px;padding:18px 16px 16px;
+      border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;
+      position:relative;overflow:hidden;
+    }
+    .sidebar-header::after{
+      content:'';position:absolute;inset:0;
+      background:radial-gradient(ellipse at 20% 0%,rgba(99,102,241,.35),transparent 60%);
+      pointer-events:none;
+    }
+    .sidebar-logo{
+      width:40px;height:40px;border-radius:12px;object-fit:contain;flex-shrink:0;display:none;
+      background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.2);
+      box-shadow:0 4px 12px rgba(0,0,0,.2);position:relative;z-index:1;
+    }
     .sidebar-logo.visible{display:block}
-    .sidebar-brand-text{display:flex;flex-direction:column;min-width:0;overflow:hidden;white-space:nowrap}
-    .sidebar-brand-text small{font-size:.65rem;opacity:.7;text-transform:uppercase;letter-spacing:1px}
-    .sidebar-brand-text strong{font-size:.82rem;font-family:'Poppins',sans-serif}
+    .sidebar-brand-text{display:flex;flex-direction:column;min-width:0;overflow:hidden;white-space:nowrap;position:relative;z-index:1}
+    .sidebar-brand-text small{
+      font-size:.62rem;opacity:.65;text-transform:uppercase;letter-spacing:1.2px;font-weight:600;
+    }
+    .sidebar-brand-text strong{
+      font-size:.9rem;font-family:'Poppins',sans-serif;font-weight:700;letter-spacing:-.01em;
+      background:linear-gradient(90deg,#fff,#c7d2fe);-webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;background-clip:text;
+    }
     .admin-sidebar.minimalis .sidebar-brand-text{display:none}
-    .sidebar-nav{display:flex;flex-direction:column;gap:2px;padding:8px;flex:1;overflow-y:auto}
+    .admin-sidebar.minimalis .sidebar-header{justify-content:center;padding:16px 10px}
+
+    .sidebar-nav{
+      display:flex;flex-direction:column;gap:4px;padding:12px 10px;flex:1;overflow-y:auto;
+      scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.15) transparent;
+    }
+    .sidebar-nav::-webkit-scrollbar{width:3px}
+    .sidebar-nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:4px}
+    .sidebar-section-label{
+      font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
+      color:rgba(255,255,255,.4);padding:10px 12px 4px;white-space:nowrap;
+    }
+    .admin-sidebar.minimalis .sidebar-section-label{display:none}
+
     .sidebar-nav .anb{
-      display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:10px;
-      background:transparent;border:none;color:rgba(255,255,255,.8);
-      font-weight:600;font-size:.82rem;cursor:pointer;transition:all .25s cubic-bezier(.4,0,.2,1);
-      white-space:nowrap;width:100%;text-align:left;
+      display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;
+      background:transparent;border:none;color:rgba(255,255,255,.72);
+      font-weight:600;font-size:.82rem;cursor:pointer;
+      transition:all .22s cubic-bezier(.4,0,.2,1);
+      white-space:nowrap;width:100%;text-align:left;position:relative;
     }
-    .sidebar-nav .anb:hover{background:rgba(255,255,255,.15);color:#fff}
-    .sidebar-nav .anb.active{background:rgba(255,255,255,.22);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.12)}
-    .sidebar-nav .anb i{font-size:1.2rem;flex-shrink:0;width:22px;text-align:center}
-    .admin-sidebar.minimalis .sidebar-nav .anb{justify-content:center;padding:11px}
-    .admin-sidebar.minimalis .sidebar-nav .anb span{display:none}
-    .sidebar-footer{padding:8px;border-top:1px solid rgba(255,255,255,.12);flex-shrink:0;display:flex;flex-direction:column;gap:4px}
+    .sidebar-nav .anb .anb-icon{
+      width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+      background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.06);
+      font-size:1.1rem;flex-shrink:0;transition:all .22s;
+    }
+    .sidebar-nav .anb i{font-size:1.15rem;flex-shrink:0;width:auto;text-align:center}
+    .sidebar-nav .anb:hover{
+      background:rgba(255,255,255,.08);color:#fff;
+      transform:translateX(2px);
+    }
+    .sidebar-nav .anb:hover .anb-icon{
+      background:rgba(99,102,241,.35);border-color:rgba(129,140,248,.3);
+    }
+    .sidebar-nav .anb.active{
+      background:linear-gradient(135deg,rgba(99,102,241,.35),rgba(139,92,246,.22))!important;
+      color:#fff!important;font-weight:700;
+      box-shadow:0 4px 14px -4px rgba(99,102,241,.45),inset 0 0 0 1px rgba(255,255,255,.1);
+    }
+    .sidebar-nav .anb.active .anb-icon{
+      background:linear-gradient(135deg,#6366f1,#8b5cf6);border-color:transparent;
+      box-shadow:0 4px 10px rgba(99,102,241,.4);color:#fff;
+    }
+    .sidebar-nav .anb.active::before{
+      content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);
+      width:3px;height:55%;border-radius:0 3px 3px 0;
+      background:linear-gradient(180deg,#a5b4fc,#818cf8);box-shadow:0 0 8px rgba(129,140,248,.6);
+    }
+    .admin-sidebar.minimalis .sidebar-nav .anb{justify-content:center;padding:11px 8px}
+    .admin-sidebar.minimalis .sidebar-nav .anb > span:not(.anb-icon){display:none}
+    .admin-sidebar.minimalis .sidebar-nav .anb:hover{transform:none}
+
+    .sidebar-footer{
+      padding:10px;border-top:1px solid rgba(255,255,255,.08);flex-shrink:0;
+      display:flex;flex-direction:column;gap:6px;
+      background:rgba(0,0,0,.15);
+    }
     .sidebar-footer .sidebar-toggle{
-      display:flex;align-items:center;gap:7px;padding:9px 14px;border-radius:9px;
-      background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);
-      color:rgba(255,255,255,.85);font-weight:600;font-size:.75rem;cursor:pointer;
-      transition:all .25s;white-space:nowrap;
+      display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;
+      background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);
+      color:rgba(255,255,255,.8);font-weight:600;font-size:.75rem;cursor:pointer;
+      transition:all .22s;white-space:nowrap;
     }
-    .sidebar-footer .sidebar-toggle:hover{background:rgba(255,255,255,.25);color:#fff}
-    .sidebar-footer .sidebar-toggle i{font-size:1rem}
-    .admin-sidebar.minimalis .sidebar-footer .sidebar-toggle{justify-content:center;padding:9px}
+    .sidebar-footer .sidebar-toggle:hover{
+      background:rgba(255,255,255,.14);color:#fff;border-color:rgba(255,255,255,.18);
+    }
+    .sidebar-footer .sidebar-toggle i{font-size:1.05rem}
+    .admin-sidebar.minimalis .sidebar-footer .sidebar-toggle{justify-content:center;padding:10px}
     .admin-sidebar.minimalis .sidebar-footer .sidebar-toggle span{display:none}
 
-    /* MOBILE BOTTOM BAR */
+    /* =========================================================
+       MOBILE BOTTOM BAR 2026
+       ========================================================= */
     .mobile-bottom-bar{
       display:none;flex-direction:row;align-items:stretch;
-      background:var(--card);border-top:1px solid var(--border);
-      padding:4px 8px;padding-bottom:calc(4px + env(safe-area-inset-bottom,0px));
-      flex-shrink:0;z-index:110;gap:2px;
-      box-shadow:0 -2px 12px rgba(0,0,0,.08);
+      background:var(--card);
+      border-top:1px solid var(--border);
+      padding:6px 10px;
+      padding-bottom:calc(6px + env(safe-area-inset-bottom,0px));
+      flex-shrink:0;z-index:110;gap:4px;
+      box-shadow:0 -8px 28px -8px rgba(15,23,42,.12);
+      backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
     }
-    /* .show hanya efektif di mobile (<=992px); di desktop bottom bar tetap tersembunyi
-       supaya tidak tumpang tindih dengan admin sidebar */
     @media(max-width:992px){.mobile-bottom-bar.show{display:flex}}
     @media(min-width:993px){.mobile-bottom-bar.show{display:none}}
     .mobile-bottom-bar .mbb-item{
       flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-      gap:2px;padding:6px 2px;border-radius:8px;background:transparent;border:none;
+      gap:3px;padding:8px 4px;border-radius:14px;background:transparent;border:none;
       color:var(--muted);font-size:.62rem;font-weight:600;cursor:pointer;
-      transition:all .2s;white-space:nowrap;
+      transition:all .2s cubic-bezier(.4,0,.2,1);white-space:nowrap;position:relative;
     }
-    .mobile-bottom-bar .mbb-item i{font-size:1.25rem}
-    .mobile-bottom-bar .mbb-item.active{color:var(--primary);background:var(--primary-l)}
-    [data-theme="dark"] .mobile-bottom-bar .mbb-item.active{background:rgba(99,102,241,.15)}
+    .mobile-bottom-bar .mbb-item i{
+      font-size:1.3rem;width:36px;height:28px;display:flex;align-items:center;justify-content:center;
+      border-radius:10px;transition:all .2s;
+    }
+    .mobile-bottom-bar .mbb-item.active{
+      color:var(--primary);font-weight:700;
+    }
+    .mobile-bottom-bar .mbb-item.active i{
+      background:var(--primary-l);color:var(--primary);
+      box-shadow:0 4px 12px -4px rgba(99,102,241,.35);
+    }
+    [data-theme="dark"] .mobile-bottom-bar{
+      background:rgba(30,41,59,.92);border-top-color:#334155;
+      box-shadow:0 -8px 28px -8px rgba(0,0,0,.4);
+    }
+    [data-theme="dark"] .mobile-bottom-bar .mbb-item.active i{
+      background:rgba(99,102,241,.2);color:#a5b4fc;
+    }
 
     /* DESKTOP: app-wrap becomes row when sidebar is active */
     @media(min-width:993px){
       .app-wrap.sidebar-active{flex-direction:row}
       .app-wrap.sidebar-active .main-area{min-width:0}
     }
-    .btn-hdr{width:42px;height:42px;border-radius:13px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .25s;font-size:1.1rem;flex-shrink:0}
-    .btn-hdr:hover{background:rgba(255,255,255,.28);transform:translateY(-3px);box-shadow:0 6px 16px rgba(0,0,0,.18)}
+    /* legacy .btn-hdr kept above in header block — skip duplicate */
+    .btn-hdr-legacy-skip{
+    }
     .scroll-body{flex:1;overflow-y:auto;overflow-x:hidden;padding:16px 20px;width:100%;background:var(--bg);scrollbar-width:thin;scrollbar-color:var(--light) transparent}
     .scroll-body::-webkit-scrollbar{width:6px}
     .cat-chip{
@@ -1367,12 +1752,8 @@ const notify = {
     [data-theme="dark"] .settings-card{background:#1e293b;border-color:#334155}
     [data-theme="dark"] .settings-card-header{background:linear-gradient(135deg,rgba(129,140,248,.06),transparent)}
 
-    /* Sidebar active indicator */
-    .anb{position:relative;transition:all .2s ease}
-    .anb::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%) scaleY(0);width:3px;height:60%;border-radius:0 3px 3px 0;background:var(--primary);transition:transform .25s cubic-bezier(.4,0,.2,1)}
-    .anb.active::before{transform:translateY(-50%) scaleY(1)}
-    .anb.active{background:linear-gradient(135deg,rgba(99,102,241,.12),rgba(139,92,246,.06))!important;color:var(--primary)!important;font-weight:700}
-    .anb:hover:not(.active){background:rgba(99,102,241,.05)!important}
+    /* Sidebar active indicator — handled in .sidebar-nav .anb (dark glass theme) */
+    .sidebar-nav .anb{position:relative}
 
     /* Floating Info Tooltip */
     .admin-info-tip{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:12px;font-size:.75rem;font-weight:600;background:linear-gradient(135deg,rgba(99,102,241,.08),rgba(139,92,246,.05));color:var(--primary);border:1px solid rgba(99,102,241,.12);margin-bottom:16px;animation:adminFadeIn .5s ease-out .2s both}
@@ -1500,8 +1881,7 @@ const notify = {
 
   <!-- ADMIN SIDEBAR (Desktop only) -->
   <aside class="admin-sidebar" id="adminSidebar">
-    <div class="sidebar-header" style="position:relative;overflow:hidden">
-      <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(139,92,246,.1));animation:pulseGlow 4s ease-in-out infinite"></div>
+    <div class="sidebar-header">
       <img id="sidebarLogo" class="sidebar-logo" src="" alt="Logo">
       <div class="sidebar-brand-text">
         <small>Admin Panel</small>
@@ -1509,15 +1889,17 @@ const notify = {
       </div>
     </div>
     <nav class="sidebar-nav">
-      <button class="anb active" id="anSettings" onclick="switchAdminTab('settings')"><i class="ph ph-gear-six"></i><span>Pengaturan</span></button>
-      <button class="anb" id="anKategori" onclick="switchAdminTab('kategori')"><i class="ph ph-tag"></i><span>Kategori</span></button>
-      <button class="anb" id="anRekap" onclick="switchAdminTab('rekap')"><i class="ph ph-table"></i><span>Rekap Data</span></button>
-      <button class="anb" id="anData" onclick="switchAdminTab('data')"><i class="ph ph-database"></i><span>Database</span></button>
-      <button class="anb" id="anRiwayat" onclick="switchAdminTab('riwayat')"><i class="ph ph-clock-clockwise"></i><span>Riwayat</span></button>
+      <div class="sidebar-section-label">Menu Utama</div>
+      <button class="anb active" id="anSettings" onclick="switchAdminTab('settings')"><span class="anb-icon"><i class="ph ph-gear-six"></i></span><span>Pengaturan</span></button>
+      <button class="anb" id="anKategori" onclick="switchAdminTab('kategori')"><span class="anb-icon"><i class="ph ph-tag"></i></span><span>Kategori</span></button>
+      <div class="sidebar-section-label">Data &amp; Laporan</div>
+      <button class="anb" id="anRekap" onclick="switchAdminTab('rekap')"><span class="anb-icon"><i class="ph ph-table"></i></span><span>Rekap Data</span></button>
+      <button class="anb" id="anData" onclick="switchAdminTab('data')"><span class="anb-icon"><i class="ph ph-database"></i></span><span>Database</span></button>
+      <button class="anb" id="anRiwayat" onclick="switchAdminTab('riwayat')"><span class="anb-icon"><i class="ph ph-clock-clockwise"></i></span><span>Riwayat</span></button>
     </nav>
     <div class="sidebar-footer">
-      <button class="sidebar-toggle" id="btnSidebarMinimalis" onclick="toggleSidebarMode('minimalis')"><i class="ph ph-sidebar-simple"></i><span>Minimalis</span></button>
-      <button class="sidebar-toggle" id="btnSidebarFull" onclick="toggleSidebarMode('full')" style="display:none"><i class="ph ph-sidebar"></i><span>Full</span></button>
+      <button class="sidebar-toggle" id="btnSidebarMinimalis" onclick="toggleSidebarMode('minimalis')"><i class="ph ph-sidebar-simple"></i><span>Mode Minimalis</span></button>
+      <button class="sidebar-toggle" id="btnSidebarFull" onclick="toggleSidebarMode('full')" style="display:none"><i class="ph ph-sidebar"></i><span>Mode Penuh</span></button>
     </div>
   </aside>
 
@@ -1530,13 +1912,42 @@ const notify = {
       <img id="headerLogo" class="header-logo" src="" alt="Logo">
       <div class="header-title">
         <h2>PENDATAAN PENERIMA MBG</h2>
-        <div class="header-sub"><span id="headerInstansi">SPPG TAKTAKAN KURANI 2</span> &bull; <span id="headerYayasan">YAYASAN INSAN BANTEN BERGIZI</span></div>
+        <div class="header-sub">
+          <span class="hdr-chip" id="headerInstansi">SPPG TAKTAKAN KURANI 2</span>
+          <span class="hdr-chip" id="headerYayasan">YAYASAN INSAN BANTEN BERGIZI</span>
+        </div>
       </div>
     </div>
     <div class="header-actions">
-      <button class="btn-hdr modern-btn" onclick="toggleTheme()" title="Ganti Tema"><i class="ph ph-moon-stars" id="themeIcon"></i></button>
-      <button class="btn-hdr modern-btn" onclick="openAdminLogin()" title="Admin Panel" id="btnAdminPanel"><i class="ph ph-gear"></i></button>
-      <button class="btn-hdr modern-btn" onclick="logoutAdmin()" title="Logout" id="btnLogout" style="display:none"><i class="ph ph-sign-out"></i></button>
+      <div class="hdr-notif-wrap" id="hdrNotifWrap">
+        <button class="btn-hdr hdr-notif-btn" id="btnHeaderNotif" onclick="toggleHeaderNotif(event)" title="Notifikasi">
+          <i class="ph ph-bell" id="hdrNotifIcon"></i>
+          <span class="hdr-notif-badge" id="hdrNotifBadge">0</span>
+          <span class="hdr-ws-dot" id="hdrWsDot" title="Status koneksi realtime"></span>
+        </button>
+        <div class="hdr-notif-panel" id="hdrNotifPanel" role="dialog" aria-label="Notifikasi">
+          <div class="hdr-notif-head">
+            <h6><i class="ph ph-bell-ringing"></i> Notifikasi</h6>
+            <div class="hdr-notif-actions">
+              <button type="button" class="nbtn-label" onclick="markAllNotifRead(event)" title="Tandai semua dibaca"><i class="ph ph-checks"></i><span> Dibaca</span></button>
+              <button type="button" class="nbtn-icon" onclick="refreshHeaderNotif(true);event.stopPropagation();" title="Muat ulang"><i class="ph ph-arrows-clockwise"></i></button>
+              <button type="button" class="nbtn-icon" onclick="closeHeaderNotif();event.stopPropagation();" title="Tutup"><i class="ph ph-x"></i></button>
+            </div>
+          </div>
+          <div class="hdr-notif-tabs">
+            <button type="button" class="hdr-notif-tab active" data-tab="all" onclick="switchNotifTab('all',this)"><i class="ph ph-stack"></i> Semua</button>
+            <button type="button" class="hdr-notif-tab" data-tab="aktivitas" onclick="switchNotifTab('aktivitas',this)"><i class="ph ph-pulse"></i> Aktivitas</button>
+            <button type="button" class="hdr-notif-tab" data-tab="sistem" onclick="switchNotifTab('sistem',this)"><i class="ph ph-gear-six"></i> Sistem</button>
+          </div>
+          <div class="hdr-notif-list" id="hdrNotifList">
+            <div class="hdr-notif-empty"><i class="ph ph-bell-slash"></i>Belum ada notifikasi</div>
+          </div>
+          <div class="hdr-notif-foot" id="hdrNotifFoot" onclick="onNotifFootClick()"><i class="ph ph-arrow-right"></i> Lihat selengkapnya</div>
+        </div>
+      </div>
+      <button class="btn-hdr" onclick="toggleTheme()" title="Ganti Tema"><i class="ph ph-moon-stars" id="themeIcon"></i></button>
+      <button class="btn-hdr" onclick="openAdminLogin()" title="Admin Panel" id="btnAdminPanel"><i class="ph ph-gear"></i></button>
+      <button class="btn-hdr" onclick="logoutAdmin()" title="Logout" id="btnLogout" style="display:none"><i class="ph ph-sign-out"></i></button>
     </div>
   </div>
 
@@ -1559,8 +1970,8 @@ const notify = {
         <div class="maint-announcement-bar hidden" id="maintAnnouncementBar">
           <div class="ma-badge"><i class="ph ph-clock-countdown"></i></div>
           <div class="ma-content">
-            <div class="ma-title">Pengumuman Penutupan Sementara</div>
-            <div class="ma-text" id="maintAnnounceText">Sistem akan ditutup sementara dalam waktu dekat</div>
+            <div class="ma-title">Pengumuman Maintenance</div>
+            <div class="ma-text" id="maintAnnounceText">Sistem akan maintenance dalam waktu dekat</div>
             <div class="ma-countdown" id="maintAnnounceCountdown">
               <span class="ma-cd-unit"><span id="maCdDays">00</span><small>Hari</small></span>
               <span class="ma-cd-sep">:</span>
@@ -1648,11 +2059,11 @@ const notify = {
         <!-- Maintenance msg -->
         <div class="mnt-msg" id="mntMsg">
           <i class="ph ph-gear-six" style="font-size:46px;color:var(--primary);display:block;margin-bottom:14px"></i>
-          <h5 class="fw-bold mb-2">SISTEM DITUTUP SEMENTARA</h5>
-          <p id="mntMsgText" class="text-muted small">Sistem sedang ditutup sementara. Silakan coba kembali nanti.</p>
+          <h5 class="fw-bold mb-2">SYSTEM MAINTENANCE</h5>
+          <p id="mntMsgText" class="text-muted small">Kami sedang meningkatkan kualitas layanan.</p>
           <!-- Countdown Timer -->
           <div id="maintCountdown" class="maint-countdown-wrap d-none">
-            <div class="maint-countdown-label"><i class="ph ph-clock me-1"></i>Sisa Waktu Penutupan</div>
+            <div class="maint-countdown-label"><i class="ph ph-clock me-1"></i>Sisa Waktu Maintenance</div>
             <div class="maint-countdown-timer">
               <div class="maint-countdown-unit">
                 <span class="maint-countdown-value" id="maintCdHours">00</span>
@@ -1990,23 +2401,23 @@ const notify = {
             <!-- Manual Toggle -->
             <div class="form-check form-switch mb-3">
               <input class="form-check-input" type="checkbox" id="maintenanceToggle" style="width:3em;height:1.5em" onchange="toggleMaintenanceMode()">
-              <label class="form-check-label fw-bold" for="maintenanceToggle">Mode Tutup Sementara (Manual)</label>
+              <label class="form-check-label fw-bold" for="maintenanceToggle">Mode Maintenance Manual</label>
             </div>
 
             <!-- Scheduled Maintenance -->
             <div class="p-3 rounded mb-3" style="background: linear-gradient(135deg, #fef3c7, #fde68a); border: 1px solid #f59e0b; border-radius: var(--r-lg);">
               <div class="d-flex align-items-center gap-2 mb-2">
                 <i class="ph ph-clock-countdown" style="color: #92400e; font-size: 1.2rem;"></i>
-                <span class="fw-bold" style="color: #92400e; font-size: 0.9rem;">Penutupan Sementara Terjadwal</span>
+                <span class="fw-bold" style="color: #92400e; font-size: 0.9rem;">Maintenance Terjadwal</span>
               </div>
 
               <div class="row g-2 mb-2">
                 <div class="col-md-6">
-                  <label class="fml small" style="color: #92400e;">Mulai Ditutup</label>
+                  <label class="fml small" style="color: #92400e;">Mulai Maintenance</label>
                   <input type="datetime-local" class="form-control" id="maintStartTime" onchange="updateMaintenanceSchedule()">
                 </div>
                 <div class="col-md-6">
-                  <label class="fml small" style="color: #92400e;">Buka Kembali</label>
+                  <label class="fml small" style="color: #92400e;">Selesai Maintenance</label>
                   <input type="datetime-local" class="form-control" id="maintEndTime" onchange="updateMaintenanceSchedule()">
                 </div>
               </div>
@@ -2105,6 +2516,29 @@ const notify = {
             <div class="col-md-6"><label class="fml small">Sekolah Tier 2 (500-1000)</label><div class="input-group"><span class="input-group-text" style="background:var(--input);border-color:var(--border)">Rp</span><input type="number" id="set_tier2_amount" class="form-control" value="50000"></div></div>
             <div class="col-md-6"><label class="fml small">Sekolah Tier 3 (&gt;1000)</label><div class="input-group"><span class="input-group-text" style="background:var(--input);border-color:var(--border)">Rp</span><input type="number" id="set_tier3_amount" class="form-control" value="75000"></div></div>
           </div>
+          
+        <div class="modern-card p-4 mb-3">
+          <div class="section-title"><i class="ph ph-broadcast"></i>Realtime WebSocket</div>
+          <div class="admin-info-tip"><i class="ph ph-info"></i> Apps Script tidak menyediakan server WebSocket. Isi URL relay (WSS + Webhook) agar notifikasi push instan. Jika kosong, dipakai polling otomatis.</div>
+          <div class="row g-3 mt-1">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold text-muted">WebSocket URL (browser)</label>
+              <input type="text" id="realtimeWsUrl" class="form-control" placeholder="wss://your-relay.example.com/ws">
+              <small class="text-muted">Client menghubungkan ke URL ini.</small>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold text-muted">Webhook URL (server push)</label>
+              <input type="text" id="realtimeWebhookUrl" class="form-control" placeholder="https://your-relay.example.com/publish">
+              <small class="text-muted">Apps Script POST event ke sini saat data berubah.</small>
+            </div>
+          </div>
+          <div class="d-flex gap-2 mt-3 flex-wrap">
+            <button class="btn btn-prim btn-sm" type="button" onclick="saveRealtimeSettingsUI()"><i class="ph ph-floppy-disk me-1"></i>Simpan Realtime</button>
+            <button class="btn btn-outline-secondary btn-sm" type="button" onclick="reconnectHeaderWebSocket()"><i class="ph ph-plugs-connected me-1"></i>Hubungkan Ulang WS</button>
+            <span class="small text-muted align-self-center" id="realtimeStatusLabel">Status: polling</span>
+          </div>
+        </div>
+
           <button class="btn btn-prim mt-4 w-100" onclick="saveSystemSettings()">Simpan Semua Pengaturan</button>
 
           <!-- UTILITAS DB: Normalisasi Usia -->
@@ -2438,7 +2872,7 @@ const notify = {
               <h6 class="mb-0 fw-bold gradient-text" style="font-size:1rem">
                 <i class="ph ph-funnel me-2"></i>Filter &amp; Pencarian
               </h6>
-              <small class="text-muted">Filter data berdasarkan kriteria</small>
+              <small class="text-muted">Filter data di Tabel Data Lengkap (termasuk rentang Timestamp)</small>
             </div>
             <div class="d-flex gap-2">
               <button class="btn btn-sm btn-outline-secondary modern-btn" onclick="resetRekapFilter()">
@@ -2508,7 +2942,26 @@ const notify = {
                 <option value="usia_desc">Usia (Terbesar)</option>
                 <option value="instansi">Instansi</option>
                 <option value="kategori">Kategori</option>
+                <option value="ts_desc">Timestamp (Terbaru)</option>
+                <option value="ts_asc">Timestamp (Terlama)</option>
               </select>
+            </div>
+            <div class="col-md-4 col-6">
+              <label class="form-label small fw-semibold text-muted mb-1"><i class="ph ph-calendar"></i> Timestamp Awal</label>
+              <input type="datetime-local" id="rekapTsStart" class="form-control shadow-none" style="font-size:.85rem" onchange="filterRekapAndReset()">
+            </div>
+            <div class="col-md-4 col-6">
+              <label class="form-label small fw-semibold text-muted mb-1"><i class="ph ph-calendar-dots"></i> Timestamp Akhir</label>
+              <input type="datetime-local" id="rekapTsEnd" class="form-control shadow-none" style="font-size:.85rem" onchange="filterRekapAndReset()">
+            </div>
+            <div class="col-12">
+              <div class="d-flex flex-wrap gap-2 align-items-center">
+                <span class="small text-muted fw-semibold me-1"><i class="ph ph-lightning me-1"></i>Cepat:</span>
+                <button type="button" class="btn btn-sm btn-outline-primary" style="font-size:.72rem;border-radius:20px;padding:4px 12px" onclick="setRekapTsPreset('today')">Hari Ini</button>
+                <button type="button" class="btn btn-sm btn-outline-primary" style="font-size:.72rem;border-radius:20px;padding:4px 12px" onclick="setRekapTsPreset('7d')">7 Hari</button>
+                <button type="button" class="btn btn-sm btn-outline-primary" style="font-size:.72rem;border-radius:20px;padding:4px 12px" onclick="setRekapTsPreset('30d')">30 Hari</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" style="font-size:.72rem;border-radius:20px;padding:4px 12px" onclick="setRekapTsPreset('clear')">Hapus Filter Waktu</button>
+              </div>
             </div>
           </div>
           <div class="mt-3 p-2 rounded d-flex align-items-center gap-2" style="background:var(--input);font-size:.8rem">
@@ -2541,10 +2994,11 @@ const notify = {
                   <th style="padding:12px 10px; font-size:.72rem; text-transform:uppercase; letter-spacing:0.5px; border-bottom:none;">Kategori</th>
                   <th style="padding:12px 10px; font-size:.72rem; text-transform:uppercase; letter-spacing:0.5px; border-bottom:none;">Instansi</th>
                   <th style="padding:12px 10px; font-size:.72rem; text-transform:uppercase; letter-spacing:0.5px; border-bottom:none;">PIC</th>
+                  <th style="padding:12px 10px; font-size:.72rem; text-transform:uppercase; letter-spacing:0.5px; border-bottom:none;">Timestamp</th>
                  </tr>
               </thead>
               <tbody id="rekapTableBody">
-                 <tr><td colspan="9" class="text-center text-muted py-4">Memuat data...</td></tr>
+                 <tr><td colspan="10" class="text-center text-muted py-4">Memuat data...</td></tr>
               </tbody>
              </table>
           </div>
@@ -3807,6 +4261,9 @@ function onPicChange() {
   _instansiPicValidState.picValid = null;
   resetKontakState();
 
+  // Muat notifikasi aktivitas milik user ini (instansi+PIC)
+  try { if (instansi && pic) setTimeout(function(){ refreshHeaderNotif(true); }, 400); } catch (e) {}
+
   if (!instansi || !pic) return;
 
   // Jika instansi belum tervalidasi, trigger dulu
@@ -4098,6 +4555,7 @@ function loadSystemData() {
     buildAlergiCheckboxes(res.allergies);
     applyMaintenance(res.status, res.announcement);
     loadBroadcast(res.broadcastMessage);
+    try { setTimeout(function(){ refreshHeaderNotif(false); }, 400); } catch(e) {}
     refreshSummary();
     // Sync flag izin hapus untuk user
     userDeleteEnabled = (res.allowUserDelete === true);
@@ -5081,7 +5539,7 @@ function applyMaintenance(status, msg, endTime) {
   
   if(status === 'Maintenance') {
     wrap.classList.add('active');
-    document.getElementById('mntMsgText').textContent = msg || 'Sistem sedang ditutup sementara. Silakan coba kembali nanti.';
+    document.getElementById('mntMsgText').textContent = msg || 'Kami sedang meningkatkan kualitas layanan.';
     cdEl.classList.remove('d-none');
     setMaintenanceFormLock(true);
     if(endTime) {
@@ -5134,7 +5592,7 @@ function setMaintenanceScheduleCache(schedule) {
 function saveMaintenanceSchedule() {
   const startTime = document.getElementById('maintStartTime').value;
   const endTime = document.getElementById('maintEndTime').value;
-  if(!startTime || !endTime) { Swal.fire('Info', 'Isi waktu mulai ditutup dan waktu buka kembali', 'info'); return; }
+  if(!startTime || !endTime) { Swal.fire('Info', 'Isi waktu mulai dan selesai maintenance', 'info'); return; }
   const start = new Date(startTime), end = new Date(endTime), now = new Date();
   if(end <= start) { Swal.fire('Error', 'Waktu selesai harus setelah waktu mulai', 'error'); return; }
   if(end <= now) { Swal.fire('Error', 'Waktu selesai sudah lewat', 'error'); return; }
@@ -5145,14 +5603,14 @@ function saveMaintenanceSchedule() {
     if (res && res.success) {
       updateMaintenanceScheduleStatus();
       checkMaintenanceSchedule();
-      Swal.fire({ icon: 'success', title: 'Jadwal Tersimpan!', text: `Sistem akan ditutup sementara mulai ${start.toLocaleString('id-ID')} dan dibuka kembali ${end.toLocaleString('id-ID')}`, timer: 3000, showConfirmButton: false });
+      Swal.fire({ icon: 'success', title: 'Jadwal Tersimpan!', text: `Maintenance akan mulai ${start.toLocaleString('id-ID')} dan selesai ${end.toLocaleString('id-ID')}`, timer: 3000, showConfirmButton: false });
     } else {
       Swal.fire('Warning', 'Gagal simpan ke database: ' + (res ? res.message : 'Error'), 'warning');
     }
   }).saveMaintenanceScheduleToDB(schedule, currentPass);
 }
 function clearMaintenanceSchedule() {
-  Swal.fire({ title: 'Hapus Jadwal?', text: 'Jadwal penutupan sementara akan dihapus.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Ya, Hapus', cancelButtonText: 'Batal' }).then((result) => {
+  Swal.fire({ title: 'Hapus Jadwal?', text: 'Jadwal maintenance terjadwal akan dihapus.', icon: 'warning', showCancelButton: true, confirmButtonText: 'Ya, Hapus', cancelButtonText: 'Batal' }).then((result) => {
     if(result.isConfirmed) {
       setMaintenanceScheduleCache(null);
       document.getElementById('maintStartTime').value = '';
@@ -5172,9 +5630,9 @@ function updateMaintenanceScheduleStatus() {
   const statusEl = document.getElementById('maintScheduleStatus');
   if(!schedule) { statusEl.textContent = ''; return; }
   const now = Date.now(), start = schedule.startTimestamp, end = schedule.endTimestamp;
-  if(now < start) { const diff = start - now; const hours = Math.floor(diff / 3600000), minutes = Math.floor((diff % 3600000) / 60000); statusEl.innerHTML = `<i class="ph ph-clock me-1"></i>Akan ditutup dalam ${hours}j ${minutes}m`; statusEl.style.color = '#92400e'; }
-  else if(now >= start && now < end) { const diff = end - now; const hours = Math.floor(diff / 3600000), minutes = Math.floor((diff % 3600000) / 60000); statusEl.innerHTML = `<i class="ph ph-warning-circle me-1"></i>Sedang ditutup, buka kembali dalam ${hours}j ${minutes}m`; statusEl.style.color = '#dc2626'; }
-  else { statusEl.innerHTML = `<i class="ph ph-check-circle me-1"></i>Jadwal penutupan sudah selesai`; statusEl.style.color = '#16a34a'; }
+  if(now < start) { const diff = start - now; const hours = Math.floor(diff / 3600000), minutes = Math.floor((diff % 3600000) / 60000); statusEl.innerHTML = `<i class="ph ph-clock me-1"></i>Mulai dalam ${hours}j ${minutes}m`; statusEl.style.color = '#92400e'; }
+  else if(now >= start && now < end) { const diff = end - now; const hours = Math.floor(diff / 3600000), minutes = Math.floor((diff % 3600000) / 60000); statusEl.innerHTML = `<i class="ph ph-warning-circle me-1"></i>Sedang berlangsung, sisa ${hours}j ${minutes}m`; statusEl.style.color = '#dc2626'; }
+  else { statusEl.innerHTML = `<i class="ph ph-check-circle me-1"></i>Jadwal sudah selesai`; statusEl.style.color = '#16a34a'; }
 }
 function checkMaintenanceSchedule() {
   const schedule = getMaintenanceSchedule();
@@ -5194,7 +5652,7 @@ function showMaintenanceAnnouncement(schedule) {
   const textEl = document.getElementById('maintAnnounceText');
   if(!bar || !schedule) return;
   bar.classList.remove('hidden');
-  textEl.textContent = schedule.announcement || 'Sistem akan ditutup sementara dalam waktu dekat. Mohon selesaikan pekerjaan Anda.';
+  textEl.textContent = schedule.announcement || 'Sistem akan maintenance dalam waktu dekat. Mohon selesaikan pekerjaan Anda.';
   startMaintenanceAnnouncementCountdown(schedule.startTimestamp);
 }
 function hideMaintenanceAnnouncement() {
@@ -5261,7 +5719,7 @@ setInterval(function() {
       if (res.status !== curStatus) {
         applyMaintenance(res.status, res.announcement);
         if (res.status === 'Maintenance') {
-          Swal.fire({ icon:'warning', title:'⚠️ Sistem Ditutup Sementara', text: res.announcement || 'Sistem sedang ditutup sementara. Silakan coba kembali nanti.', confirmButtonText:'Mengerti', confirmButtonColor:'#6366f1' });
+          Swal.fire({ icon:'warning', title:'⚠️ Sistem Maintenance', text: res.announcement || 'Sistem sedang dalam perbaikan. Mohon tunggu.', confirmButtonText:'Mengerti', confirmButtonColor:'#6366f1' });
         }
       }
       if (res.broadcastMessage !== undefined) loadBroadcast(res.broadcastMessage);
@@ -5330,6 +5788,7 @@ function processLogin() {
         sessionStorage.setItem('mbg_admin_user', u);
         sessionStorage.setItem('mbg_admin_pass', p);
         sessionStorage.setItem('mbg_admin_in', '1');
+        try { setTimeout(function(){ refreshHeaderNotif(true); }, 600); } catch(e) {}
         const cb = document.getElementById('rememberMe');
         if(cb && cb.checked) {
           localStorage.setItem('mbg_remember_user', u);
@@ -5455,6 +5914,8 @@ function enterAdminPanel(fromRefresh) {
   document.getElementById('set_tier2_amount').value   = SYS.sekolahTier2Amount || 50000;
   document.getElementById('set_tier3_amount').value   = SYS.sekolahTier3Amount || 75000;
   document.getElementById('broadcastMessage').value   = SYS.broadcastMessage || '';
+  var _rws = safeEl('realtimeWsUrl'); if (_rws) _rws.value = SYS.realtimeWsUrl || window.MBG_WS_URL || '';
+  var _rwh = safeEl('realtimeWebhookUrl'); if (_rwh) _rwh.value = SYS.realtimeWebhookUrl || '';
   document.getElementById('newUsername').value = '';
   document.getElementById('newPassword').value = '';
   document.getElementById('confirmPassword').value = '';
@@ -5884,6 +6345,17 @@ function hapusDataUser(idx) {
               timestamp: new Date().toISOString()
             });
           }
+          try {
+            pushLocalDataNotif('del', {
+              nama: (dataItem && dataItem.nama) || '',
+              nik: (dataItem && dataItem.nik) || '-',
+              instansi: (dataItem && dataItem.instansi) || instansi || '',
+              pic: (dataItem && dataItem.pic) || pic || '',
+              kategori: (dataItem && (dataItem.kategori || dataItem.ket)) || '',
+              ms: Date.now()
+            });
+          } catch(e) {}
+          try { setTimeout(function(){ refreshHeaderNotif(true); }, 1500); } catch(e) {}
           Swal.fire({ icon: 'success', title: 'Terhapus!', timer: 1000, showConfirmButton: false });
           const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true });
           Toast.fire({ icon: 'warning', title: `Data ${dataItem ? dataItem.nama : ''} telah dihapus` });
@@ -6369,6 +6841,17 @@ function _showUploadConfirmation(dataToSend, dupErrorsPre, otherErrorsPre, insta
       refreshData();
       refreshSummary();
       setTimeout(loadUserRiwayat, 1200);
+      try {
+        var instB = (document.getElementById('instansi') || {}).value || '';
+        var picB = (document.getElementById('pic') || {}).value || '';
+        if (res.successCount > 0) {
+          pushLocalDataNotif('add', {
+            nama: (res.successCount > 1 ? (res.successCount + ' data') : ((savedList[0] && savedList[0].nama) || 'batch')),
+            instansi: instB, pic: picB, kategori: 'Batch Upload', ms: Date.now()
+          });
+        }
+        setTimeout(function(){ refreshHeaderNotif(true); }, 1500);
+      } catch (e) {}
     }).withFailureHandler(err => {
       Swal.close();
       Swal.fire('Error', 'Gagal mengirim data ke server: ' + (err && err.message ? err.message : err), 'error');
@@ -6838,6 +7321,8 @@ function _proceedSimpan(instansi, pic, noHp, email, btn) {
       const ketVal = document.getElementById('ket') ? document.getElementById('ket').value : '';
       const histEntry = { type:'add', nama: namaVal, nik: data.nik||'', instansi: instVal, pic: picVal, kategori: ketVal, timestamp: new Date().toISOString() };
       if (typeof _riwayatCache !== 'undefined') { _riwayatCache.push(histEntry); }
+      try { pushLocalDataNotif('add', { nama: namaVal, nik: data.nik||'', instansi: instVal, pic: picVal, kategori: ketVal, ms: Date.now() }); } catch(e) {}
+      try { setTimeout(function(){ refreshHeaderNotif(true); }, 1500); } catch(e) {}
       Swal.fire({
         icon: 'success',
         title: '<div style="display:flex;align-items:center;gap:10px;"><i class="ph ph-check-circle" style="color:#16a34a;"></i><span>Data Tersimpan!</span></div>',
@@ -7211,6 +7696,17 @@ function simpanEdit() {
       if (typeof _riwayatCache !== 'undefined') {
         _riwayatCache.push(newHistoryLog);
       }
+      try {
+        pushLocalDataNotif('mod', {
+          nama: data.nama || '',
+          nik: data.nik || '',
+          instansi: data.instansi || '',
+          pic: data.pic || '',
+          kategori: data.ket || data.kategori || '',
+          ms: Date.now()
+        });
+      } catch (e) {}
+      try { setTimeout(function(){ refreshHeaderNotif(true); }, 1500); } catch (e) {}
 
       editModal.hide(); 
       currentEditingRow = null;
@@ -8582,7 +9078,7 @@ function toggleMaintenanceMode() {
       if (r && r.success) {
         SYS.status = status; SYS.announcement = announcement;
         const Toast = Swal.mixin({ toast:true, position:'top-end', showConfirmButton:false, timer:2000 });
-        Toast.fire({ icon: status==='Maintenance' ? 'warning' : 'success', title: status==='Maintenance' ? '🔒 Sistem ditutup sementara – semua user akan melihat' : '✅ Sistem dibuka kembali' });
+        Toast.fire({ icon: status==='Maintenance' ? 'warning' : 'success', title: status==='Maintenance' ? '🔒 Maintenance aktif – semua user akan melihat' : '✅ Sistem kembali Online' });
       }
     })
     .withFailureHandler(() => {})
@@ -8734,6 +9230,75 @@ function initRekapTab() {
   renderRekapTable();
 }
 
+function parseDataTimestampMs(d) {
+  if (!d) return NaN;
+  var raw = d.timestamp || d.timestampRaw || '';
+  if (!raw) return NaN;
+  var ms = new Date(raw).getTime();
+  return isNaN(ms) ? NaN : ms;
+}
+
+function formatRekapTimestamp(d) {
+  var ms = parseDataTimestampMs(d);
+  if (isNaN(ms)) return '–';
+  try {
+    return new Date(ms).toLocaleString('id-ID', {
+      day: '2-digit', month: 'short', year: 'numeric',
+      hour: '2-digit', minute: '2-digit', second: '2-digit'
+    });
+  } catch (e) { return String(d.timestamp || d.timestampRaw || '–'); }
+}
+
+function getRekapTsRange() {
+  var tsStart = (document.getElementById('rekapTsStart') || {}).value || '';
+  var tsEnd   = (document.getElementById('rekapTsEnd') || {}).value || '';
+  var msStart = tsStart ? new Date(tsStart).getTime() : 0;
+  var msEnd   = tsEnd ? new Date(tsEnd).getTime() : Infinity;
+  if (tsEnd && !isNaN(msEnd)) {
+    // jika hanya tanggal tanpa detik penuh, perluas ke akhir menit
+    // datetime-local biasanya sampai menit; tetap gunakan nilai apa adanya
+  }
+  return { tsStart: tsStart, tsEnd: tsEnd, msStart: msStart, msEnd: isNaN(msEnd) ? Infinity : msEnd };
+}
+
+function setRekapTsPreset(preset) {
+  var startEl = document.getElementById('rekapTsStart');
+  var endEl = document.getElementById('rekapTsEnd');
+  if (!startEl || !endEl) return;
+  if (preset === 'clear') {
+    startEl.value = '';
+    endEl.value = '';
+    filterRekapAndReset();
+    return;
+  }
+  var now = new Date();
+  var end = new Date(now);
+  var start = new Date(now);
+  if (preset === 'today') {
+    start.setHours(0, 0, 0, 0);
+  } else if (preset === '7d') {
+    start.setDate(start.getDate() - 7);
+    start.setHours(0, 0, 0, 0);
+  } else if (preset === '30d') {
+    start.setDate(start.getDate() - 30);
+    start.setHours(0, 0, 0, 0);
+  }
+  function toLocalInput(dt) {
+    var y = dt.getFullYear();
+    var m = String(dt.getMonth() + 1).padStart(2, '0');
+    var d = String(dt.getDate()).padStart(2, '0');
+    var h = String(dt.getHours()).padStart(2, '0');
+    var mi = String(dt.getMinutes()).padStart(2, '0');
+    return y + '-' + m + '-' + d + 'T' + h + ':' + mi;
+  }
+  startEl.value = toLocalInput(start);
+  endEl.value = toLocalInput(end);
+  // default sort by timestamp terbaru saat filter waktu aktif
+  var sortEl = document.getElementById('rekapSort');
+  if (sortEl && (!sortEl.value || sortEl.value === 'nama')) sortEl.value = 'ts_desc';
+  filterRekapAndReset();
+}
+
 function getRekapFiltered() {
   const cariData = (document.getElementById('rekapSearchData').value || '').toLowerCase().trim();
   const usia    = (document.getElementById('rekapFilterUsia').value || '');
@@ -8741,23 +9306,50 @@ function getRekapFiltered() {
   const instansi= (document.getElementById('rekapFilterInstansi').value || '');
   const kategori= (document.getElementById('rekapFilterKategori').value || '');
   const sortBy  = (document.getElementById('rekapSort').value || 'nama');
+  const tsRange = getRekapTsRange();
 
   let data = allAdminData.slice();
   if (cariData) data = data.filter(d =>
     (d.nama||'').toLowerCase().includes(cariData) ||
     (d.nik||'').toString().toLowerCase().includes(cariData) ||
     (d.instansi||'').toLowerCase().includes(cariData) ||
-    (d.alamat||'').toLowerCase().includes(cariData)
+    (d.alamat||'').toLowerCase().includes(cariData) ||
+    (d.pic||'').toLowerCase().includes(cariData)
   );
   if (usia)     data = data.filter(d => usiaInGroup(d.usia, usia));
   if (jk)       data = data.filter(d => (d.jk||'').toUpperCase() === jk);
   if (instansi) data = data.filter(d => d.instansi === instansi);
   if (kategori) data = data.filter(d => (d.kategori||d.ket||'') === kategori);
 
+  // [BARU] Filter berdasarkan Timestamp data (penambahan/perubahan terakhir)
+  if (tsRange.tsStart || tsRange.tsEnd) {
+    data = data.filter(function(d) {
+      var ms = parseDataTimestampMs(d);
+      if (isNaN(ms)) return false;
+      return ms >= tsRange.msStart && ms <= tsRange.msEnd;
+    });
+  }
+
   if (sortBy === 'usia_asc') {
     data.sort((a, b) => parseUsiaNum(a.usia) - parseUsiaNum(b.usia));
   } else if (sortBy === 'usia_desc') {
     data.sort((a, b) => parseUsiaNum(b.usia) - parseUsiaNum(a.usia));
+  } else if (sortBy === 'ts_desc') {
+    data.sort((a, b) => {
+      var ma = parseDataTimestampMs(a), mb = parseDataTimestampMs(b);
+      if (isNaN(ma) && isNaN(mb)) return 0;
+      if (isNaN(ma)) return 1;
+      if (isNaN(mb)) return -1;
+      return mb - ma;
+    });
+  } else if (sortBy === 'ts_asc') {
+    data.sort((a, b) => {
+      var ma = parseDataTimestampMs(a), mb = parseDataTimestampMs(b);
+      if (isNaN(ma) && isNaN(mb)) return 0;
+      if (isNaN(ma)) return 1;
+      if (isNaN(mb)) return -1;
+      return ma - mb;
+    });
   } else if (sortBy === 'instansi') {
     data.sort((a, b) => {
       const c = (a.instansi||'').localeCompare(b.instansi||'');
@@ -8802,9 +9394,21 @@ function renderRekapTable() {
 
   const infoEl = document.getElementById('rekapFilterInfo');
   if (infoEl) {
+    const tsRange = getRekapTsRange();
+    let tsNote = '';
+    if (tsRange.tsStart || tsRange.tsEnd) {
+      const fmt = function(v) {
+        if (!v) return '';
+        try { return new Date(v).toLocaleString('id-ID', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }); }
+        catch(e) { return v; }
+      };
+      if (tsRange.tsStart && tsRange.tsEnd) tsNote = ` · Timestamp data: ${fmt(tsRange.tsStart)} s/d ${fmt(tsRange.tsEnd)}`;
+      else if (tsRange.tsStart) tsNote = ` · Timestamp data mulai ${fmt(tsRange.tsStart)}`;
+      else tsNote = ` · Timestamp data sampai ${fmt(tsRange.tsEnd)}`;
+    }
     infoEl.innerHTML = shown < total
-      ? `<strong>${shown}</strong> dari <strong>${total}</strong> data ditampilkan`
-      : `Total <strong>${total}</strong> data`;
+      ? `<strong>${shown}</strong> dari <strong>${total}</strong> data di Tabel Data Lengkap${tsNote}`
+      : `Total <strong>${total}</strong> data di Tabel Data Lengkap${tsNote}`;
   }
   const badgeEl = document.getElementById('rekapTotalBadge');
   if (badgeEl) badgeEl.textContent = shown + ' data';
@@ -8818,7 +9422,7 @@ function renderRekapTable() {
 
   const tbody = document.getElementById('rekapTableBody');
   if (!pageData.length) {
-    tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted py-5"><i class="ph ph-magnifying-glass d-block mb-2" style="font-size:2rem;opacity:0.4;"></i>Tidak ada data yang sesuai filter</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-5"><i class="ph ph-magnifying-glass d-block mb-2" style="font-size:2rem;opacity:0.4;"></i>Tidak ada data yang sesuai filter</td></tr>';
   } else {
     tbody.innerHTML = pageData.map((r, i) => {
       const jkText = (r.jk||'').toUpperCase() === 'PRIA' ? '<span style="color:#2563eb;font-weight:600;"><i class="ph ph-gender-male me-1"></i>Laki-laki</span>' :
@@ -8841,7 +9445,8 @@ function renderRekapTable() {
         <td style="padding:10px 10px;"><span class="badge rounded-pill fw-semibold" style="background:var(--primary-l);color:var(--primary);font-size:.7rem;padding:4px 10px;">${esc(r.kategori||r.ket||'–')}</span></td>
         <td style="padding:10px 10px; font-size:.78rem; font-weight:500;">${esc(r.instansi||'–')}</td>
         <td style="padding:10px 10px; font-size:.78rem;">${esc(r.pic||'–')}</td>
-      </td>`;
+        <td style="padding:10px 10px; font-size:.72rem; white-space:nowrap; color:var(--muted);">${esc(formatRekapTimestamp(r))}</td>
+      </tr>`;
     }).join('');
   }
 
@@ -9002,6 +9607,8 @@ function resetRekapFilter() {
   document.getElementById('rekapFilterInstansi').value = '';
   document.getElementById('rekapFilterKategori').value = '';
   document.getElementById('rekapSort').value = 'nama';
+  var tsS = document.getElementById('rekapTsStart'); if (tsS) tsS.value = '';
+  var tsE = document.getElementById('rekapTsEnd'); if (tsE) tsE.value = '';
   filterRekapAndReset();
 }
 
@@ -9676,6 +10283,811 @@ function renderUserRiwayatFromCache(type) {
 
   el.innerHTML = html;
 }
+
+
+/* =========================================================
+   HEADER NOTIFICATION CENTER — real-time (polling)
+   ========================================================= */
+var _notifItems = [];          // {id, type, cat, title, meta, ts, ms, read, action}
+var _notifTab = 'all';
+var _notifPollId = null;
+var _notifLastFetch = 0;
+var _notifKnownIds = {};
+var NOTIF_LS_KEY = 'mbg_notif_read_ids_v1';
+var NOTIF_POLL_MS = 45000;     // 45 detik
+
+function _notifLoadReadMap() {
+  try {
+    var raw = localStorage.getItem(NOTIF_LS_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) { return {}; }
+}
+function _notifSaveReadMap(map) {
+  try {
+    // batasi ukuran
+    var keys = Object.keys(map);
+    if (keys.length > 400) {
+      keys.sort();
+      var trimmed = {};
+      keys.slice(-300).forEach(function(k){ trimmed[k] = 1; });
+      map = trimmed;
+    }
+    localStorage.setItem(NOTIF_LS_KEY, JSON.stringify(map));
+  } catch (e) {}
+}
+function _notifIsRead(id) {
+  var map = _notifLoadReadMap();
+  return !!map[id];
+}
+function _notifMarkRead(id) {
+  var map = _notifLoadReadMap();
+  map[id] = 1;
+  _notifSaveReadMap(map);
+}
+
+function ensureNotifPortal() {
+  var panel = document.getElementById('hdrNotifPanel');
+  if (!panel) return null;
+  if (panel.parentElement !== document.body) {
+    document.body.appendChild(panel);
+  }
+  var bd = document.getElementById('hdrNotifBackdrop');
+  if (!bd) {
+    bd = document.createElement('button');
+    bd.type = 'button';
+    bd.id = 'hdrNotifBackdrop';
+    bd.className = 'hdr-notif-backdrop';
+    bd.setAttribute('aria-label', 'Tutup notifikasi');
+    bd.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      closeHeaderNotif();
+    });
+    document.body.appendChild(bd);
+  } else if (bd.parentElement !== document.body) {
+    document.body.appendChild(bd);
+  }
+  return panel;
+}
+
+function positionHeaderNotifPanel() {
+  /* Panel sudah di-CSS fixed ke paling atas — hanya pastikan portal & z-index */
+  var panel = ensureNotifPortal();
+  if (!panel) return;
+  panel.style.zIndex = '2147483646';
+  var bd = document.getElementById('hdrNotifBackdrop');
+  if (bd) bd.style.zIndex = '2147483640';
+}
+
+function toggleHeaderNotif(ev) {
+  if (ev) { ev.preventDefault(); ev.stopPropagation(); }
+  var panel = ensureNotifPortal();
+  if (!panel) return;
+  var open = panel.classList.contains('open');
+  var bd = document.getElementById('hdrNotifBackdrop');
+  if (open) {
+    closeHeaderNotif();
+  } else {
+    positionHeaderNotifPanel();
+    if (bd) {
+      bd.classList.add('open');
+      bd.style.display = 'block';
+    }
+    panel.classList.add('open');
+    panel.style.display = 'flex';
+    try { document.body.style.overflow = 'hidden'; } catch (e) {}
+    refreshHeaderNotif(false);
+    renderHeaderNotifList();
+  }
+}
+function closeHeaderNotif() {
+  var panel = document.getElementById('hdrNotifPanel');
+  var bd = document.getElementById('hdrNotifBackdrop');
+  if (panel) {
+    panel.classList.remove('open');
+    panel.style.display = 'none';
+  }
+  if (bd) {
+    bd.classList.remove('open');
+    bd.style.display = 'none';
+  }
+  try { document.body.style.overflow = ''; } catch (e) {}
+}
+window.addEventListener('resize', function() {
+  var panel = document.getElementById('hdrNotifPanel');
+  if (panel && panel.classList.contains('open')) positionHeaderNotifPanel();
+});
+
+document.addEventListener('click', function(e) {
+  var wrap = document.getElementById('hdrNotifWrap');
+  var panel = document.getElementById('hdrNotifPanel');
+  var t = e.target;
+  if (wrap && wrap.contains(t)) return;
+  if (panel && panel.contains(t)) return;
+  closeHeaderNotif();
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeHeaderNotif();
+});
+
+function switchNotifTab(tab, btn) {
+  _notifTab = tab || 'all';
+  document.querySelectorAll('.hdr-notif-tab').forEach(function(b){ b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  else {
+    var el = document.querySelector('.hdr-notif-tab[data-tab="'+_notifTab+'"]');
+    if (el) el.classList.add('active');
+  }
+  renderHeaderNotifList();
+}
+
+function markAllNotifRead(ev) {
+  if (ev) { ev.preventDefault(); ev.stopPropagation(); }
+  var map = _notifLoadReadMap();
+  _notifItems.forEach(function(n){ map[n.id] = 1; n.read = true; });
+  _notifSaveReadMap(map);
+  updateNotifBadge();
+  renderHeaderNotifList();
+}
+
+function onNotifFootClick() {
+  closeHeaderNotif();
+  if (window.isAdmin) {
+    try { switchAdminTab('riwayat'); } catch (e) {}
+  } else {
+    // scroll ke broadcast / form
+    var bar = document.getElementById('broadcastBar');
+    if (bar && !bar.classList.contains('hidden')) bar.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+}
+
+function _notifFmtTime(ms) {
+  if (!ms || isNaN(ms)) return '';
+  var diff = Date.now() - ms;
+  if (diff < 0) diff = 0;
+  if (diff < 60000) return 'Baru saja';
+  var menit = Math.floor(diff / 60000);
+  if (menit < 60) return menit + ' Menit Lalu';
+  var jam = Math.floor(diff / 3600000);
+  if (jam < 24) return jam + ' Jam Lalu';
+  var hari = Math.floor(diff / 86400000);
+  if (hari < 7) return hari + ' Hari Lalu';
+  try {
+    return new Date(ms).toLocaleString('id-ID', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'});
+  } catch (e) { return ''; }
+}
+
+function _parseRiwayatMsNotif(h) {
+  if (!h) return NaN;
+  if (h.timestamp) {
+    var t = new Date(h.timestamp).getTime();
+    if (!isNaN(t)) return t;
+  }
+  if (h.tsDisplay) {
+    var raw = String(h.tsDisplay).trim();
+    var parts = raw.split(' ');
+    if (parts.length >= 4) {
+      var monthMap = {Jan:'01',Feb:'02',Mar:'03',Apr:'04',May:'05',Jun:'06',Jul:'07',Aug:'08',Sep:'09',Oct:'10',Nov:'11',Dec:'12'};
+      var dd = parts[0].padStart(2,'0');
+      var mm = monthMap[parts[1]] || '01';
+      var yyyy = parts[2];
+      var hhmm = parts[3];
+      var parsed = new Date(yyyy + '-' + mm + '-' + dd + 'T' + (hhmm.length === 5 ? hhmm + ':00' : hhmm) + '+07:00');
+      if (!isNaN(parsed.getTime())) return parsed.getTime();
+    }
+    var fb = new Date(raw).getTime();
+    if (!isNaN(fb)) return fb;
+  }
+  return NaN;
+}
+
+function _buildSystemNotifs() {
+  var items = [];
+  var now = Date.now();
+  // Broadcast
+  try {
+    var bc = (typeof SYS !== 'undefined' && SYS && SYS.broadcastMessage) ? String(SYS.broadcastMessage).trim() : '';
+    var bcEl = document.getElementById('bcText');
+    if (!bc && bcEl) bc = (bcEl.textContent || '').trim();
+    if (bc && bc !== 'Memuat informasi terbaru untuk Anda...') {
+      items.push({
+        id: 'sys-broadcast-' + bc.substring(0, 40),
+        type: 'sys', cat: 'sistem',
+        title: 'Pengumuman: ' + (bc.length > 90 ? bc.substring(0, 90) + '…' : bc),
+        meta: 'Siaran sistem',
+        ms: now - 1000, ts: '',
+        action: 'broadcast'
+      });
+    }
+  } catch (e) {}
+  // Maintenance schedule
+  try {
+    var sch = (typeof getMaintenanceSchedule === 'function') ? getMaintenanceSchedule() : null;
+    if (sch && sch.startTimestamp && sch.endTimestamp) {
+      var st = sch.startTimestamp, en = sch.endTimestamp;
+      if (now >= st && now < en) {
+        items.push({
+          id: 'sys-maint-active-' + st,
+          type: 'warn', cat: 'sistem',
+          title: 'Sistem ditutup sementara',
+          meta: (sch.announcement || 'Form input sedang ditutup') + ' · s.d. ' + new Date(en).toLocaleString('id-ID'),
+          ms: st, ts: '',
+          action: 'maintenance'
+        });
+      } else if (now < st && (st - now) < 24 * 3600000) {
+        items.push({
+          id: 'sys-maint-soon-' + st,
+          type: 'warn', cat: 'sistem',
+          title: 'Penutupan sementara dijadwalkan',
+          meta: 'Mulai ' + new Date(st).toLocaleString('id-ID'),
+          ms: st - 1, ts: '',
+          action: 'maintenance'
+        });
+      }
+    }
+  } catch (e) {}
+  // System status
+  try {
+    if (typeof SYS !== 'undefined' && SYS && SYS.status === 'Maintenance') {
+      var already = items.some(function(x){ return x.action === 'maintenance'; });
+      if (!already) {
+        items.push({
+          id: 'sys-status-maint',
+          type: 'warn', cat: 'sistem',
+          title: 'Sistem ditutup sementara',
+          meta: SYS.announcement || 'Silakan coba kembali nanti',
+          ms: now - 2000, ts: '',
+          action: 'maintenance'
+        });
+      }
+    }
+  } catch (e) {}
+  return items;
+}
+
+function _normalizeNotifType(t) {
+  t = String(t || '').toLowerCase();
+  if (t === 'tambah' || t === 'add' || t === 'create') return 'add';
+  if (t === 'hapus' || t === 'del' || t === 'delete') return 'del';
+  if (t === 'ubah' || t === 'mod' || t === 'edit' || t === 'update') return 'mod';
+  return t || 'add';
+}
+
+function _getCurrentUserScope() {
+  var inst = '', pic = '';
+  try {
+    inst = String((document.getElementById('instansi') || {}).value || '').trim().toUpperCase();
+    pic = String((document.getElementById('pic') || {}).value || '').trim().toUpperCase();
+  } catch (e) {}
+  return { instansi: inst, pic: pic };
+}
+
+function _buildActivityNotifs(riwayatList, scopeFilter) {
+  var items = [];
+  var scope = scopeFilter || null;
+  (riwayatList || []).forEach(function(h) {
+    if (!h) return;
+    // Filter khusus user: hanya data milik instansi+PIC mereka
+    if (scope && scope.instansi && scope.pic) {
+      var hi = String(h.instansi || '').trim().toUpperCase();
+      var hp = String(h.pic || '').trim().toUpperCase();
+      if (hi !== scope.instansi || hp !== scope.pic) return;
+    }
+    var ms = _parseRiwayatMsNotif(h);
+    if (isNaN(ms)) {
+      if (h.timestamp) ms = new Date(h.timestamp).getTime();
+      else ms = Date.now();
+    }
+    // 72 jam terakhir
+    if (Date.now() - ms > 72 * 3600000) return;
+    var type = _normalizeNotifType(h.type);
+    var label = type === 'add' ? 'Data ditambahkan' : type === 'del' ? 'Data dihapus' : 'Data diubah';
+    var nama = h.nama || '(tanpa nama)';
+    var id = 'act-' + type + '-' + (h.id || '') + '-' + ms + '-' + String(nama).substring(0, 24).replace(/\s+/g, '_');
+    var metaParts = [];
+    if (h.kategori) metaParts.push(h.kategori);
+    if (h.instansi) metaParts.push(h.instansi);
+    if (h.pic) metaParts.push('PIC: ' + h.pic);
+    items.push({
+      id: id,
+      type: type, cat: 'aktivitas',
+      title: label + ': ' + nama,
+      nama: nama,
+      meta: metaParts.join(' · '),
+      ms: ms, ts: h.tsDisplay || '',
+      action: 'riwayat',
+      instansi: h.instansi || '',
+      pic: h.pic || '',
+      raw: h
+    });
+  });
+  return items;
+}
+
+/** Push notifikasi lokal segera setelah user menambah/ubah/hapus data */
+function pushLocalDataNotif(type, entry) {
+  entry = entry || {};
+  type = _normalizeNotifType(type);
+  var label = type === 'add' ? 'Data ditambahkan' : type === 'del' ? 'Data dihapus' : 'Data diubah';
+  var nama = entry.nama || '(tanpa nama)';
+  var ms = entry.ms || Date.now();
+  var id = 'local-' + type + '-' + ms + '-' + String(nama).substring(0, 20);
+  var metaParts = [];
+  if (entry.kategori) metaParts.push(entry.kategori);
+  if (entry.instansi) metaParts.push(entry.instansi);
+  if (entry.pic) metaParts.push('PIC: ' + entry.pic);
+  var n = {
+    id: id,
+    type: type,
+    cat: 'aktivitas',
+    title: label + ': ' + nama,
+    meta: metaParts.join(' · '),
+    ms: ms,
+    ts: '',
+    action: 'riwayat',
+    instansi: entry.instansi || '',
+    pic: entry.pic || '',
+    read: false
+  };
+  // Hindari duplikat id
+  if (_notifItems.some(function(x){ return x.id === n.id; })) return;
+  _notifKnownIds[n.id] = 1;
+  _notifItems.unshift(n);
+  _notifItems = _notifItems.slice(0, 60);
+  updateNotifBadge();
+  var panel = document.getElementById('hdrNotifPanel');
+  if (panel && panel.classList.contains('open')) renderHeaderNotifList();
+  // Toast singkat untuk user & admin
+  try {
+    if (typeof Swal !== 'undefined') {
+      var icon = type === 'del' ? 'warning' : (type === 'mod' ? 'info' : 'success');
+      Swal.fire({
+        toast: true, position: 'top-end', icon: icon,
+        title: n.title,
+        text: _notifFmtTime(ms),
+        showConfirmButton: false, timer: 2600, timerProgressBar: true
+      });
+    }
+  } catch (e) {}
+}
+
+function mergeAndSetNotifs(activityItems) {
+  var sys = _buildSystemNotifs();
+  var all = sys.concat(activityItems || []);
+  all.sort(function(a, b) { return (b.ms || 0) - (a.ms || 0); });
+  // dedupe by id
+  var seen = {};
+  all = all.filter(function(n) {
+    if (seen[n.id]) return false;
+    seen[n.id] = 1;
+    return true;
+  });
+  // mark read state + detect new
+  var newOnes = [];
+  all.forEach(function(n) {
+    n.read = _notifIsRead(n.id);
+    if (!n.read && !_notifKnownIds[n.id]) {
+      newOnes.push(n);
+    }
+    _notifKnownIds[n.id] = 1;
+  });
+  _notifItems = all.slice(0, 60);
+  updateNotifBadge();
+  var panel = document.getElementById('hdrNotifPanel');
+  if (panel && panel.classList.contains('open')) renderHeaderNotifList();
+  // toast aktivitas baru (admin: semua user; user: data sendiri)
+  if (newOnes.length) {
+    var newest = newOnes.find(function(n){ return n.cat === 'aktivitas'; }) || newOnes[0];
+    if (newest && newest.cat === 'aktivitas') {
+      try {
+        if (typeof Swal !== 'undefined') {
+          var ic = newest.type === 'del' ? 'warning' : (newest.type === 'mod' ? 'info' : 'success');
+          Swal.fire({
+            toast: true, position: 'top-end', icon: ic,
+            title: newest.title,
+            text: _notifFmtTime(newest.ms),
+            showConfirmButton: false, timer: 3000, timerProgressBar: true
+          });
+        }
+      } catch (e) {}
+    }
+  }
+}
+
+function updateNotifBadge() {
+  var unread = _notifItems.filter(function(n){ return !n.read; }).length;
+  var badge = document.getElementById('hdrNotifBadge');
+  var icon = document.getElementById('hdrNotifIcon');
+  if (!badge) return;
+  if (unread > 0) {
+    badge.textContent = unread > 99 ? '99+' : String(unread);
+    badge.classList.add('show');
+    if (icon) icon.className = 'ph ph-bell-ringing';
+  } else {
+    badge.classList.remove('show');
+    badge.textContent = '0';
+    if (icon) icon.className = 'ph ph-bell';
+  }
+}
+
+function renderHeaderNotifList() {
+  var list = document.getElementById('hdrNotifList');
+  if (!list) return;
+  var filtered = _notifItems.filter(function(n) {
+    if (_notifTab === 'all') return true;
+    if (_notifTab === 'aktivitas') return n.cat === 'aktivitas';
+    if (_notifTab === 'sistem') return n.cat === 'sistem';
+    return true;
+  });
+  if (!filtered.length) {
+    list.innerHTML = '<div class="hdr-notif-empty"><i class="ph ph-bell-slash"></i>Belum ada notifikasi' +
+      (_notifTab === 'aktivitas' && !window.isAdmin ? '<small>Login admin untuk melihat aktivitas data</small>' : '<small>Notifikasi baru akan muncul di sini</small>') +
+      '</div>';
+    return;
+  }
+  list.innerHTML = filtered.map(function(n) {
+    var iconCls = 'type-sys';
+    var iconPh = 'ph-info';
+    if (n.type === 'add') { iconCls = 'type-add'; iconPh = 'ph-plus-circle'; }
+    else if (n.type === 'mod') { iconCls = 'type-mod'; iconPh = 'ph-pencil-simple'; }
+    else if (n.type === 'del') { iconCls = 'type-del'; iconPh = 'ph-trash'; }
+    else if (n.type === 'warn') { iconCls = 'type-warn'; iconPh = 'ph-warning'; }
+    var timeStr = _notifFmtTime(n.ms);
+    return '<div class="hdr-notif-item' + (n.read ? '' : ' unread') + '" data-id="' + esc(n.id) + '" onclick="onNotifItemClick(\'' + esc(n.id).replace(/'/g, "\\'") + '\')">' +
+      '<div class="hdr-notif-icon ' + iconCls + '"><i class="ph ' + iconPh + '"></i></div>' +
+      '<div class="hdr-notif-body">' +
+        '<div class="hdr-notif-title">' + esc(n.title) + '</div>' +
+        '<div class="hdr-notif-meta">' +
+          (timeStr ? '<span class="hdr-notif-time"><i class="ph ph-clock"></i> ' + esc(timeStr) + '</span>' : '') +
+          (n.meta ? '<span>' + esc(n.meta) + '</span>' : '') +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function onNotifItemClick(id) {
+  var item = _notifItems.find(function(n){ return n.id === id; });
+  if (!item) return;
+  _notifMarkRead(id);
+  item.read = true;
+  updateNotifBadge();
+  renderHeaderNotifList();
+  closeHeaderNotif();
+  if (item.action === 'riwayat' && window.isAdmin) {
+    try { switchAdminTab('riwayat'); } catch (e) {}
+  } else if (item.action === 'broadcast') {
+    var bar = document.getElementById('broadcastBar');
+    if (bar) bar.scrollIntoView({behavior:'smooth', block:'start'});
+  } else if (item.action === 'maintenance') {
+    var m = document.getElementById('mntWrap');
+    if (m) m.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+}
+
+function refreshHeaderNotif(force) {
+  var now = Date.now();
+  if (!force && (now - _notifLastFetch) < 8000) {
+    var act = _notifItems.filter(function(n){ return n.cat === 'aktivitas'; });
+    mergeAndSetNotifs(act);
+    return;
+  }
+  _notifLastFetch = now;
+
+  // Pertahankan notifikasi lokal sementara (belum di server)
+  var localKeep = _notifItems.filter(function(n) {
+    return n.cat === 'aktivitas' && String(n.id || '').indexOf('local-') === 0 && (now - (n.ms || 0)) < 120000;
+  });
+  mergeAndSetNotifs(localKeep);
+
+  if (window.isAdmin && typeof currentPass !== 'undefined' && currentPass) {
+    // ADMIN: semua aktivitas semua user
+    google.script.run
+      .withSuccessHandler(function(res) {
+        if (res && res.success && res.data) {
+          if (typeof _riwayatCache !== 'undefined') _riwayatCache = res.data;
+          var built = _buildActivityNotifs(res.data, null);
+          // gabung local yang belum ada di server
+          localKeep.forEach(function(L) {
+            if (!built.some(function(b){ return b.type === L.type && b.title === L.title && Math.abs((b.ms||0)-(L.ms||0)) < 90000; })) {
+              built.unshift(L);
+            }
+          });
+          mergeAndSetNotifs(built);
+        } else {
+          mergeAndSetNotifs(localKeep);
+        }
+      })
+      .withFailureHandler(function(){ mergeAndSetNotifs(localKeep); })
+      .getRiwayat(currentPass, 'all', 100);
+  } else {
+    // USER: hanya data milik instansi + PIC yang sedang diisi
+    var scope = _getCurrentUserScope();
+    if (scope.instansi && scope.pic) {
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res && res.success && res.data) {
+            var built = _buildActivityNotifs(res.data, scope);
+            localKeep.forEach(function(L) {
+              var li = String(L.instansi || '').toUpperCase();
+              var lp = String(L.pic || '').toUpperCase();
+              if (li && lp && (li !== scope.instansi || lp !== scope.pic)) return;
+              if (!built.some(function(b){ return b.type === L.type && Math.abs((b.ms||0)-(L.ms||0)) < 60000; })) {
+                built.unshift(L);
+              }
+            });
+            mergeAndSetNotifs(built);
+          } else {
+            mergeAndSetNotifs(localKeep.filter(function(L) {
+              var li = String(L.instansi || '').toUpperCase();
+              var lp = String(L.pic || '').toUpperCase();
+              return (!li && !lp) || (li === scope.instansi && lp === scope.pic);
+            }));
+          }
+        })
+        .withFailureHandler(function(){ mergeAndSetNotifs(localKeep); })
+        .getRiwayatByInstansiPic(scope.instansi, scope.pic, 50);
+    } else {
+      // Belum isi instansi/PIC → tidak tampilkan aktivitas orang lain
+      mergeAndSetNotifs([]);
+    }
+  }
+}
+
+// Perbarui label waktu relatif tiap 30 detik saat panel terbuka
+var _notifTimeTickId = null;
+function startNotifTimeTicker() {
+  if (_notifTimeTickId) return;
+  _notifTimeTickId = setInterval(function() {
+    var panel = document.getElementById('hdrNotifPanel');
+    if (panel && panel.classList.contains('open')) renderHeaderNotifList();
+    else updateNotifBadge();
+  }, 30000);
+}
+try { startNotifTimeTicker(); } catch (e) {}
+
+function startHeaderNotifPolling() {
+  if (_notifPollId) clearInterval(_notifPollId);
+  refreshHeaderNotif(true);
+  // Adaptive polling: lebih jarang jika WebSocket connected
+  _notifPollId = setInterval(function() {
+    if (_mbgWs && _mbgWs.readyState === 1) {
+      // WS hidup → poll pelan (backup saja)
+      if (Date.now() - _notifLastFetch > 120000) refreshHeaderNotif(true);
+    } else {
+      refreshHeaderNotif(true);
+    }
+  }, NOTIF_POLL_MS);
+  document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'visible') {
+      refreshHeaderNotif(true);
+      if (!_mbgWs || _mbgWs.readyState !== 1) connectHeaderWebSocket();
+    }
+  });
+}
+
+/* =========================================================
+   WEBSOCKET REALTIME LAYER
+   Protocol (JSON):
+     { "type":"notif", "data":{ id,type,cat,title,meta,ms,action } }
+     { "type":"refresh" }  → full pull
+     { "type":"ping" } / { "type":"pong" }
+   ========================================================= */
+var _mbgWs = null;
+var _mbgWsRetry = 0;
+var _mbgWsRetryTimer = null;
+var _mbgWsPingTimer = null;
+var _mbgWsManualUrl = '';
+
+function getConfiguredWsUrl() {
+  if (_mbgWsManualUrl) return _mbgWsManualUrl;
+  if (window.MBG_WS_URL) return String(window.MBG_WS_URL).trim();
+  try {
+    if (typeof SYS !== 'undefined' && SYS && SYS.realtimeWsUrl) return String(SYS.realtimeWsUrl).trim();
+  } catch (e) {}
+  var el = document.getElementById('realtimeWsUrl');
+  if (el && el.value) return el.value.trim();
+  return '';
+}
+
+function setWsStatusDot(state) {
+  var dot = document.getElementById('hdrWsDot');
+  var label = document.getElementById('realtimeStatusLabel');
+  if (dot) {
+    dot.classList.remove('connected', 'connecting', 'error');
+    if (state) dot.classList.add(state);
+  }
+  if (label) {
+    if (state === 'connected') label.textContent = 'Status: WebSocket terhubung';
+    else if (state === 'connecting') label.textContent = 'Status: menghubungkan WebSocket…';
+    else if (state === 'error') label.textContent = 'Status: WebSocket gagal — fallback polling';
+    else label.textContent = 'Status: polling';
+  }
+}
+
+function pushRealtimeNotif(data) {
+  if (!data) return;
+  var n = {
+    id: data.id || ('ws-' + Date.now()),
+    type: data.type || 'sys',
+    cat: data.cat || (data.type === 'add' || data.type === 'mod' || data.type === 'del' ? 'aktivitas' : 'sistem'),
+    title: data.title || 'Notifikasi baru',
+    meta: data.meta || '',
+    ms: data.ms || Date.now(),
+    ts: data.ts || '',
+    action: data.action || '',
+    read: false
+  };
+  // prepend if not exists
+  var exists = _notifItems.some(function(x){ return x.id === n.id; });
+  if (!exists) {
+    _notifKnownIds[n.id] = 1;
+    _notifItems.unshift(n);
+    _notifItems = _notifItems.slice(0, 60);
+    updateNotifBadge();
+    var panel = document.getElementById('hdrNotifPanel');
+    if (panel && panel.classList.contains('open')) renderHeaderNotifList();
+    try {
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          toast: true, position: 'top-end',
+          icon: n.type === 'del' ? 'warning' : (n.type === 'warn' ? 'warning' : 'info'),
+          title: n.title,
+          showConfirmButton: false, timer: 2800, timerProgressBar: true
+        });
+      }
+    } catch (e) {}
+  }
+}
+
+function handleWsMessage(raw) {
+  try {
+    var msg = (typeof raw === 'string') ? JSON.parse(raw) : raw;
+    if (!msg) return;
+    if (msg.type === 'pong' || msg.type === 'ping') {
+      if (msg.type === 'ping' && _mbgWs && _mbgWs.readyState === 1) {
+        _mbgWs.send(JSON.stringify({ type: 'pong', ts: Date.now() }));
+      }
+      return;
+    }
+    if (msg.type === 'refresh') {
+      refreshHeaderNotif(true);
+      return;
+    }
+    if (msg.type === 'notif' && msg.data) {
+      pushRealtimeNotif(msg.data);
+      return;
+    }
+    // bare notif object
+    if (msg.title || msg.id) pushRealtimeNotif(msg);
+  } catch (e) {
+    console.warn('WS message parse error', e);
+  }
+}
+
+function connectHeaderWebSocket() {
+  var url = getConfiguredWsUrl();
+  if (!url) {
+    setWsStatusDot('');
+    return;
+  }
+  if (_mbgWs && (_mbgWs.readyState === 0 || _mbgWs.readyState === 1)) return;
+  try {
+    setWsStatusDot('connecting');
+    _mbgWs = new WebSocket(url);
+  } catch (e) {
+    setWsStatusDot('error');
+    scheduleWsReconnect();
+    return;
+  }
+  _mbgWs.onopen = function() {
+    _mbgWsRetry = 0;
+    setWsStatusDot('connected');
+    try {
+      _mbgWs.send(JSON.stringify({
+        type: 'hello',
+        client: 'mbg-web',
+        admin: !!window.isAdmin,
+        ts: Date.now()
+      }));
+    } catch (e) {}
+    if (_mbgWsPingTimer) clearInterval(_mbgWsPingTimer);
+    _mbgWsPingTimer = setInterval(function() {
+      if (_mbgWs && _mbgWs.readyState === 1) {
+        try { _mbgWs.send(JSON.stringify({ type: 'ping', ts: Date.now() })); } catch (e) {}
+      }
+    }, 25000);
+    // sync sekali setelah connect
+    refreshHeaderNotif(true);
+  };
+  _mbgWs.onmessage = function(ev) { handleWsMessage(ev.data); };
+  _mbgWs.onerror = function() { setWsStatusDot('error'); };
+  _mbgWs.onclose = function() {
+    setWsStatusDot('error');
+    if (_mbgWsPingTimer) { clearInterval(_mbgWsPingTimer); _mbgWsPingTimer = null; }
+    scheduleWsReconnect();
+  };
+}
+
+function scheduleWsReconnect() {
+  if (_mbgWsRetryTimer) clearTimeout(_mbgWsRetryTimer);
+  if (!getConfiguredWsUrl()) return;
+  _mbgWsRetry = Math.min((_mbgWsRetry || 0) + 1, 8);
+  var delay = Math.min(30000, 1000 * Math.pow(2, _mbgWsRetry - 1));
+  _mbgWsRetryTimer = setTimeout(function() { connectHeaderWebSocket(); }, delay);
+}
+
+function reconnectHeaderWebSocket() {
+  _mbgWsRetry = 0;
+  if (_mbgWs) {
+    try { _mbgWs.close(); } catch (e) {}
+    _mbgWs = null;
+  }
+  var el = document.getElementById('realtimeWsUrl');
+  if (el && el.value) {
+    _mbgWsManualUrl = el.value.trim();
+    window.MBG_WS_URL = _mbgWsManualUrl;
+  }
+  connectHeaderWebSocket();
+  if (typeof notify !== 'undefined') notify.toast(getConfiguredWsUrl() ? 'Menghubungkan WebSocket…' : 'URL WebSocket kosong — mode polling', 'info');
+}
+
+function saveRealtimeSettingsUI() {
+  var wsUrl = (document.getElementById('realtimeWsUrl') || {}).value || '';
+  var webhook = (document.getElementById('realtimeWebhookUrl') || {}).value || '';
+  if (!window.isAdmin || !currentPass) {
+    Swal.fire('Info', 'Login admin terlebih dahulu', 'info');
+    return;
+  }
+  Swal.fire({ title: 'Menyimpan…', allowOutsideClick: false, didOpen: function(){ Swal.showLoading(); } });
+  google.script.run.withSuccessHandler(function(res) {
+    Swal.close();
+    if (res && res.success) {
+      if (typeof SYS !== 'undefined' && SYS) {
+        SYS.realtimeWsUrl = wsUrl;
+        SYS.realtimeWebhookUrl = webhook;
+      }
+      window.MBG_WS_URL = wsUrl;
+      _mbgWsManualUrl = wsUrl;
+      reconnectHeaderWebSocket();
+      Swal.fire({ icon: 'success', title: 'Realtime tersimpan', timer: 1400, showConfirmButton: false });
+    } else {
+      Swal.fire('Gagal', (res && res.message) || 'Error', 'error');
+    }
+  }).withFailureHandler(function(err) {
+    Swal.close();
+    Swal.fire('Error', err.message || String(err), 'error');
+  }).saveRealtimeSettings(webhook, wsUrl, currentPass);
+}
+
+function startHeaderRealtime() {
+  startHeaderNotifPolling();
+  // Ambil WS URL dari settings lalu connect
+  try {
+    google.script.run.withSuccessHandler(function(res) {
+      if (res) {
+        if (res.realtimeWsUrl) {
+          window.MBG_WS_URL = res.realtimeWsUrl;
+          var el = document.getElementById('realtimeWsUrl');
+          if (el) el.value = res.realtimeWsUrl;
+        }
+        if (res.realtimeWebhookUrl) {
+          var el2 = document.getElementById('realtimeWebhookUrl');
+          if (el2) el2.value = res.realtimeWebhookUrl;
+        }
+      }
+      connectHeaderWebSocket();
+    }).withFailureHandler(function(){ connectHeaderWebSocket(); })
+      .getSystemSettings();
+  } catch (e) {
+    connectHeaderWebSocket();
+  }
+}
+
+// boot realtime (WS + polling fallback)
+try { startHeaderRealtime(); } catch (e) { console.warn('realtime init', e); }
+try { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ensureNotifPortal); else ensureNotifPortal(); } catch (e) {}
+
 
 // Init theme
 loadTheme();
