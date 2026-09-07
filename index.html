@@ -158,7 +158,7 @@
     // 1) GANTI URL INI dengan URL Web App hasil Deploy Apps Script kamu
     //    (Deploy > New deployment > Web app > Execute as: Me > Who has access: Anyone > /exec)
     //    Hanya dipakai saat file ini berjalan di LUAR Apps Script (Blogger/Netlify).
-    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyckzahXse0Z_lgPZxQ8SVGxMaf1vifk1bWzYIq8yLwA270hRIgaML6W43JXAUvSN1T/exec';
+    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyhtIekAGdtXYmKUWZOd9EnC_YUGNfsm8iY2Ms7pFtlesG1zSUQj0kihF26LXgsGQVw/exec';
 
     // Realtime WebSocket (opsional). Contoh: wss://your-relay.example.com/ws
     // Jika kosong, sistem memakai polling. Bisa juga diisi dari Pengaturan Admin.
@@ -8193,10 +8193,30 @@ function renderInstansiCatCards(data) {
   const el = document.getElementById('instansiCatCards');
   const todayStr = new Date().toISOString().split('T')[0];
   if (!el) return;
+  // === Pertahankan filter pencarian yang sedang aktif ===
+  // Saat auto-refresh / polling / setelah operasi data, fungsi ini dipanggil
+  // dengan dataset lengkap (allAdminData). Jika user sedang mengetik kata kunci
+  // di kotak "Cari Instansi / PIC", terapkan filter tersebut terlebih dahulu
+  // supaya tampilan tidak "kembali ke semua/lain lagi".
+  // Jika data yang masuk sudah berupa array hasil filter (dari filterInstansiCards),
+  // data !== allAdminData, sehingga tidak ada filter ganda.
+  var _searchEl = document.getElementById('searchInstansiAdmin');
+  if (_searchEl && data === allAdminData) {
+    var _q = (_searchEl.value || '').toLowerCase().trim();
+    if (_q) {
+      data = data.filter(function(item) {
+        return (item.instansi && item.instansi.toLowerCase().includes(_q)) ||
+               (item.pic && item.pic.toLowerCase().includes(_q));
+      });
+    }
+  }
   el.innerHTML = '';
-  if (!data || !data.length) { 
-    el.innerHTML = `<div class="no-data-hint"><i class="ph ph-warning-circle d-block mb-1 fs-4"></i>Belum ada data instansi</div>`; 
-    return; 
+  if (!data || !data.length) {
+    var _noDataMsg = (_searchEl && (_searchEl.value || '').trim())
+      ? 'Tidak ada instansi/PIC yang cocok dengan "' + ((_searchEl.value || '').trim()) + '"'
+      : 'Belum ada data instansi';
+    el.innerHTML = '<div class="no-data-hint"><i class="ph ph-warning-circle d-block mb-1 fs-4"></i>' + _noDataMsg + '</div>';
+    return;
   }
   const customColors = JSON.parse(localStorage.getItem('mbg_instansi_colors') || '{}');
   const ig = {};
