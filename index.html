@@ -170,7 +170,7 @@
     // 1) GANTI URL INI dengan URL Web App hasil Deploy Apps Script kamu
     //    (Deploy > New deployment > Web app > Execute as: Me > Who has access: Anyone > /exec)
     //    Hanya dipakai saat file ini berjalan di LUAR Apps Script (Blogger/Netlify).
-    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzFIiRHcdBAOpIu81dFwHK_CDdRVz5CDt_2Cc63xlw4Wsy3fyi2st21jndG6xoMeYPA/exec';
+    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwRXG6dS3Ehn5tE-QqKfDFqTLjFaWAkPWboa6MePUF5wjtJhVxTnCPAssslQ-pK40A2/exec';
 
     // 2) Peta nama fungsi server -> urutan nama parameter,
     //    HARUS SAMA PERSIS dengan switch(action) di Code.gs (doPost)
@@ -188,12 +188,12 @@
       getInstansiPicMapping: ['instansi'],
       validateInstansiPic: ['instansi', 'pic'],
       getDataByRow: ['rowIndex'],
-      simpanData: ['data'],
-      simpanDataBatch: ['dataArray', 'options'],
+      simpanData: ['data', 'adminPassword'],
+      simpanDataBatch: ['dataArray', 'options', 'adminPassword'],
       preCheckNikBatch: ['dataArray'],
       updateDataPendataan: ['data', 'rowIndex'],
       hapusDataBaris: ['rowIndex', 'adminPassword'],
-      hapusDataBarisUser: ['rowIndex', 'instansi', 'pic'],
+      hapusDataBarisUser: ['rowIndex', 'instansi', 'pic', 'adminPassword'],
       hapusSemuaDataInstansi: ['instansi', 'adminPassword'],
       bulkRenameInstansiPic: ['oldInstansi', 'oldPic', 'newInstansi', 'newPic', 'adminPassword'],
       getAllDataForAdmin: ['adminPassword'],
@@ -3734,10 +3734,11 @@ const notify = {
     var remembered = localStorage.getItem('mbg_remember_me') === '1' &&
                      localStorage.getItem('mbg_remember_user') &&
                      localStorage.getItem('mbg_remember_pass');
+    var _pubView = sessionStorage.getItem('mbg_admin_view') === 'public';
     if (savedLoggedIn || remembered) {
       var uApp = document.getElementById('userApp');
       var aDash = document.getElementById('adminDash');
-      if (uApp && aDash) {
+      if (uApp && aDash && !_pubView) {
         uApp.classList.add('d-none');
         aDash.classList.remove('d-none');
       }
@@ -3884,6 +3885,7 @@ window.onload = function() {
     currentPass = _restoredAdminPass;
     isAdmin = true;
     enterAdminPanel(true);
+    if (sessionStorage.getItem('mbg_admin_view') === 'public') { goToPublicAsAdmin(); }
 
     // Verifikasi sesi di background; jika ternyata kredensial sudah diubah/tidak valid baru keluar
     google.script.run.withSuccessHandler(res => {
@@ -5758,6 +5760,8 @@ function setMaintenanceFormLock(locked) {
 }
 
 function applyMaintenance(status, msg, endTime) {
+  // Admin yang sedang login tidak melihat overlay maintenance di halaman publik
+  if (status === 'Maintenance' && isAdmin) status = 'Open';
   const wrap = document.getElementById('mntWrap');
   const cdEl = document.getElementById('maintCountdown');
   const cdHours = document.getElementById('maintCdHours');
@@ -5872,7 +5876,7 @@ function checkMaintenanceSchedule() {
   } else if(now >= end) {
     if(document.getElementById('mntWrap').classList.contains('active')) { document.getElementById('maintenanceToggle').checked = false; applyMaintenance('Open'); }
     hideMaintenanceAnnouncement();
-  } else if(now < start) showMaintenanceAnnouncement(schedule);
+  } else if(now < start) { if (!isAdmin) showMaintenanceAnnouncement(schedule); else hideMaintenanceAnnouncement(); }
 }
 let maintAnnounceInterval = null;
 function showMaintenanceAnnouncement(schedule) {
@@ -6103,6 +6107,43 @@ function processLogin() {
     })
     .adminLogin(u, p);
 }
+function setAdminHeaderBtn(mode) {
+  const b = document.getElementById('btnAdminPanel');
+  if (!b) return;
+  b.style.display = 'flex';
+  if (mode === 'dash') {
+    b.setAttribute('onclick', 'goToPublicAsAdmin()');
+    b.title = 'Halaman Pendataan';
+    b.innerHTML = '<i class="ph ph-house-line"></i>';
+  } else if (mode === 'public') {
+    b.setAttribute('onclick', 'backToAdminPanel()');
+    b.title = 'Kembali ke Admin Panel';
+    b.innerHTML = '<i class="ph ph-gear"></i>';
+  } else {
+    b.setAttribute('onclick', 'openAdminLogin()');
+    b.title = 'Admin Panel';
+    b.innerHTML = '<i class="ph ph-gear"></i>';
+  }
+}
+// Admin tetap login; dashboard disembunyikan dan halaman pendataan publik ditampilkan.
+function goToPublicAsAdmin() {
+  if (!isAdmin) return;
+  sessionStorage.setItem('mbg_admin_view', 'public');
+  document.getElementById('adminDash').classList.add('d-none');
+  document.getElementById('userApp').classList.remove('d-none');
+  const mtw = document.getElementById('mbgTabsFixedWrap'); if (mtw) mtw.classList.remove('d-none');
+  document.getElementById('adminSidebar').classList.remove('show');
+  document.getElementById('mobileBottomBar').classList.remove('show');
+  document.getElementById('appWrap').classList.remove('sidebar-active');
+  setAdminHeaderBtn('public');
+  applyMaintenance(SYS.status || 'Open', SYS.announcement);
+  switchTab(sessionStorage.getItem('mbg_user_tab') || localStorage.getItem('mbg_user_tab') || 'form');
+}
+function backToAdminPanel() {
+  if (!isAdmin) return;
+  sessionStorage.removeItem('mbg_admin_view');
+  enterAdminPanel(true);
+}
 function enterAdminPanel(fromRefresh) {
   document.getElementById('userApp').classList.add('d-none');
   const mtw1 = document.getElementById('mbgTabsFixedWrap'); if (mtw1) mtw1.classList.add('d-none');
@@ -6110,9 +6151,10 @@ function enterAdminPanel(fromRefresh) {
   document.getElementById('adminSidebar').classList.add('show');
   document.getElementById('mobileBottomBar').classList.add('show');
   document.getElementById('appWrap').classList.add('sidebar-active');
-  document.getElementById('btnAdminPanel').style.display = 'none';
+  setAdminHeaderBtn('dash');
   document.getElementById('btnLogout').style.display = 'flex';
   restoreSidebarMode();
+  applyMaintenance(SYS.status || 'Open', SYS.announcement);
   document.getElementById('maintenanceToggle').checked = (SYS.status === 'Maintenance');
   document.getElementById('adminAnnouncement').value = SYS.announcement || '';
   // Muat jadwal maintenance dari server
@@ -6169,10 +6211,11 @@ function logoutAdmin() {
   document.getElementById('adminSidebar').classList.remove('minimalis');
   document.getElementById('mobileBottomBar').classList.remove('show');
   document.getElementById('appWrap').classList.remove('sidebar-active');
-  document.getElementById('btnAdminPanel').style.display = 'flex';
+  setAdminHeaderBtn('login');
   document.getElementById('btnLogout').style.display = 'none';
+  sessionStorage.removeItem('mbg_admin_view');
   currentPass = ''; currentUser = ''; isAdmin = false;
-  applyMaintenance('Open');
+  applyMaintenance(SYS.status || 'Open', SYS.announcement);
   loadSystemData();
 }
 function switchAdminTab(t) {
@@ -6697,7 +6740,7 @@ function renderUserTable(arr) {
         ? `<span class="dup-badge" onclick="showDupDetailPopup('${esc(nDigits)}')" title="Terdaftar di: ${esc(otherInst)} — Klik untuk detail"><i class="ph ph-copy-simple"></i> ${dupLabel}</span>`
         : '';
       // Tombol hapus hanya muncul bila admin mengaktifkan izin via Settings
-      const delBtn = userDeleteEnabled
+      const delBtn = (userDeleteEnabled || isAdmin)
         ? `<button class="btn btn-sm btn-light text-danger rounded-circle" style="width:32px;height:32px" onclick="hapusDataUser(${rowIdx})" title="Hapus"><i class="ph ph-trash-simple"></i></button>`
         : '';
       const kelasVal = item.kelas && item.kelas !== '-' ? `<span style="background:rgba(99,102,241,.12);color:#4f46e5;font-weight:700;padding:1px 6px;border-radius:6px;font-size:.66rem">Kelas ${esc(item.kelas)}</span>•` : '';
@@ -6713,7 +6756,7 @@ function renderUserTable(arr) {
 // HAPUS DATA OLEH USER (non-admin) — hanya bila AllowUserDelete aktif
 // ============================================================
 function hapusDataUser(idx) {
-  if (!userDeleteEnabled) {
+  if (!userDeleteEnabled && !isAdmin) {
     Swal.fire('Akses Ditolak', 'Fitur hapus data sedang dinonaktifkan oleh admin.', 'warning');
     return;
   }
@@ -6786,7 +6829,7 @@ function hapusDataUser(idx) {
         Swal.close();
         Swal.fire('Error', 'Gagal menghapus: ' + (err && err.message ? err.message : err), 'error');
       })
-      .hapusDataBarisUser(idx, instansi, pic);
+      .hapusDataBarisUser(idx, instansi, pic, isAdmin ? currentPass : '');
   });
 }
 function scanDuplikatGlobal(){ return scanNIKDuplicates(); }
@@ -7604,7 +7647,7 @@ function _executeBatchUpload(itemsToSend, options) {
   }).withFailureHandler(err => {
     Swal.close();
     Swal.fire('Error', 'Gagal mengirim data ke server: ' + (err && err.message ? err.message : err), 'error');
-  }).simpanDataBatch(itemsToSend, options || { updateExisting: false });
+  }).simpanDataBatch(itemsToSend, options || { updateExisting: false }, isAdmin ? currentPass : '');
 }
 
 // ============================================================
@@ -8136,7 +8179,7 @@ function _proceedSimpan(instansi, pic, noHp, email, btn) {
       }, 1500);
     } else if(r.isWarning) Swal.fire('Peringatan',r.message,'warning');
     else Swal.fire('Gagal',r.message,'error');
-  }).withFailureHandler(err => { btn.disabled = false; btn.innerHTML = originalBtnHtml; Swal.close(); Swal.fire('Error','Gagal: ' + err.message,'error'); }).simpanData(data);
+  }).withFailureHandler(err => { btn.disabled = false; btn.innerHTML = originalBtnHtml; Swal.close(); Swal.fire('Error','Gagal: ' + err.message,'error'); }).simpanData(data, isAdmin ? currentPass : '');
 }
 
 function cekNikKosongPadaData(data, instansi, pic) {
