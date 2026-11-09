@@ -170,7 +170,7 @@
     // 1) GANTI URL INI dengan URL Web App hasil Deploy Apps Script kamu
     //    (Deploy > New deployment > Web app > Execute as: Me > Who has access: Anyone > /exec)
     //    Hanya dipakai saat file ini berjalan di LUAR Apps Script (Blogger/Netlify).
-    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby54-eVVUc6zj5i8JsEUMk6IhG8IzhiW2kisnFyjHiHFy0tXnVxz5yHBQaM_RG3h_jr/exec';
+    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzFIiRHcdBAOpIu81dFwHK_CDdRVz5CDt_2Cc63xlw4Wsy3fyi2st21jndG6xoMeYPA/exec';
 
     // 2) Peta nama fungsi server -> urutan nama parameter,
     //    HARUS SAMA PERSIS dengan switch(action) di Code.gs (doPost)
@@ -2311,8 +2311,8 @@ const notify = {
                   <label class="fml req">Jenis Kelamin</label>
                   <select class="form-select" id="jk" onchange="syncJumlah()">
                     <option value="">Pilih Jenis Kelamin</option>
-                    <option value="PRIA">Laki-Laki (PRIA)</option>
-                    <option value="WANITA">Perempuan (WANITA)</option>
+                    <option value="Laki-laki">Laki-laki</option>
+                    <option value="Perempuan">Perempuan</option>
                   </select>
                 </div>
                 <div class="col-12">
@@ -2968,8 +2968,8 @@ const notify = {
               <label class="form-label small fw-semibold text-muted mb-1"><i class="ph ph-gender-intersex"></i> Jenis Kelamin</label>
               <select id="rekapFilterJK" class="form-select shadow-none" onchange="filterRekapAndReset()">
                 <option value="">Semua</option>
-                <option value="PRIA">Laki-laki</option>
-                <option value="WANITA">Perempuan</option>
+                <option value="Laki-laki">Laki-laki</option>
+                <option value="Perempuan">Perempuan</option>
               </select>
             </div>
             <div class="col-md-4 col-12">
@@ -3505,8 +3505,8 @@ const notify = {
                 <label class="form-label small fw-semibold text-muted mb-1"><i class="ph ph-gender-intersex"></i> Jenis Kelamin</label>
                 <select class="form-select form-select-sm" id="filterJK" onchange="filterAdminData()" style="border-color:var(--border);background:var(--input);color:var(--text)">
                   <option value="">Semua</option>
-                  <option value="PRIA">Laki-laki</option>
-                  <option value="WANITA">Perempuan</option>
+                  <option value="Laki-laki">Laki-laki</option>
+                  <option value="Perempuan">Perempuan</option>
                 </select>
               </div>
             </div>
@@ -3646,8 +3646,8 @@ const notify = {
             <div class="col-md-4 col-6">
               <label class="form-label small fw-semibold text-muted mb-1">Jenis Kelamin</label>
               <select class="form-select shadow-sm" id="edit_jk">
-                <option value="PRIA">PRIA (Laki-laki)</option>
-                <option value="WANITA">WANITA (Perempuan)</option>
+                <option value="Laki-laki">Laki-laki</option>
+                <option value="Perempuan">Perempuan</option>
               </select>
             </div>
             <div class="col-12">
@@ -5197,7 +5197,7 @@ function downloadDocAsFile(type) {
     title = 'Surat Keterangan - ' + instansiName;
     var suratNo = sppgId !== '-' ? sppgId : '........./SPPG/2025';
     var dataRows = allAdminData.slice(0, 100).map(function(item, i) {
-      return '<tr><td style="text-align:center">'+(i+1)+'</td><td>'+esc(item.nama)+'</td><td>'+(item.nik||'-')+'</td><td>'+(item.usia||'-')+'</td><td>'+(item.jk==='PRIA'?'L':'P')+'</td><td>'+esc(item.kategori||item.ket||'-')+'</td></tr>';
+      return '<tr><td style="text-align:center">'+(i+1)+'</td><td>'+esc(item.nama)+'</td><td>'+(item.nik||'-')+'</td><td>'+(item.usia||'-')+'</td><td>'+(item.jk==='Laki-laki'?'L':'P')+'</td><td>'+esc(item.kategori||item.ket||'-')+'</td></tr>';
     }).join('');
     bodyContent = kopHtml
       + '<div style="text-align:right;font-size:11px;margin-bottom:14px;color:#64748b">Nomor: '+suratNo+'</div>'
@@ -5259,10 +5259,10 @@ function downloadDocAsFile(type) {
   } else if (type === 'data') {
     title = 'Data Penerima MBG - ' + instansiName;
     var dataRows = allAdminData.map(function(item, i) {
-      return '<tr><td style="text-align:center">'+(i+1)+'</td><td>'+esc(item.nama)+'</td><td>'+(item.nik||'-')+'</td><td>'+(item.usia||'-')+'</td><td style="text-align:center">'+(item.jk==='PRIA'?'L':'P')+'</td><td>'+esc(item.kategori||item.ket||'-')+'</td><td>'+(item.instansi||'-')+'</td><td>'+(item.pic||'-')+'</td></tr>';
+      return '<tr><td style="text-align:center">'+(i+1)+'</td><td>'+esc(item.nama)+'</td><td>'+(item.nik||'-')+'</td><td>'+(item.usia||'-')+'</td><td style="text-align:center">'+(item.jk==='Laki-laki'?'L':'P')+'</td><td>'+esc(item.kategori||item.ket||'-')+'</td><td>'+(item.instansi||'-')+'</td><td>'+(item.pic||'-')+'</td></tr>';
     }).join('');
-    var totalP = allAdminData.filter(function(d){return (d.jk||'').toUpperCase()==='PRIA';}).length;
-    var totalW = allAdminData.filter(function(d){return (d.jk||'').toUpperCase()==='WANITA';}).length;
+    var totalP = allAdminData.filter(function(d){return (d.jk||'').toUpperCase()==='LAKI-LAKI';}).length;
+    var totalW = allAdminData.filter(function(d){return (d.jk||'').toUpperCase()==='PEREMPUAN';}).length;
     bodyContent = kopHtml
       + '<h3 style="text-align:center;font-size:14px;margin-bottom:6px">DATA PENERIMA PROGRAM MBG</h3>'
       + '<p style="text-align:center;font-size:11px;color:#64748b;margin-bottom:14px">'+(sppgId !== '-' ? 'ID: '+esc(sppgId)+' | ' : '')+'Dicetak: '+tanggal+'</p>'
@@ -5287,8 +5287,8 @@ function downloadDocAsFile(type) {
       var cat = item.kategori||item.ket||'Lainnya';
       instansiMap[key].cats[cat] = (instansiMap[key].cats[cat]||0) + 1;
     });
-    var totalP = allAdminData.filter(function(d){return (d.jk||'').toUpperCase()==='PRIA';}).length;
-    var totalW = allAdminData.filter(function(d){return (d.jk||'').toUpperCase()==='WANITA';}).length;
+    var totalP = allAdminData.filter(function(d){return (d.jk||'').toUpperCase()==='LAKI-LAKI';}).length;
+    var totalW = allAdminData.filter(function(d){return (d.jk||'').toUpperCase()==='PEREMPUAN';}).length;
     var uniqueKategori = []; var katSet = {};
     allAdminData.forEach(function(d){var k=d.kategori||d.ket||'Lainnya'; if(!katSet[k]){katSet[k]=1;uniqueKategori.push(k);}});
     uniqueKategori.sort();
@@ -5349,12 +5349,12 @@ function openDocPreviewModal(type) {
   if (type === 'surat') {
     title = 'Pratinjau Surat Resmi';
     var previewData = hasData ? allAdminData.slice(0, 5) : [
-      {nama:'Contoh Nama', nik:'3201xxxxx', kategori:'Balita', usia:'3 th', jk:'PRIA'},
-      {nama:'Contoh Nama', nik:'3201xxxxx', kategori:'Anak Sekolah', usia:'8 th', jk:'WANITA'},
-      {nama:'Contoh Nama', nik:'3201xxxxx', kategori:'Ibu Hamil', usia:'25 th', jk:'WANITA'}
+      {nama:'Contoh Nama', nik:'3201xxxxx', kategori:'Balita', usia:'3 th', jk:'Laki-laki'},
+      {nama:'Contoh Nama', nik:'3201xxxxx', kategori:'Anak Sekolah', usia:'8 th', jk:'Perempuan'},
+      {nama:'Contoh Nama', nik:'3201xxxxx', kategori:'Ibu Hamil', usia:'25 th', jk:'Perempuan'}
     ];
     var dataRows = previewData.map(function(item, i) {
-      return '<tr><td style="text-align:center">'+(i+1)+'</td><td>'+esc(item.nama)+'</td><td>'+(item.nik||'-')+'</td><td>'+(item.usia||'-')+'</td><td>'+(item.jk==='PRIA'?'L':'P')+'</td><td>'+esc(item.kategori||item.ket||'-')+'</td></tr>';
+      return '<tr><td style="text-align:center">'+(i+1)+'</td><td>'+esc(item.nama)+'</td><td>'+(item.nik||'-')+'</td><td>'+(item.usia||'-')+'</td><td>'+(item.jk==='Laki-laki'?'L':'P')+'</td><td>'+esc(item.kategori||item.ket||'-')+'</td></tr>';
     }).join('');
     bodyHtml = '<div class="doc-preview-page">'
       + '<div class="doc-pp-header">'
@@ -5382,8 +5382,8 @@ function openDocPreviewModal(type) {
     var POS = ['BUMIL','BUSUI','BALITA','ATS'];
     var cPos=0, cSek=0, catDet = {};
     var invoiceData = hasData ? allAdminData : [
-      {kategori:'Balita',jk:'PRIA'},{kategori:'Balita',jk:'WANITA'},
-      {kategori:'Anak Sekolah',jk:'PRIA'},{kategori:'Ibu Hamil',jk:'WANITA'}
+      {kategori:'Balita',jk:'Laki-laki'},{kategori:'Balita',jk:'Perempuan'},
+      {kategori:'Anak Sekolah',jk:'Laki-laki'},{kategori:'Ibu Hamil',jk:'Perempuan'}
     ];
     invoiceData.forEach(function(item) {
       var cat = item.kategori||item.ket||'Lainnya';
@@ -5417,17 +5417,17 @@ function openDocPreviewModal(type) {
   } else if (type === 'data') {
     title = 'Pratinjau Cetak Data Penerima';
     var previewData = hasData ? allAdminData.slice(0, 8) : [
-      {nama:'Contoh Nama', nik:'3201xxxxx', kategori:'Balita', usia:'3 th', jk:'PRIA'},
-      {nama:'Contoh Nama', nik:'3201xxxxx', kategori:'Anak Sekolah', usia:'8 th', jk:'WANITA'},
-      {nama:'Contoh Nama', nik:'3201xxxxx', kategori:'Ibu Hamil', usia:'25 th', jk:'WANITA'},
-      {nama:'Contoh Nama', nik:'3201xxxxx', kategori:'Balita', usia:'5 th', jk:'PRIA'},
-      {nama:'Contoh Nama', nik:'3201xxxxx', kategori:'Anak Sekolah', usia:'10 th', jk:'WANITA'}
+      {nama:'Contoh Nama', nik:'3201xxxxx', kategori:'Balita', usia:'3 th', jk:'Laki-laki'},
+      {nama:'Contoh Nama', nik:'3201xxxxx', kategori:'Anak Sekolah', usia:'8 th', jk:'Perempuan'},
+      {nama:'Contoh Nama', nik:'3201xxxxx', kategori:'Ibu Hamil', usia:'25 th', jk:'Perempuan'},
+      {nama:'Contoh Nama', nik:'3201xxxxx', kategori:'Balita', usia:'5 th', jk:'Laki-laki'},
+      {nama:'Contoh Nama', nik:'3201xxxxx', kategori:'Anak Sekolah', usia:'10 th', jk:'Perempuan'}
     ];
     var dataRows = previewData.map(function(item, i) {
-      return '<tr><td>'+(i+1)+'</td><td>'+esc(item.nama)+'</td><td>'+(item.nik||'-')+'</td><td>'+(item.usia||'-')+'</td><td style="text-align:center">'+(item.jk==='PRIA'?'L':'P')+'</td><td>'+esc(item.kategori||item.ket||'-')+'</td></tr>';
+      return '<tr><td>'+(i+1)+'</td><td>'+esc(item.nama)+'</td><td>'+(item.nik||'-')+'</td><td>'+(item.usia||'-')+'</td><td style="text-align:center">'+(item.jk==='Laki-laki'?'L':'P')+'</td><td>'+esc(item.kategori||item.ket||'-')+'</td></tr>';
     }).join('');
-    var totalP = hasData ? allAdminData.filter(function(d){return (d.jk||'').toUpperCase()==='PRIA';}).length : 0;
-    var totalW = hasData ? allAdminData.filter(function(d){return (d.jk||'').toUpperCase()==='WANITA';}).length : 0;
+    var totalP = hasData ? allAdminData.filter(function(d){return (d.jk||'').toUpperCase()==='LAKI-LAKI';}).length : 0;
+    var totalW = hasData ? allAdminData.filter(function(d){return (d.jk||'').toUpperCase()==='PEREMPUAN';}).length : 0;
     bodyHtml = '<div class="doc-preview-page">'
       + '<div class="doc-pp-header">'
       + (logoSrc ? '<img class="doc-pp-logo" src="'+logoSrc+'" alt="Logo">' : '')
@@ -5452,10 +5452,10 @@ function openDocPreviewModal(type) {
     title = 'Pratinjau Laporan Rekapitulasi';
     var instansiMap = {};
     var rekapData = hasData ? allAdminData : [
-      {instansi:'Posyandu A', pic:'PIC A', kategori:'Balita', jk:'PRIA'},
-      {instansi:'Posyandu A', pic:'PIC A', kategori:'Balita', jk:'WANITA'},
-      {instansi:'SDN 01', pic:'PIC B', kategori:'Anak Sekolah', jk:'PRIA'},
-      {instansi:'Posyandu B', pic:'PIC C', kategori:'Ibu Hamil', jk:'WANITA'}
+      {instansi:'Posyandu A', pic:'PIC A', kategori:'Balita', jk:'Laki-laki'},
+      {instansi:'Posyandu A', pic:'PIC A', kategori:'Balita', jk:'Perempuan'},
+      {instansi:'SDN 01', pic:'PIC B', kategori:'Anak Sekolah', jk:'Laki-laki'},
+      {instansi:'Posyandu B', pic:'PIC C', kategori:'Ibu Hamil', jk:'Perempuan'}
     ];
     rekapData.forEach(function(item) {
       var key = item.instansi || 'Tidak Diketahui';
@@ -5464,8 +5464,8 @@ function openDocPreviewModal(type) {
       var cat = item.kategori||item.ket||'Lainnya';
       instansiMap[key].cats[cat] = (instansiMap[key].cats[cat]||0) + 1;
     });
-    var totalP = rekapData.filter(function(d){return (d.jk||'').toUpperCase()==='PRIA';}).length;
-    var totalW = rekapData.filter(function(d){return (d.jk||'').toUpperCase()==='WANITA';}).length;
+    var totalP = rekapData.filter(function(d){return (d.jk||'').toUpperCase()==='LAKI-LAKI';}).length;
+    var totalW = rekapData.filter(function(d){return (d.jk||'').toUpperCase()==='PEREMPUAN';}).length;
     var instKeys = Object.keys(instansiMap).sort();
     var rekapRows = instKeys.slice(0, 5).map(function(inst, i) {
       var d = instansiMap[inst];
@@ -6374,8 +6374,8 @@ function renderCatSummaryCards(data) {
     const cat = item.ket || item.kategori || 'Lainnya';
     if(!groups[cat]) groups[cat] = { total:0, pria:0, wanita:0, todayCount:0, names:[] };
     groups[cat].total++;
-    if(item.jk === 'PRIA') groups[cat].pria++;
-    else if(item.jk === 'WANITA') groups[cat].wanita++;
+    if(item.jk === 'Laki-laki') groups[cat].pria++;
+    else if(item.jk === 'Perempuan') groups[cat].wanita++;
     if(item.timestampDate && item.timestampDate === todayStr) groups[cat].todayCount++;
     if(groups[cat].names.length < 3) groups[cat].names.push(item.nama);
   });
@@ -6682,7 +6682,7 @@ function renderUserTable(arr) {
     html += `<div class="data-card"><div class="dc-head"><span class="dc-title">${esc(cat)}${catDupPill}</span><span class="dc-badge">${groups[cat].length}</span></div><ul class="list-ul">`;
     groups[cat].forEach(item => {
       const init = item.nama ? item.nama.charAt(0).toUpperCase() : '?';
-      const gIcon = item.jk === 'PRIA' ? `<i class="ph ph-gender-male text-primary"></i>` : `<i class="ph ph-gender-female text-danger"></i>`;
+      const gIcon = item.jk === 'Laki-laki' ? `<i class="ph ph-gender-male text-primary"></i>` : `<i class="ph ph-gender-female text-danger"></i>`;
       const alWarn = item.alergi && item.alergi !== '-' ? `<i class="ph ph-warning-circle text-warning ms-1" title="${esc(item.alergi)}"></i>` : '';
       const usiaDisplay = getUsiaDisplay(item.tglLahir, item.usia);
       const rowIdx = item.rowIndex || item.row;
@@ -6978,7 +6978,7 @@ function toggleForm() {
   updateKelasFieldMain();
   if(!k) { s.classList.add('d-none'); return; }
   s.classList.remove('d-none');
-  if(k === 'BUMIL' || k === 'BUSUI') { document.getElementById('jk').value = 'WANITA'; document.getElementById('jk').disabled = true; }
+  if(k === 'BUMIL' || k === 'BUSUI') { document.getElementById('jk').value = 'Perempuan'; document.getElementById('jk').disabled = true; }
   else document.getElementById('jk').disabled = false;
   syncJumlah();
   checkAgeCategoryRule();
@@ -6986,9 +6986,9 @@ function toggleForm() {
 function syncJumlah() {
   const jk = document.getElementById('jk').value;
   const jkCodeEl = document.getElementById('jkCode');
-  if (jk === 'PRIA') {
+  if (jk === 'Laki-laki') {
     jkCodeEl.textContent = '392';
-  } else if (jk === 'WANITA') {
+  } else if (jk === 'Perempuan') {
     jkCodeEl.textContent = '64';
   } else {
     jkCodeEl.textContent = '0';
@@ -7008,7 +7008,7 @@ function downloadExcelDataMasuk() {
     'NIK/NISN/NIP': item.nik || '-',
     'Tanggal Lahir': item.tglLahir || '-',
     'Usia': getUsiaDisplay(item.tglLahir, item.usia),
-    'Jenis Kelamin': item.jk === 'PRIA' ? 'Laki-laki' : (item.jk === 'WANITA' ? 'Perempuan' : '-'),
+    'Jenis Kelamin': item.jk === 'Laki-laki' ? 'Laki-laki' : (item.jk === 'Perempuan' ? 'Perempuan' : '-'),
     'Kategori': item.ket || item.kategori || '-',
     'Kelas': item.kelas ? ('Kelas ' + item.kelas) : '-',
     'Nama Orang Tua': item.namaOrangTua || '-',
@@ -7042,12 +7042,12 @@ function downloadTemplateExcel() {
 
   const headers = [
     'Nama Lengkap', 'NIK/NISN/NIP', 'Tanggal Lahir (YYYY-MM-DD)',
-    'Jenis Kelamin (PRIA/WANITA)', 'Kategori', 'Kelas (Khusus Sekolah)',
+    'Jenis Kelamin (Laki-laki/Perempuan)', 'Kategori', 'Kelas (Khusus Sekolah)',
     'Nama Orang Tua', 'Alamat Domisili', 'Alergi (opsional)'
   ];
   const contoh = [
     'Budi Santoso', '1234567890123456', '2015-05-20',
-    'PRIA', 'SD 1-3', '2',
+    'Laki-laki', 'SD 1-3', '2',
     'Siti Aminah', 'Jl. Contoh No 1, RT 01/RW 02', '-'
   ];
   const ws = XLSX.utils.aoa_to_sheet([headers, contoh]);
@@ -7063,7 +7063,7 @@ function downloadTemplateExcel() {
     ['1. Jangan mengubah urutan atau nama kolom pada sheet "Template Data".'],
     ['2. Baris pertama adalah judul kolom - jangan dihapus. Baris kedua adalah contoh, boleh dihapus/diganti.'],
     ['3. Format Tanggal Lahir: YYYY-MM-DD, contoh 2015-05-20.'],
-    ['4. Jenis Kelamin hanya boleh diisi: PRIA atau WANITA (kode: PRIA = 392, WANITA = 64).'],
+    ['4. Jenis Kelamin hanya boleh diisi: Laki-laki atau Perempuan (kode: Laki-laki = 392, Perempuan = 64).'],
     ['5. Kategori harus salah satu dari daftar berikut:'],
     ...kategoriOptions.map(k => ['     - ' + k]),
     [''],
@@ -7236,7 +7236,7 @@ function processTemplateRows(rows, instansi, pic, noHp) {
       const parsed = new Date(String(tglRaw));
       if (!isNaN(parsed)) tglLahir = parsed.toISOString().split('T')[0];
     }
-    const jk = String(row['Jenis Kelamin (PRIA/WANITA)'] || '').trim().toUpperCase();
+    const jk = String(row['Jenis Kelamin (Laki-laki/Perempuan)'] || '').trim().toUpperCase();
     const kategori = String(row['Kategori'] || '').trim().toUpperCase();
     const kelasRaw = row['Kelas (Khusus Sekolah)'] !== undefined ? row['Kelas (Khusus Sekolah)'] : (row['Kelas'] || '');
     const kelas = normalizeKelasClient(kelasRaw);
@@ -7250,7 +7250,7 @@ function processTemplateRows(rows, instansi, pic, noHp) {
     const rowErrors = [];
     if (!nama) rowErrors.push('Nama kosong');
     if (!tglLahir) rowErrors.push('Tanggal Lahir kosong/tidak valid (format YYYY-MM-DD)');
-    if (jk !== 'PRIA' && jk !== 'WANITA') rowErrors.push('Jenis Kelamin harus PRIA atau WANITA');
+    if (jk !== 'LAKI-LAKI' && jk !== 'PEREMPUAN') rowErrors.push('Jenis Kelamin harus Laki-laki atau Perempuan');
     if (!kategori || (kategoriValid.length && kategoriValid.indexOf(kategori) === -1)) rowErrors.push('Kategori tidak dikenali: "' + (kategori || '-') + '"');
     if (!alamat) rowErrors.push('Alamat kosong');
 
@@ -7840,8 +7840,8 @@ function prosesNIK() {
     const dateStr = `${year}-${month}-${day}`;
     document.getElementById('tglLahir').value = dateStr;
     let genderVal = '', genderText = '';
-    if (genderDigit === '1') { genderVal = 'PRIA'; genderText = 'Laki-laki'; }
-    else if (genderDigit === '2') { genderVal = 'WANITA'; genderText = 'Perempuan'; }
+    if (genderDigit === '1') { genderVal = 'Laki-laki'; genderText = 'Laki-laki'; }
+    else if (genderDigit === '2') { genderVal = 'Perempuan'; genderText = 'Perempuan'; }
     if (genderVal) document.getElementById('jk').value = genderVal;
     hitungUsia(); syncJumlah();
     _runNikDupCheck(nikStr, nik, s, null, '', instansi, `NIP Terdeteksi (${genderText})`);
@@ -7860,8 +7860,8 @@ function prosesNIK() {
     return;
   }
   let d = parseInt(nikStr.substring(6,8)), m = parseInt(nikStr.substring(8,10)), y = nikStr.substring(10,12);
-  let jk = 'PRIA';
-  if (d > 40) { d -= 40; jk = 'WANITA'; }
+  let jk = 'Laki-laki';
+  if (d > 40) { d -= 40; jk = 'Perempuan'; }
   let fy = parseInt(y) > 30 ? 1900 + parseInt(y) : 2000 + parseInt(y);
   document.getElementById('tglLahir').value = `${fy}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
   document.getElementById('jk').value = jk;
@@ -7880,8 +7880,8 @@ function prosesNIK_Edit() {
   if (nikStr.length === 18) {
     const year = nikStr.substring(0,4), month = nikStr.substring(4,6), day = nikStr.substring(6,8), genderDigit = nikStr.substring(14,15);
     document.getElementById('edit_tglLahir').value = `${year}-${month}-${day}`;
-    if (genderDigit === '1') document.getElementById('edit_jk').value = 'PRIA';
-    else if (genderDigit === '2') document.getElementById('edit_jk').value = 'WANITA';
+    if (genderDigit === '1') document.getElementById('edit_jk').value = 'Laki-laki';
+    else if (genderDigit === '2') document.getElementById('edit_jk').value = 'Perempuan';
     hitungUsiaEdit();
     _runNikDupCheck(nikStr, nik, s, rowIndex, '', instansi, 'NIP Diisi');
     return;
@@ -7898,8 +7898,8 @@ function prosesNIK_Edit() {
     return;
   }
   let d = parseInt(nikStr.substring(6,8)), m = parseInt(nikStr.substring(8,10)), y = nikStr.substring(10,12);
-  let jk = 'PRIA';
-  if (d > 40) { d -= 40; jk = 'WANITA'; }
+  let jk = 'Laki-laki';
+  if (d > 40) { d -= 40; jk = 'Perempuan'; }
   let fy = parseInt(y) > 30 ? 1900 + parseInt(y) : 2000 + parseInt(y);
   document.getElementById('edit_tglLahir').value = `${fy}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
   document.getElementById('edit_jk').value = jk;
@@ -8374,7 +8374,7 @@ function bukaModalEdit(rowIndex) {
     document.getElementById('edit_nama').value = data.nama || '';
     document.getElementById('edit_tglLahir').value = data.tglLahir || '';
     document.getElementById('edit_usia').value = data.usia || '';
-    document.getElementById('edit_jk').value = data.jk || 'PRIA';
+    document.getElementById('edit_jk').value = data.jk || 'Laki-laki';
     // Jika kategori data ini sudah dihapus dari daftar Pengaturan (tidak ada lagi
     // di opsi dropdown), tetap tambahkan sebagai opsi agar data lama tidak hilang
     // dan tidak terpaksa diubah kategorinya saat diedit.
@@ -8643,9 +8643,9 @@ function cetakPDF() {
 }
 function buildReportHTML(instansi, pic, data, noHp) {
   const groups = {};
-  data.forEach(item => { const c = item.ket||'Lainnya'; if(!groups[c]) groups[c]={p:0,w:0}; if(item.jk==='PRIA')groups[c].p++; else if(item.jk==='WANITA')groups[c].w++; });
+  data.forEach(item => { const c = item.ket||'Lainnya'; if(!groups[c]) groups[c]={p:0,w:0}; if(item.jk==='Laki-laki')groups[c].p++; else if(item.jk==='Perempuan')groups[c].w++; });
   const sumHtml = Object.keys(groups).sort().map(c => `<div style="padding:12px;border:1px solid #ddd;border-radius:8px;background:#f9f9f9"><strong style="color:#4f46e5;display:block;margin-bottom:4px">${c}</strong><div style="font-size:.85rem">L: ${groups[c].p} | P: ${groups[c].w}</div><div style="margin-top:4px;font-weight:bold;border-top:1px solid #eee;padding-top:4px">Total: ${groups[c].p+groups[c].w}</div></div>`).join('');
-  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Laporan MBG - ${instansi}</title><style>body{font-family:Arial,sans-serif;margin:20px;color:#333}.hdr{text-align:center;margin-bottom:24px;border-bottom:2px solid #4f46e5;padding-bottom:16px}h1{color:#4f46e5;font-size:22px;margin:0}h2{font-size:17px;margin:4px 0}table{width:100%;border-collapse:collapse;margin-top:16px;font-size:12px}th,td{border:1px solid #ddd;padding:8px;text-align:left}th{background:#4f46e5;color:#fff}tr:nth-child(even){background:#f8fafc}.info{margin:16px 0;padding:12px;background:#f1f5f9;border-radius:8px;border-left:4px solid #4f46e5;font-size:13px}@media print{body{margin:0}}</style></head><body><div class="hdr"><h1>PROGRAM MAKAN BERGIZI GRATIS</h1><h2>${esc(SIG.instansiName||'SPPG TAKTAKAN')}</h2><p style="margin:3px 0;color:#666;font-size:13px">${esc(SIG.instansiAddress||'')}</p></div><h3>LAPORAN DATA PENDATAAN</h3><p>${new Date().toLocaleDateString('id-ID',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</p><div class="info"><strong>Instansi:</strong> ${instansi}<br><strong>PIC:</strong> ${pic}<br>${noHp?`<strong>No HP:</strong> ${noHp}<br>`:''}<strong>Total:</strong> ${data.length} Jiwa</div><h3>Rekapitulasi</h3><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin:16px 0">${sumHtml}</div><h3>Detail Data</h3><table><thead><tr><th width="4%">No</th><th width="24%">Nama</th><th width="14%">NIK/NISN</th><th width="8%">JK</th><th width="8%">Usia</th><th width="14%">Kategori</th><th width="8%">Kelas</th><th width="20%">Alergi</th></tr></thead><tbody>${[...data].sort((a,b)=>(a.ket>b.ket)?1:-1).map((item,i)=>`<tr><td>${i+1}</td><td>${esc(item.nama)}</td><td>${item.nik||'-'}</td><td>${item.jk==='PRIA'?'Laki-laki':'Perempuan'}</td><td>${item.usia||'-'}</td><td>${esc(item.ket)}</td><td>${item.kelas ? ('Kelas '+esc(item.kelas)) : '-'}</td><td>${item.alergi&&item.alergi!=='-'?item.alergi:'-'}</td></tr>`).join('')}</tbody></table><p style="margin-top:24px;text-align:center;font-size:11px;color:#888">Dicetak: ${new Date().toLocaleString('id-ID')}</p></body></html>`;
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Laporan MBG - ${instansi}</title><style>body{font-family:Arial,sans-serif;margin:20px;color:#333}.hdr{text-align:center;margin-bottom:24px;border-bottom:2px solid #4f46e5;padding-bottom:16px}h1{color:#4f46e5;font-size:22px;margin:0}h2{font-size:17px;margin:4px 0}table{width:100%;border-collapse:collapse;margin-top:16px;font-size:12px}th,td{border:1px solid #ddd;padding:8px;text-align:left}th{background:#4f46e5;color:#fff}tr:nth-child(even){background:#f8fafc}.info{margin:16px 0;padding:12px;background:#f1f5f9;border-radius:8px;border-left:4px solid #4f46e5;font-size:13px}@media print{body{margin:0}}</style></head><body><div class="hdr"><h1>PROGRAM MAKAN BERGIZI GRATIS</h1><h2>${esc(SIG.instansiName||'SPPG TAKTAKAN')}</h2><p style="margin:3px 0;color:#666;font-size:13px">${esc(SIG.instansiAddress||'')}</p></div><h3>LAPORAN DATA PENDATAAN</h3><p>${new Date().toLocaleDateString('id-ID',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</p><div class="info"><strong>Instansi:</strong> ${instansi}<br><strong>PIC:</strong> ${pic}<br>${noHp?`<strong>No HP:</strong> ${noHp}<br>`:''}<strong>Total:</strong> ${data.length} Jiwa</div><h3>Rekapitulasi</h3><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin:16px 0">${sumHtml}</div><h3>Detail Data</h3><table><thead><tr><th width="4%">No</th><th width="24%">Nama</th><th width="14%">NIK/NISN</th><th width="8%">JK</th><th width="8%">Usia</th><th width="14%">Kategori</th><th width="8%">Kelas</th><th width="20%">Alergi</th></tr></thead><tbody>${[...data].sort((a,b)=>(a.ket>b.ket)?1:-1).map((item,i)=>`<tr><td>${i+1}</td><td>${esc(item.nama)}</td><td>${item.nik||'-'}</td><td>${item.jk==='Laki-laki'?'Laki-laki':'Perempuan'}</td><td>${item.usia||'-'}</td><td>${esc(item.ket)}</td><td>${item.kelas ? ('Kelas '+esc(item.kelas)) : '-'}</td><td>${item.alergi&&item.alergi!=='-'?item.alergi:'-'}</td></tr>`).join('')}</tbody></table><p style="margin-top:24px;text-align:center;font-size:11px;color:#888">Dicetak: ${new Date().toLocaleString('id-ID')}</p></body></html>`;
 }
 
 // ============================================================
@@ -8659,8 +8659,8 @@ function updatePublicGroupChart(data) {
   let posTotal=0,posPria=0,posWanita=0,sekTotal=0,sekPria=0,sekWanita=0,sdmTotal=0,sdmPria=0,sdmWanita=0;
   (data||[]).forEach(item => {
     const kat = (item.kategori||item.ket||'').toUpperCase().trim();
-    const isMale = (item.jk||'').toUpperCase()==='PRIA';
-    const isFemale = (item.jk||'').toUpperCase()==='WANITA';
+    const isMale = (item.jk||'').toUpperCase()==='LAKI-LAKI';
+    const isFemale = (item.jk||'').toUpperCase()==='PEREMPUAN';
     if(posyanduCats.includes(kat) || kat.startsWith('ATS')){posTotal++;if(isMale)posPria++;else if(isFemale)posWanita++;}
     else if(sekolahCats.includes(kat)){sekTotal++;if(isMale)sekPria++;else if(isFemale)sekWanita++;}
     else if(sdmCats.includes(kat)){sdmTotal++;if(isMale)sdmPria++;else if(isFemale)sdmWanita++;}
@@ -8709,8 +8709,8 @@ function updateGroupCharts(data) {
   data.forEach(item => {
     const kat = (item.kategori || item.ket || '').toUpperCase().trim();
     const jk = (item.jk || '').toUpperCase();
-    const isMale = (jk === 'PRIA');
-    const isFemale = (jk === 'WANITA');
+    const isMale = (jk === 'LAKI-LAKI');
+    const isFemale = (jk === 'PEREMPUAN');
     
     if (posyanduCats.includes(kat) || kat.startsWith('ATS')) {
       posTotal++;
@@ -8809,8 +8809,8 @@ function renderGroupCategoryDetails(data) {
       const jk = (item.jk || '').toUpperCase();
       if (catArray.includes(kat)) {
         if (!stats[kat]) stats[kat] = { pria: 0, wanita: 0, total: 0 };
-        if (jk === 'PRIA') stats[kat].pria++;
-        else if (jk === 'WANITA') stats[kat].wanita++;
+        if (jk === 'LAKI-LAKI') stats[kat].pria++;
+        else if (jk === 'PEREMPUAN') stats[kat].wanita++;
         stats[kat].total++;
       }
     });
@@ -9048,8 +9048,8 @@ function getPorsiType(catStr) {
 function updateAdminStats(data) {
   let pria = 0, wanita = 0, pk = 0, pb = 0, cats = new Set();
   data.forEach(item => {
-    if(item.jk==='PRIA') pria++;
-    else if(item.jk==='WANITA') wanita++;
+    if(item.jk==='Laki-laki') pria++;
+    else if(item.jk==='Perempuan') wanita++;
     const cat = item.kategori || item.ket;
     cats.add(cat);
     const pType = getPorsiType(cat);
@@ -9223,10 +9223,10 @@ function renderInstansiCatCards(data) {
       ig[inst].cats[cat].today++; 
       ig[inst].totalToday++; 
     }
-    if (jk === 'PRIA') { 
+    if (jk === 'LAKI-LAKI') { 
       ig[inst].cats[cat].pria++; 
       ig[inst].pria++; 
-    } else if (jk === 'WANITA') { 
+    } else if (jk === 'PEREMPUAN') { 
       ig[inst].cats[cat].wanita++; 
       ig[inst].wanita++; 
     }
@@ -9343,8 +9343,8 @@ function renderAdmCatSummary(data) {
     const cat = item.kategori||item.ket||'Lainnya';
     if(!groups[cat]) groups[cat] = { total:0, pria:0, wanita:0, today:0, instansiToday: new Set(), instansiAll: new Set() };
     groups[cat].total++;
-    if(item.jk==='PRIA') groups[cat].pria++;
-    else if(item.jk==='WANITA') groups[cat].wanita++;
+    if(item.jk==='Laki-laki') groups[cat].pria++;
+    else if(item.jk==='Perempuan') groups[cat].wanita++;
     const ts = item.timestampRaw || item.timestamp || '';
     if(ts && ts.substring(0,10) === todayStr) {
       groups[cat].today++;
@@ -9468,7 +9468,7 @@ function filterAdminData() {
     });
   }
 
-  if (jkFilter) filtered = filtered.filter(d => (d.jk||'').toUpperCase() === jkFilter);
+  if (jkFilter) filtered = filtered.filter(d => (d.jk||'').toUpperCase() === jkFilter.toUpperCase());
 
   const totalDupKeys = Object.keys(_adminDupMap).length;
   const totalDupRows = allAdminData.filter(d => !!getAdminDupInfo(d.nik)).length;
@@ -9518,11 +9518,11 @@ function toggleExpandInstansi(key) {
 
 function buildDataItemHtml(r, idx) {
   const jkUp = (r.jk||'').toUpperCase();
-  const jkColor = jkUp==='PRIA' ? '#3b82f6' : jkUp==='WANITA' ? '#ec4899' : '#94a3b8';
-  const jkBg = jkUp==='PRIA' ? 'rgba(59,130,246,.1)' : jkUp==='WANITA' ? 'rgba(236,72,153,.1)' : 'rgba(148,163,184,.1)';
-  const jkIcon = jkUp==='PRIA'
+  const jkColor = jkUp==='LAKI-LAKI' ? '#3b82f6' : jkUp==='PEREMPUAN' ? '#ec4899' : '#94a3b8';
+  const jkBg = jkUp==='LAKI-LAKI' ? 'rgba(59,130,246,.1)' : jkUp==='PEREMPUAN' ? 'rgba(236,72,153,.1)' : 'rgba(148,163,184,.1)';
+  const jkIcon = jkUp==='LAKI-LAKI'
     ? '<i class="ph ph-gender-male" style="color:'+jkColor+';font-size:.78rem"></i>'
-    : jkUp==='WANITA'
+    : jkUp==='PEREMPUAN'
       ? '<i class="ph ph-gender-female" style="color:'+jkColor+';font-size:.78rem"></i>'
       : '';
   const nikStr = String(r.nik||'').replace(/\D/g,'');
@@ -9599,8 +9599,8 @@ function renderAdminGrid(data, sortBy) {
     l.forEach(function(r) {
       var c = r.kategori || r.ket || 'Lainnya';
       catCounts[c] = (catCounts[c]||0)+1;
-      if ((r.jk||'').toUpperCase()==='PRIA') totalP++;
-      else if ((r.jk||'').toUpperCase()==='WANITA') totalW++;
+      if ((r.jk||'').toUpperCase()==='LAKI-LAKI') totalP++;
+      else if ((r.jk||'').toUpperCase()==='PEREMPUAN') totalW++;
       var pType = getPorsiType(c);
       if (pType === 'PK') totalPK++;
       else if (pType === 'PB') totalPB++;
@@ -10451,7 +10451,7 @@ function getRekapFiltered() {
     (d.pic||'').toLowerCase().includes(cariData)
   );
   if (usia)     data = data.filter(d => usiaInGroup(d.usia, usia));
-  if (jk)       data = data.filter(d => (d.jk||'').toUpperCase() === jk);
+  if (jk)       data = data.filter(d => (d.jk||'').toUpperCase() === jk.toUpperCase());
   if (instansi) data = data.filter(d => d.instansi === instansi);
   if (kategori) data = data.filter(d => (d.kategori||d.ket||'') === kategori);
   if (dupFilter) {
@@ -10708,8 +10708,8 @@ function renderRekapTable() {
     tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted py-5"><i class="ph ph-magnifying-glass d-block mb-2" style="font-size:2rem;opacity:0.4;"></i>Tidak ada data yang sesuai filter</td></tr>';
   } else {
     tbody.innerHTML = pageData.map((r, i) => {
-      const jkText = (r.jk||'').toUpperCase() === 'PRIA' ? '<span style="color:#2563eb;font-weight:600;"><i class="ph ph-gender-male me-1"></i>Laki-laki</span>' :
-                     (r.jk||'').toUpperCase() === 'WANITA' ? '<span style="color:#db2777;font-weight:600;"><i class="ph ph-gender-female me-1"></i>Perempuan</span>' : '<span class="text-muted">-</span>';
+      const jkText = (r.jk||'').toUpperCase() === 'LAKI-LAKI' ? '<span style="color:#2563eb;font-weight:600;"><i class="ph ph-gender-male me-1"></i>Laki-laki</span>' :
+                     (r.jk||'').toUpperCase() === 'PEREMPUAN' ? '<span style="color:#db2777;font-weight:600;"><i class="ph ph-gender-female me-1"></i>Perempuan</span>' : '<span class="text-muted">-</span>';
       const usiaGroup = getUsiaGroup(getUsiaDisplay(r.tglLahir, r.usia));
       const nikStr = String(r.nik||'').replace(/\D/g,'');
       const nikLabel = nikStr.length===16?'NIK':nikStr.length===10?'NISN':nikStr.length===18?'NIP':'–';
@@ -10789,8 +10789,8 @@ function rekapSetPerPage(val) {
 
 function renderRekapStats(data) {
   const total = data.length;
-  const pria   = data.filter(d => (d.jk||'').toUpperCase()==='PRIA').length;
-  const wanita = data.filter(d => (d.jk||'').toUpperCase()==='WANITA').length;
+  const pria   = data.filter(d => (d.jk||'').toUpperCase()==='LAKI-LAKI').length;
+  const wanita = data.filter(d => (d.jk||'').toUpperCase()==='PEREMPUAN').length;
   const instansiCount = new Set(data.map(d => d.instansi).filter(i=>i)).size;
   const el = document.getElementById('rekapStatsRow');
   if (!el) return;
@@ -10843,8 +10843,8 @@ function renderRekapUsiaTable(data) {
     const subset = data.filter(d => usiaInGroup(d.usia, g.key));
     if (subset.length === 0) return;
 
-    const p = subset.filter(d => (d.jk||'').toUpperCase()==='PRIA').length;
-    const w = subset.filter(d => (d.jk||'').toUpperCase()==='WANITA').length;
+    const p = subset.filter(d => (d.jk||'').toUpperCase()==='LAKI-LAKI').length;
+    const w = subset.filter(d => (d.jk||'').toUpperCase()==='PEREMPUAN').length;
     const t = subset.length;
     totalP += p; totalW += w; grandTotal += t;
     const pct = data.length ? ((t/data.length)*100).toFixed(1) : '0.0';
@@ -10977,8 +10977,8 @@ function buildRekapPivotData(data) {
     if (!counts[inst]) counts[inst] = {};
     if (!counts[inst][k]) counts[inst][k] = { L: 0, P: 0 };
     const jk = (d.jk || '').toUpperCase();
-    if (jk === 'PRIA') counts[inst][k].L++;
-    else if (jk === 'WANITA') counts[inst][k].P++;
+    if (jk === 'LAKI-LAKI') counts[inst][k].L++;
+    else if (jk === 'PEREMPUAN') counts[inst][k].P++;
   });
 
   const grandPerKat = {};
@@ -11132,13 +11132,13 @@ function cetakRekap() {
   const filterDesc = [
     cariQ     ? `Cari: "${cariQ}"` : '',
     usiaQ     ? `Usia: ${USIA_GROUPS.find(g=>g.key===usiaQ)?.label||usiaQ}` : '',
-    jkQ       ? `JK: ${jkQ==='PRIA'?'Laki-laki':'Perempuan'}` : '',
+    jkQ       ? `JK: ${jkQ==='Laki-laki'?'Laki-laki':'Perempuan'}` : '',
     instansiQ ? `Instansi: "${instansiQ}"` : '',
     kategoriQ ? `Kategori: "${kategoriQ}"` : '',
   ].filter(Boolean).join(' | ') || 'Semua Data';
 
-  const totalP = data.filter(d=> (d.jk||'').toUpperCase()==='PRIA').length;
-  const totalW = data.filter(d=> (d.jk||'').toUpperCase()==='WANITA').length;
+  const totalP = data.filter(d=> (d.jk||'').toUpperCase()==='LAKI-LAKI').length;
+  const totalW = data.filter(d=> (d.jk||'').toUpperCase()==='PEREMPUAN').length;
   const uniqueInstansi = new Set(data.map(d=> d.instansi).filter(i=>i)).size;
 
   // HTML untuk PDF (hanya header + filter + stats ringkas + tabel semua data)
@@ -11187,7 +11187,7 @@ function cetakRekap() {
     </thead>
     <tbody>
       ${data.map((r,i)=>{
-        const jk=(r.jk||'').toUpperCase()==='PRIA'?'L':(r.jk||'').toUpperCase()==='WANITA'?'P':'-';
+        const jk=(r.jk||'').toUpperCase()==='LAKI-LAKI'?'L':(r.jk||'').toUpperCase()==='PEREMPUAN'?'P':'-';
         return `<tr style="${i%2===0?'':'background:#f8fafc'}">
           <td style="text-align:center">${i+1}</td>
           <td>${esc(r.nama||'–')}</td>
