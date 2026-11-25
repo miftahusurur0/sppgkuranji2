@@ -172,7 +172,7 @@
     // 1) GANTI URL INI dengan URL Web App hasil Deploy Apps Script kamu
     //    (Deploy > New deployment > Web app > Execute as: Me > Who has access: Anyone > /exec)
     //    Hanya dipakai saat file ini berjalan di LUAR Apps Script (Blogger/Netlify).
-    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyccJn5rJv5yDVOzfy12dh7EDJN4Awc3D9n9NyJftNNR9iv74edKY9HC1_3EkI2RU4p/exec';
+    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxWsQpCjCkEcj4mfoQNjHaHs1fJtkcoE-Q3I15xmePFyAm-WiKtPiY7ZaLGAMSN8C7G/exec';
 
     // 2) Peta nama fungsi server -> urutan nama parameter,
     //    HARUS SAMA PERSIS dengan switch(action) di Code.gs (doPost)
@@ -7084,7 +7084,8 @@ function getAllowedKelasForKategoriClient(kategori) {
 // Nama & NIK Orang Tua wajib kecuali untuk BUMIL dan BUSUI.
 function isOrtuWajibClient(kategori) {
   const s = String(kategori || '').trim().toUpperCase();
-  return s !== 'BUMIL' && s !== 'BUSUI';
+  const sekolah = ['PAUD', 'RA', 'TK', 'KB', 'MI 1-3', 'MI 4-6', 'MI', 'SD 1-3', 'SD 4-6', 'SD', 'MTS', 'MTSN', 'SMP 7-9', 'SMP', 'SMA 10-12', 'SMA', 'SMK', 'MA', 'MAK', 'PONPES', 'GURU', 'TENAGA PENDIDIK'];
+  return s !== 'BUMIL' && s !== 'BUSUI' && sekolah.indexOf(s) === -1;
 }
 function isKategoriPosyanduClient(kategori) {
   const s = String(kategori || '').trim().toUpperCase();
@@ -7295,7 +7296,7 @@ function downloadTemplateExcel() {
     ['     - SMA, MA, dan SMK  : 10, 11, atau 12'],
     [''],
     ['7. Sheet Posyandu: kolom HPHT wajib untuk BUMIL (maks. 11 bulan ke belakang); kolom Nama Anak, NIK Anak, dan Tanggal Lahir Anak wajib untuk BUSUI (tanggal lahir maks. 2 tahun ke belakang).'],
-    ['8. Nama Orang Tua dan NIK Orang Tua wajib diisi, kecuali untuk BUMIL dan BUSUI (boleh dikosongkan). NIK 16 digit, sesuai struktur NIK Indonesia.'],
+    ['8. Nama Orang Tua dan NIK Orang Tua wajib diisi untuk BALITA dan ATS. Untuk BUMIL, BUSUI, sekolah/ponpes, GURU, dan TENAGA PENDIDIK boleh dikosongkan. NIK 16 digit, sesuai struktur NIK Indonesia.'],
     ['9. NIK/NISN/NIP: 16 digit untuk NIK, 10 digit untuk NISN, 18 digit untuk NIP.'],
     ['10. Instansi, PIC, No HP PIC, dan Email diambil otomatis dari form Input Data saat file diupload. Jika email baru, isi Kode Verifikasi dari admin di form terlebih dahulu.'],
     ['11. Untuk data yang sudah ada (dicocokkan lewat NIK atau Nama + Alamat), pilih "Update Data Lama" saat konfirmasi agar isian yang baru terisi tersimpan.'],
