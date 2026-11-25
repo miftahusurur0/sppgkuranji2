@@ -172,7 +172,7 @@
     // 1) GANTI URL INI dengan URL Web App hasil Deploy Apps Script kamu
     //    (Deploy > New deployment > Web app > Execute as: Me > Who has access: Anyone > /exec)
     //    Hanya dipakai saat file ini berjalan di LUAR Apps Script (Blogger/Netlify).
-    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzziAzzbJK3_KxxgEU-GT890UmZ7ZepS3eVszUlatH8j8tqnol7FnX6BPJPiuQxHsQB/exec';
+    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyccJn5rJv5yDVOzfy12dh7EDJN4Awc3D9n9NyJftNNR9iv74edKY9HC1_3EkI2RU4p/exec';
 
     // 2) Peta nama fungsi server -> urutan nama parameter,
     //    HARUS SAMA PERSIS dengan switch(action) di Code.gs (doPost)
@@ -2327,11 +2327,11 @@ const notify = {
                   </select>
                 </div>
                 <div class="col-12">
-  <label class="fml req">Nama Orang Tua / Wali <small class="text-danger">(Wajib)</small></label>
+  <label class="fml req">Nama Orang Tua / Wali <small class="text-danger" id="namaOrtuTagWajib">(Wajib)</small></label>
   <input type="text" class="form-control" id="namaOrangTua" placeholder="Nama Ayah / Ibu / Wali" oninput="this.value=this.value.replace(/[^a-zA-Z\s'\-\.\,]/g,'');this.value=this.value.toUpperCase()" style="text-transform:uppercase;font-weight:600" title="Hanya huruf (A-Z, a-z), spasi, tanda petik ('), tanda hubung (-), titik (.), dan koma (,) yang diperbolehkan">
 </div>
 <div class="col-12" id="nikOrtuWrap">
-  <label class="fml req"><i class="ph ph-identification-card me-1" style="color:var(--primary)"></i>NIK Orang Tua / Wali <small class="text-danger">(Wajib)</small></label>
+  <label class="fml req"><i class="ph ph-identification-card me-1" style="color:var(--primary)"></i>NIK Orang Tua / Wali <small class="text-danger" id="nikOrtuTagWajib">(Wajib)</small></label>
   <div class="input-group">
     <input type="text" class="form-control" id="nikOrtu" inputmode="numeric" maxlength="16" oninput="prosesNikOrtu()" placeholder="16 digit NIK Ayah / Ibu">
     <span class="input-group-text"><i class="ph ph-identification-card text-muted"></i></span>
@@ -3698,11 +3698,11 @@ const notify = {
               </select>
             </div>
             <div class="col-12">
-              <label class="form-label small fw-semibold text-muted mb-1">Nama Orang Tua / Wali</label>
+              <label class="form-label small fw-semibold text-muted mb-1">Nama Orang Tua / Wali <span class="text-muted" id="editNamaOrtuTag">(Wajib)</span></label>
               <input type="text" class="form-control shadow-sm" id="edit_namaOrangTua" placeholder="Nama Ayah/Ibu/Wali">
             </div>
             <div class="col-12" id="editNikOrtuWrap">
-              <label class="form-label small fw-semibold text-muted mb-1">NIK Orang Tua / Wali <span class="text-danger">(Wajib)</span></label>
+              <label class="form-label small fw-semibold text-muted mb-1">NIK Orang Tua / Wali <span class="text-danger" id="editNikOrtuTag">(Wajib)</span></label>
               <input type="text" class="form-control shadow-sm" id="edit_nikOrtu" inputmode="numeric" maxlength="16" placeholder="16 digit NIK" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
             </div>
             <div class="col-12 d-none" id="editBumilWrap">
@@ -6519,6 +6519,7 @@ function getCategoryIcon(cat) {
 }
 function renderCatSummaryCards(data) {
   const container = document.getElementById('catSummaryCards');
+  if (!container) return; // elemen ringkasan kategori tidak ada di halaman ini
   const instansi = document.getElementById('instansi').value.trim();
   const pic = document.getElementById('pic').value.trim();
   if(!instansi || !pic) { container.innerHTML = `<div class="no-data-hint"><i class="ph ph-info-circle d-block mb-1 fs-4"></i>Isi Instansi & PIC untuk melihat ringkasan kategori</div>`; return; }
@@ -6796,6 +6797,9 @@ function updateEditSubKategori() {
   document.getElementById('editBumilWrap').classList.toggle('d-none', k !== 'BUMIL');
   document.getElementById('editBusuiWrap').classList.toggle('d-none', k !== 'BUSUI');
   const today = tanggalISOClient(new Date());
+  const wajibOrtuEdit = isOrtuWajibClient(k);
+  document.getElementById('editNamaOrtuTag').textContent = wajibOrtuEdit ? '(Wajib)' : '(Opsional)';
+  document.getElementById('editNikOrtuTag').textContent = wajibOrtuEdit ? '(Wajib)' : '(Opsional)';
   const hp = document.getElementById('edit_hpht'); hp.max = today; hp.min = tanggalMundurClient(11);
   const ta = document.getElementById('edit_tglLahirAnak'); ta.max = today; ta.min = tanggalMundurClient(24);
 }
@@ -6885,7 +6889,7 @@ function renderUserTable(arr) {
       const kurangBadgeHtml = kurangList.length
         ? `<span class="kurang-badge" title="Belum diisi: ${esc(kurangList.join(', '))}"><i class="ph ph-warning-circle"></i> Belum Lengkap</span>`
         : '';
-      const kelasVal = item.kelas && item.kelas !== '-' ? `<span style="background:rgba(99,102,241,.12);color:#4f46e5;font-weight:700;padding:1px 6px;border-radius:6px;font-size:.66rem">Kelas ${esc(item.kelas)}</span>•` : '';
+      const kelasVal = item.kelas && item.kelas !== '-' && !isKategoriPosyanduClient(item.ket || item.kategori) ? `<span style="background:rgba(99,102,241,.12);color:#4f46e5;font-weight:700;padding:1px 6px;border-radius:6px;font-size:.66rem">Kelas ${esc(item.kelas)}</span>•` : '';
       html += `<li class="list-li${isDup ? ' is-dup' : ''}${kurangList.length ? ' is-kurang' : ''}"><div class="d-flex align-items-center flex-1 min-w-0"><div class="avatar">${init}</div><div style="flex:1;min-width:0"><div class="pname d-flex align-items-center flex-wrap gap-1"><span>${esc(item.nama)}${alWarn}</span>${dupBadgeHtml}${kurangBadgeHtml}</div><div class="pmeta">${kelasVal}<span style="${isDup ? 'color:#dc2626;font-weight:700' : ''}">${item.nik||'-'}</span>•<span>${usiaDisplay}</span>${isDup && dInfo.isCrossInstansi ? `•<span style="color:#dc2626;font-weight:600"><i class="ph ph-buildings"></i> ${esc(otherInst)}</span>` : ''}</div></div></div><div class="act-grp">${gIcon}<button class="btn btn-sm btn-light rounded-circle" style="width:32px;height:32px" onclick="bukaModalEdit(${rowIdx})" title="Edit"><i class="ph ph-pencil-simple"></i></button>${delBtn}</div></li>`;
     });
     html += '</ul></div>';
@@ -7076,6 +7080,16 @@ function getAllowedKelasForKategoriClient(kategori) {
   return null;
 }
 
+// Kategori posyandu tidak memakai Kelas (Kelas hanya untuk sekolah/ponpes).
+// Nama & NIK Orang Tua wajib kecuali untuk BUMIL dan BUSUI.
+function isOrtuWajibClient(kategori) {
+  const s = String(kategori || '').trim().toUpperCase();
+  return s !== 'BUMIL' && s !== 'BUSUI';
+}
+function isKategoriPosyanduClient(kategori) {
+  const s = String(kategori || '').trim().toUpperCase();
+  return ['BUMIL', 'BUSUI', 'BALITA'].indexOf(s) !== -1 || s.indexOf('ATS') === 0;
+}
 function normalizeKelasClient(kelasRaw) {
   if (kelasRaw === undefined || kelasRaw === null) return '';
   const s = String(kelasRaw).trim().toUpperCase();
@@ -7184,37 +7198,58 @@ function syncJumlah() {
 // ============================================================
 // DOWNLOAD EXCEL - TAB DATA MASUK
 // ============================================================
+function _kolomPosyandu() {
+  return ['Nama Lengkap', 'NIK/NISN/NIP', 'Tanggal Lahir (YYYY-MM-DD)', 'Jenis Kelamin (Laki-laki/Perempuan)', 'Kategori',
+          'Nama Orang Tua', 'NIK Orang Tua', 'Alamat Domisili', 'Alergi (opsional)',
+          'HPHT (YYYY-MM-DD, Ibu Hamil)', 'Nama Anak (Ibu Menyusui)', 'NIK Anak (Ibu Menyusui)', 'Tanggal Lahir Anak (YYYY-MM-DD, Ibu Menyusui)'];
+}
+function _kolomSekolah() {
+  return ['Nama Lengkap', 'NIK/NISN/NIP', 'Tanggal Lahir (YYYY-MM-DD)', 'Jenis Kelamin (Laki-laki/Perempuan)', 'Kategori',
+          'Kelas (Khusus Sekolah)', 'Nama Orang Tua', 'NIK Orang Tua', 'Alamat Domisili', 'Alergi (opsional)'];
+}
+function _isiBarisExport(item, no) {
+  const kat = item.ket || item.kategori || '';
+  return {
+    'No': no,
+    'Nama Lengkap': item.nama || '',
+    'NIK/NISN/NIP': item.nik || '',
+    'Tanggal Lahir (YYYY-MM-DD)': item.tglLahir || '',
+    'Jenis Kelamin (Laki-laki/Perempuan)': (item.jk === 'Laki-laki' || item.jk === 'Perempuan') ? item.jk : '',
+    'Kategori': kat,
+    'Kelas (Khusus Sekolah)': item.kelas || '',
+    'Nama Orang Tua': item.namaOrangTua || '',
+    'NIK Orang Tua': item.nikOrangTua || '',
+    'Alamat Domisili': item.alamat || '',
+    'Alergi (opsional)': (item.alergi && item.alergi !== '-') ? item.alergi : '',
+    'HPHT (YYYY-MM-DD, Ibu Hamil)': item.hpht || '',
+    'Nama Anak (Ibu Menyusui)': item.namaAnak || '',
+    'NIK Anak (Ibu Menyusui)': item.nikAnak || '',
+    'Tanggal Lahir Anak (YYYY-MM-DD, Ibu Menyusui)': item.tglLahirAnak || '',
+    'Instansi': item.instansi || '',
+    'PIC': item.pic || '',
+    'Tanggal Input': item.timestamp || ''
+  };
+}
+function _sheetDari(rows, kolom) {
+  const ws = XLSX.utils.json_to_sheet(rows, { header: kolom.concat(['Instansi', 'PIC', 'Tanggal Input']) });
+  ws['!cols'] = kolom.concat(['Instansi', 'PIC', 'Tanggal Input']).map(k => ({ wch: Math.max(12, Math.min(40, k.length + 2)) }));
+  return ws;
+}
+
 function downloadExcelDataMasuk() {
   if (typeof XLSX === 'undefined') { Swal.fire('Error', 'Pustaka Excel belum termuat. Coba refresh halaman lalu ulangi.', 'error'); return; }
   if (!allDataCache || !allDataCache.length) { Swal.fire('Info', 'Tidak ada data untuk diunduh.', 'info'); return; }
 
   const instansi = (document.getElementById('instansi') || {}).value || '';
-  const rows = allDataCache.map((item, i) => ({
-    'No': i + 1,
-    'Nama': item.nama || '-',
-    'NIK/NISN/NIP': item.nik || '-',
-    'Tanggal Lahir': item.tglLahir || '-',
-    'Usia': getUsiaDisplay(item.tglLahir, item.usia),
-    'Jenis Kelamin': item.jk === 'Laki-laki' ? 'Laki-laki' : (item.jk === 'Perempuan' ? 'Perempuan' : '-'),
-    'Kategori': item.ket || item.kategori || '-',
-    'Kelas': item.kelas ? ('Kelas ' + item.kelas) : '-',
-    'Nama Orang Tua': item.namaOrangTua || '-',
-    'Instansi': item.instansi || '-',
-    'PIC': item.pic || '-',
-    'No HP PIC': item.noHp || '-',
-    'Email': item.email || '-',
-    'Alergi': (item.alergi && item.alergi !== '-') ? item.alergi : '-',
-    'Tanggal Input': item.timestamp || '-'
-  }));
-
-  const ws = XLSX.utils.json_to_sheet(rows);
-  ws['!cols'] = [
-    { wch: 5 }, { wch: 28 }, { wch: 20 }, { wch: 14 }, { wch: 14 },
-    { wch: 14 }, { wch: 16 }, { wch: 12 }, { wch: 22 }, { wch: 22 }, { wch: 18 },
-    { wch: 16 }, { wch: 24 }, { wch: 20 }, { wch: 20 }
-  ];
+  const pos = allDataCache.filter(it => isKategoriPosyanduClient(it.ket || it.kategori));
+  const sek = allDataCache.filter(it => !isKategoriPosyanduClient(it.ket || it.kategori));
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Data Masuk');
+  if (pos.length) {
+    XLSX.utils.book_append_sheet(wb, _sheetDari(pos.map((it, i) => _isiBarisExport(it, i + 1)), _kolomPosyandu()), 'Data Posyandu');
+  }
+  if (sek.length) {
+    XLSX.utils.book_append_sheet(wb, _sheetDari(sek.map((it, i) => _isiBarisExport(it, i + 1)), _kolomSekolah()), 'Data Sekolah-Ponpes');
+  }
 
   const safeInstansi = (instansi.trim() || 'Data').replace(/[^a-zA-Z0-9]+/g, '_');
   const tanggal = new Date().toISOString().split('T')[0];
@@ -7227,43 +7262,44 @@ function downloadExcelDataMasuk() {
 function downloadTemplateExcel() {
   if (typeof XLSX === 'undefined') { Swal.fire('Error', 'Pustaka Excel belum termuat. Coba refresh halaman lalu ulangi.', 'error'); return; }
 
-  const headers = [
-    'Nama Lengkap', 'NIK/NISN/NIP', 'Tanggal Lahir (YYYY-MM-DD)',
-    'Jenis Kelamin (Laki-laki/Perempuan)', 'Kategori', 'Kelas (Khusus Sekolah)',
-    'Nama Orang Tua', 'Alamat Domisili', 'Alergi (opsional)'
-  ];
-  const contoh = [
-    'Budi Santoso', '1234567890123456', '2015-05-20',
-    'Laki-laki', 'SD 1-3', '2',
-    'Siti Aminah', 'Jl. Contoh No 1, RT 01/RW 02', '-'
-  ];
-  const ws = XLSX.utils.aoa_to_sheet([headers, contoh]);
-  ws['!cols'] = headers.map(() => ({ wch: 25 }));
+  const kolomSek = _kolomSekolah();
+  const kolomPos = _kolomPosyandu();
+  const contohSek = ['Budi Santoso', '1234567890123456', '2015-05-20', 'Laki-laki', 'SD 1-3', '2',
+                     'Siti Aminah', '3174041505950001', 'Jl. Contoh No 1, RT 01/RW 02', '-'];
+  const contohPos = ['Naomi', '3174045505960002', '2024-03-10', 'Perempuan', 'BALITA',
+                     'Siti Aminah', '3174041505950001', 'Jl. Contoh No 1, RT 01/RW 02', '-', '', '', '', ''];
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Template Data');
+  const wsSek = XLSX.utils.aoa_to_sheet([kolomSek, contohSek]);
+  wsSek['!cols'] = kolomSek.map(() => ({ wch: 25 }));
+  XLSX.utils.book_append_sheet(wb, wsSek, 'Template Sekolah-Ponpes');
+  const wsPos = XLSX.utils.aoa_to_sheet([kolomPos, contohPos]);
+  wsPos['!cols'] = kolomPos.map(() => ({ wch: 25 }));
+  XLSX.utils.book_append_sheet(wb, wsPos, 'Template Posyandu');
 
   const ketSelect = document.getElementById('ket');
   const kategoriOptions = ketSelect ? Array.from(ketSelect.options).map(o => o.value).filter(v => v) : [];
   const petunjukData = [
     ['PETUNJUK PENGISIAN TEMPLATE'],
     [''],
-    ['1. Jangan mengubah urutan atau nama kolom pada sheet "Template Data".'],
-    ['2. Baris pertama adalah judul kolom - jangan dihapus. Baris kedua adalah contoh, boleh dihapus/diganti.'],
-    ['3. Format Tanggal Lahir: YYYY-MM-DD, contoh 2015-05-20.'],
-    ['4. Jenis Kelamin hanya boleh diisi: Laki-laki atau Perempuan (kode: Laki-laki = 392, Perempuan = 64).'],
+    ['1. Isi data sesuai kelompoknya: sheet "Template Sekolah-Ponpes" untuk sekolah, ponpes, dan SDM; sheet "Template Posyandu" untuk BUMIL, BUSUI, BALITA, dan ATS.'],
+    ['2. Jangan mengubah urutan atau nama kolom. Baris pertama adalah judul kolom - jangan dihapus. Baris kedua adalah contoh, boleh dihapus/diganti.'],
+    ['3. Format tanggal (Tanggal Lahir, HPHT, Tanggal Lahir Anak): YYYY-MM-DD, contoh 2015-05-20.'],
+    ['4. Jenis Kelamin hanya boleh diisi: Laki-laki atau Perempuan.'],
     ['5. Kategori harus salah satu dari daftar berikut:'],
     ...kategoriOptions.map(k => ['     - ' + k]),
     [''],
-    ['6. Aturan Kolom "Kelas (Khusus Sekolah)" — WAJIB diisi sesuai jenjang:'],
-    ['     - MI 1-3 dan SD 1-3 : Wajib diisi 1, 2, atau 3'],
-    ['     - MI 4-6 dan SD 4-6 : Wajib diisi 4, 5, atau 6'],
-    ['     - SMP dan MTs       : Wajib diisi 7, 8, atau 9'],
-    ['     - SMA, MA, dan SMK  : Wajib diisi 10, 11, atau 12'],
-    ['     - Kategori lainnya (BUMIL, BALITA, PAUD, TK, RA, GURU, dll) boleh dikosongkan.'],
+    ['6. Sheet Sekolah-Ponpes: kolom Kelas (Khusus Sekolah) WAJIB diisi sesuai jenjang:'],
+    ['     - MI 1-3 dan SD 1-3 : 1, 2, atau 3'],
+    ['     - MI 4-6 dan SD 4-6 : 4, 5, atau 6'],
+    ['     - SMP dan MTs       : 7, 8, atau 9'],
+    ['     - SMA, MA, dan SMK  : 10, 11, atau 12'],
     [''],
-    ['7. NIK/NISN/NIP: 16 digit untuk NIK, 10 digit untuk NISN, 18 digit untuk NIP.'],
-    ['8. Instansi, PIC, dan No HP PIC akan otomatis memakai data Instansi & PIC yang sedang aktif di form Input Data saat file ini diupload.'],
-    ['9. Setiap baris akan diverifikasi sistem. Baris yang tidak lolos verifikasi akan ditampilkan sebagai gagal dan tidak tersimpan.']
+    ['7. Sheet Posyandu: kolom HPHT wajib untuk BUMIL (maks. 11 bulan ke belakang); kolom Nama Anak, NIK Anak, dan Tanggal Lahir Anak wajib untuk BUSUI (tanggal lahir maks. 2 tahun ke belakang).'],
+    ['8. Nama Orang Tua dan NIK Orang Tua wajib diisi, kecuali untuk BUMIL dan BUSUI (boleh dikosongkan). NIK 16 digit, sesuai struktur NIK Indonesia.'],
+    ['9. NIK/NISN/NIP: 16 digit untuk NIK, 10 digit untuk NISN, 18 digit untuk NIP.'],
+    ['10. Instansi, PIC, No HP PIC, dan Email diambil otomatis dari form Input Data saat file diupload. Jika email baru, isi Kode Verifikasi dari admin di form terlebih dahulu.'],
+    ['11. Untuk data yang sudah ada (dicocokkan lewat NIK atau Nama + Alamat), pilih "Update Data Lama" saat konfirmasi agar isian yang baru terisi tersimpan.'],
+    ['12. Setiap baris akan diverifikasi sistem. Baris yang tidak lolos verifikasi akan ditampilkan sebagai gagal dan tidak tersimpan.']
   ];
   const wsInfo = XLSX.utils.aoa_to_sheet(petunjukData);
   wsInfo['!cols'] = [{ wch: 68 }];
@@ -7388,8 +7424,11 @@ function _proceedTemplateUpload(event, instansi, pic) {
   reader.onload = function (e) {
     try {
       const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array', cellDates: true });
-      const wsName = wb.SheetNames[0];
-      const rows = XLSX.utils.sheet_to_json(wb.Sheets[wsName], { defval: '' });
+      const rows = [];
+      wb.SheetNames.forEach(function (nm) {
+        if (/^petunjuk$/i.test(String(nm).trim())) return;
+        XLSX.utils.sheet_to_json(wb.Sheets[nm], { defval: '' }).forEach(function (r) { rows.push(r); });
+      });
       processTemplateRows(rows, instansi, pic, noHp);
     } catch (err) {
       Swal.fire('Error', 'Gagal membaca file: ' + (err && err.message ? err.message : err), 'error');
@@ -7400,6 +7439,16 @@ function _proceedTemplateUpload(event, instansi, pic) {
   reader.readAsArrayBuffer(file);
 }
 
+// Mengubah nilai tanggal dari Excel (Date atau teks) menjadi yyyy-mm-dd, atau '' jika tidak valid.
+function parseTglTemplate(raw) {
+  if (raw === undefined || raw === null || raw === '') return '';
+  if (raw instanceof Date) return isNaN(raw) ? '' : raw.toISOString().split('T')[0];
+  const s = String(raw).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const d = new Date(s);
+  return isNaN(d) ? '' : d.toISOString().split('T')[0];
+}
+
 function processTemplateRows(rows, instansi, pic, noHp) {
   if (!rows || !rows.length) {
     Swal.fire('Info', 'File template kosong atau tidak ada data untuk diproses.', 'info');
@@ -7408,6 +7457,12 @@ function processTemplateRows(rows, instansi, pic, noHp) {
 
   const ketSelect = document.getElementById('ket');
   const kategoriValid = ketSelect ? Array.from(ketSelect.options).map(o => o.value).filter(v => v) : [];
+  const emailBatch = (document.getElementById('emailPelapor').value || '').trim().toLowerCase();
+  const kodeBatch = (document.getElementById('kodeVerifikasi').value || '').trim();
+  if (!emailBatch) {
+    Swal.fire('Info', 'Isi Email di form Input Data terlebih dahulu sebelum upload massal.', 'info');
+    return;
+  }
   let dataToSend = [];
   const errors = [];
 
@@ -7428,6 +7483,11 @@ function processTemplateRows(rows, instansi, pic, noHp) {
     const kelasRaw = row['Kelas (Khusus Sekolah)'] !== undefined ? row['Kelas (Khusus Sekolah)'] : (row['Kelas'] || '');
     const kelas = normalizeKelasClient(kelasRaw);
     const namaOrangTua = String(row['Nama Orang Tua'] || '').trim();
+    const nikOrtuRow = String(row['NIK Orang Tua'] || '').replace(/[^0-9]/g, '').trim();
+    const hphtRow = parseTglTemplate(row['HPHT (YYYY-MM-DD, Ibu Hamil)']);
+    const namaAnakRow = String(row['Nama Anak (Ibu Menyusui)'] || '').trim().toUpperCase();
+    const nikAnakRow = String(row['NIK Anak (Ibu Menyusui)'] || '').replace(/[^0-9]/g, '').trim();
+    const tglAnakRow = parseTglTemplate(row['Tanggal Lahir Anak (YYYY-MM-DD, Ibu Menyusui)']);
     const alamat = String(row['Alamat Domisili'] || '').trim().replace(/\s+/g, ' ');
     const alergi = String(row['Alergi (opsional)'] || '').trim() || '-';
 
@@ -7440,6 +7500,22 @@ function processTemplateRows(rows, instansi, pic, noHp) {
     if (jk !== 'LAKI-LAKI' && jk !== 'PEREMPUAN') rowErrors.push('Jenis Kelamin harus Laki-laki atau Perempuan');
     if (!kategori || (kategoriValid.length && kategoriValid.indexOf(kategori) === -1)) rowErrors.push('Kategori tidak dikenali: "' + (kategori || '-') + '"');
     if (!alamat) rowErrors.push('Alamat kosong');
+
+    // Isian wajib: Nama & NIK Orang Tua (semua kategori), HPHT (BUMIL), data anak (BUSUI)
+    if (!namaOrangTua && isOrtuWajibClient(kategori)) rowErrors.push('Nama Orang Tua kosong');
+    const ortuRowErr = (isOrtuWajibClient(kategori) || nikOrtuRow) ? validateNikOrtuClient(nikOrtuRow, nik, 'Orang Tua / Wali', 'anak') : '';
+    if (ortuRowErr) rowErrors.push(ortuRowErr);
+    if (kategori === 'BUMIL') {
+      const hphtErr = validateTanggalRentangClient(hphtRow, 11, 'HPHT', '11 bulan');
+      if (hphtErr) rowErrors.push(hphtErr);
+    }
+    if (kategori === 'BUSUI') {
+      if (!namaAnakRow) rowErrors.push('Nama Anak kosong');
+      const nikAnakErr = validateNikOrtuClient(nikAnakRow, nik, 'Anak', 'ibu');
+      if (nikAnakErr) rowErrors.push(nikAnakErr);
+      const tglAnakErr = validateTanggalRentangClient(tglAnakRow, 24, 'Tanggal Lahir Anak', '2 tahun');
+      if (tglAnakErr) rowErrors.push(tglAnakErr);
+    }
 
     // Validasi Kelas sesuai kategori sekolah
     if (kategori) {
@@ -7463,6 +7539,13 @@ function processTemplateRows(rows, instansi, pic, noHp) {
       ket: kategori, kategori,
       kelas: getAllowedKelasForKategoriClient(kategori) ? kelas : '',
       namaOrangTua, alamat, alergi,
+      nikOrangTua: nikOrtuRow,
+      hpht: kategori === 'BUMIL' ? hphtRow : '',
+      namaAnak: kategori === 'BUSUI' ? namaAnakRow : '',
+      nikAnak: kategori === 'BUSUI' ? nikAnakRow : '',
+      tglLahirAnak: kategori === 'BUSUI' ? tglAnakRow : '',
+      email: emailBatch,
+      kodeVerifikasi: kodeBatch,
       instansi, pic, noHp,
       _rowNo: rowNo
     });
@@ -7903,6 +7986,11 @@ function updateNikOrtuField() {
   const w = document.getElementById('nikOrtuWrap');
   if (!w) return;
   w.classList.remove('d-none');
+  const wajibOrtu = isOrtuWajibClient(document.getElementById('ket').value);
+  ['namaOrtuTagWajib', 'nikOrtuTagWajib'].forEach(function (id) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = wajibOrtu ? '(Wajib)' : '(Opsional)';
+  });
 }
 
 function updateSubKategoriFields() {
@@ -8362,9 +8450,9 @@ function _proceedSimpan(instansi, pic, noHp, email, btn) {
   if(!data.nama) { Swal.fire('Info','Nama wajib diisi','info'); return; }
   if(!email) { Swal.fire('Info','Email wajib diisi','info'); document.getElementById('emailPelapor').focus(); return; }
   data.kodeVerifikasi = (document.getElementById('kodeVerifikasi').value || '').trim();
-  if(!data.namaOrangTua) { Swal.fire('Info','Nama Orang Tua / Wali wajib diisi','info'); document.getElementById('namaOrangTua').focus(); return; }
+  if(!data.namaOrangTua && isOrtuWajibClient(ketSelected)) { Swal.fire('Info','Nama Orang Tua / Wali wajib diisi','info'); document.getElementById('namaOrangTua').focus(); return; }
   data.nikOrangTua = document.getElementById('nikOrtu').value.replace(/[^0-9]/g, '');
-  const nikOrtuErr = validateNikOrtuClient(data.nikOrangTua, data.nik);
+  const nikOrtuErr = (isOrtuWajibClient(ketSelected) || data.nikOrangTua) ? validateNikOrtuClient(data.nikOrangTua, data.nik) : '';
   if (nikOrtuErr) {
     Swal.fire({ icon: 'error', title: 'NIK Orang Tua Tidak Valid', text: nikOrtuErr, confirmButtonColor: '#ef4444', showCloseButton: true });
     document.getElementById('nikOrtu').focus();
@@ -8771,8 +8859,8 @@ function simpanEdit() {
   const editNikAnak = document.getElementById('edit_nikAnak').value.replace(/[^0-9]/g, '');
   const editTglLahirAnak = document.getElementById('edit_tglLahirAnak').value;
   const editChecks = [
-    ['edit_namaOrangTua', editOrtu ? '' : 'Nama Orang Tua / Wali wajib diisi.'],
-    ['edit_nikOrtu', validateNikOrtuClient(editNikOrtu, nikEdit, 'Orang Tua / Wali', 'anak')]
+    ['edit_namaOrangTua', (editOrtu || !isOrtuWajibClient(ket)) ? '' : 'Nama Orang Tua / Wali wajib diisi.'],
+    ['edit_nikOrtu', (isOrtuWajibClient(ket) || editNikOrtu) ? validateNikOrtuClient(editNikOrtu, nikEdit, 'Orang Tua / Wali', 'anak') : '']
   ];
   if (ket === 'BUMIL') editChecks.push(['edit_hpht', validateTanggalRentangClient(editHpht, 11, 'HPHT', '11 bulan')]);
   if (ket === 'BUSUI') {
@@ -8980,11 +9068,27 @@ function cetakPDF() {
   w.document.write(buildReportHTML(instansi, pic, allDataCache, noHp));
   w.document.close();
 }
+function buildTabelDetailPDF(data) {
+  const sortIt = arr => [...arr].sort((a, b) => (a.ket > b.ket) ? 1 : -1);
+  const barisPos = (item, i) => `<tr><td>${i + 1}</td><td>${esc(item.nama)}</td><td>${item.nik || '-'}</td><td>${item.jk === 'Laki-laki' ? 'Laki-laki' : 'Perempuan'}</td><td>${item.usia || '-'}</td><td>${esc(item.ket)}</td><td>${item.alergi && item.alergi !== '-' ? item.alergi : '-'}</td></tr>`;
+  const barisSek = (item, i) => `<tr><td>${i + 1}</td><td>${esc(item.nama)}</td><td>${item.nik || '-'}</td><td>${item.jk === 'Laki-laki' ? 'Laki-laki' : 'Perempuan'}</td><td>${item.usia || '-'}</td><td>${esc(item.ket)}</td><td>${(item.kelas && !isKategoriPosyanduClient(item.ket)) ? ('Kelas ' + esc(item.kelas)) : '-'}</td><td>${item.alergi && item.alergi !== '-' ? item.alergi : '-'}</td></tr>`;
+  const pos = sortIt(data.filter(d => isKategoriPosyanduClient(d.ket || d.kategori)));
+  const sek = sortIt(data.filter(d => !isKategoriPosyanduClient(d.ket || d.kategori)));
+  let html = '';
+  if (pos.length) {
+    html += `<h3>Detail Data Posyandu (${pos.length})</h3><table><thead><tr><th width="4%">No</th><th width="28%">Nama</th><th width="18%">NIK</th><th width="9%">JK</th><th width="10%">Usia</th><th width="15%">Kategori</th><th width="16%">Alergi</th></tr></thead><tbody>${pos.map(barisPos).join('')}</tbody></table>`;
+  }
+  if (sek.length) {
+    html += `<h3>Detail Data Sekolah / Ponpes / SDM (${sek.length})</h3><table><thead><tr><th width="4%">No</th><th width="24%">Nama</th><th width="14%">NIK/NISN</th><th width="8%">JK</th><th width="8%">Usia</th><th width="14%">Kategori</th><th width="8%">Kelas</th><th width="20%">Alergi</th></tr></thead><tbody>${sek.map(barisSek).join('')}</tbody></table>`;
+  }
+  return html;
+}
+
 function buildReportHTML(instansi, pic, data, noHp) {
   const groups = {};
   data.forEach(item => { const c = item.ket||'Lainnya'; if(!groups[c]) groups[c]={p:0,w:0}; if(item.jk==='Laki-laki')groups[c].p++; else if(item.jk==='Perempuan')groups[c].w++; });
   const sumHtml = Object.keys(groups).sort().map(c => `<div style="padding:12px;border:1px solid #ddd;border-radius:8px;background:#f9f9f9"><strong style="color:#4f46e5;display:block;margin-bottom:4px">${c}</strong><div style="font-size:.85rem">L: ${groups[c].p} | P: ${groups[c].w}</div><div style="margin-top:4px;font-weight:bold;border-top:1px solid #eee;padding-top:4px">Total: ${groups[c].p+groups[c].w}</div></div>`).join('');
-  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Laporan MBG - ${instansi}</title><style>body{font-family:Arial,sans-serif;margin:20px;color:#333}.hdr{text-align:center;margin-bottom:24px;border-bottom:2px solid #4f46e5;padding-bottom:16px}h1{color:#4f46e5;font-size:22px;margin:0}h2{font-size:17px;margin:4px 0}table{width:100%;border-collapse:collapse;margin-top:16px;font-size:12px}th,td{border:1px solid #ddd;padding:8px;text-align:left}th{background:#4f46e5;color:#fff}tr:nth-child(even){background:#f8fafc}.info{margin:16px 0;padding:12px;background:#f1f5f9;border-radius:8px;border-left:4px solid #4f46e5;font-size:13px}@media print{body{margin:0}}</style></head><body><div class="hdr"><h1>PROGRAM MAKAN BERGIZI GRATIS</h1><h2>${esc(SIG.instansiName||'SPPG TAKTAKAN')}</h2><p style="margin:3px 0;color:#666;font-size:13px">${esc(SIG.instansiAddress||'')}</p></div><h3>LAPORAN DATA PENDATAAN</h3><p>${new Date().toLocaleDateString('id-ID',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</p><div class="info"><strong>Instansi:</strong> ${instansi}<br><strong>PIC:</strong> ${pic}<br>${noHp?`<strong>No HP:</strong> ${noHp}<br>`:''}<strong>Total:</strong> ${data.length} Jiwa</div><h3>Rekapitulasi</h3><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin:16px 0">${sumHtml}</div><h3>Detail Data</h3><table><thead><tr><th width="4%">No</th><th width="24%">Nama</th><th width="14%">NIK/NISN</th><th width="8%">JK</th><th width="8%">Usia</th><th width="14%">Kategori</th><th width="8%">Kelas</th><th width="20%">Alergi</th></tr></thead><tbody>${[...data].sort((a,b)=>(a.ket>b.ket)?1:-1).map((item,i)=>`<tr><td>${i+1}</td><td>${esc(item.nama)}</td><td>${item.nik||'-'}</td><td>${item.jk==='Laki-laki'?'Laki-laki':'Perempuan'}</td><td>${item.usia||'-'}</td><td>${esc(item.ket)}</td><td>${item.kelas ? ('Kelas '+esc(item.kelas)) : '-'}</td><td>${item.alergi&&item.alergi!=='-'?item.alergi:'-'}</td></tr>`).join('')}</tbody></table><p style="margin-top:24px;text-align:center;font-size:11px;color:#888">Dicetak: ${new Date().toLocaleString('id-ID')}</p></body></html>`;
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Laporan MBG - ${instansi}</title><style>body{font-family:Arial,sans-serif;margin:20px;color:#333}.hdr{text-align:center;margin-bottom:24px;border-bottom:2px solid #4f46e5;padding-bottom:16px}h1{color:#4f46e5;font-size:22px;margin:0}h2{font-size:17px;margin:4px 0}table{width:100%;border-collapse:collapse;margin-top:16px;font-size:12px}th,td{border:1px solid #ddd;padding:8px;text-align:left}th{background:#4f46e5;color:#fff}tr:nth-child(even){background:#f8fafc}.info{margin:16px 0;padding:12px;background:#f1f5f9;border-radius:8px;border-left:4px solid #4f46e5;font-size:13px}@media print{body{margin:0}}</style></head><body><div class="hdr"><h1>PROGRAM MAKAN BERGIZI GRATIS</h1><h2>${esc(SIG.instansiName||'SPPG TAKTAKAN')}</h2><p style="margin:3px 0;color:#666;font-size:13px">${esc(SIG.instansiAddress||'')}</p></div><h3>LAPORAN DATA PENDATAAN</h3><p>${new Date().toLocaleDateString('id-ID',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</p><div class="info"><strong>Instansi:</strong> ${instansi}<br><strong>PIC:</strong> ${pic}<br>${noHp?`<strong>No HP:</strong> ${noHp}<br>`:''}<strong>Total:</strong> ${data.length} Jiwa</div><h3>Rekapitulasi</h3><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin:16px 0">${sumHtml}</div>${buildTabelDetailPDF(data)}<p style="margin-top:24px;text-align:center;font-size:11px;color:#888">Dicetak: ${new Date().toLocaleString('id-ID')}</p></body></html>`;
 }
 
 // ============================================================
