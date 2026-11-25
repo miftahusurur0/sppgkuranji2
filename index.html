@@ -8607,11 +8607,15 @@ function cekDuplikatSetelahIdentitas(instansi, pic, localData) {
           try { if (allDataCache && allDataCache.length) renderUserTable(allDataCache); } catch(e){}
 
           const instUp = instansi.toUpperCase();
+          const picUp = pic.toUpperCase();
+          // Hanya data milik kader ini (instansi + PIC) yang dianggap "saya"
+          const isSaya = function(e) {
+            return String(e.instansi || '').trim().toUpperCase() === instUp &&
+                   String(e.pic || '').trim().toUpperCase() === picUp;
+          };
           // Filter: hanya NIK yang menyentuh instansi user saat ini
           const relevant = allDups.filter(function(d) {
-            return (d.entries || []).some(function(e) {
-              return String(e.instansi || '').trim().toUpperCase() === instUp;
-            });
+            return (d.entries || []).some(function(e) { return isSaya(e); });
           });
           if (!relevant.length) return;
 
@@ -8624,7 +8628,7 @@ function cekDuplikatSetelahIdentitas(instansi, pic, localData) {
           let rowsHtml = '';
           relevant.forEach(function(d) {
             (d.entries || []).forEach(function(e) {
-              const isMine = String(e.instansi || '').trim().toUpperCase() === instUp;
+              const isMine = isSaya(e);
               rowsHtml +=
                 '<tr style="' + (isMine ? 'background:rgba(239,68,68,.08);' : '') + '">' +
                   '<td style="padding:8px 10px;font-weight:700;text-transform:uppercase;font-size:.8rem">' + esc(e.nama || '–') + '</td>' +
@@ -8634,22 +8638,32 @@ function cekDuplikatSetelahIdentitas(instansi, pic, localData) {
                       ? '<span style="display:inline-flex;align-items:center;gap:4px;background:#fee2e2;color:#b91c1c;padding:2px 8px;border-radius:999px;font-weight:700;font-size:.72rem"><i class="ph ph-map-pin"></i>' + esc(e.instansi || '–') + ' (Anda)</span>'
                       : '<span style="display:inline-flex;align-items:center;gap:4px;background:#f1f5f9;color:#475569;padding:2px 8px;border-radius:999px;font-weight:600;font-size:.72rem"><i class="ph ph-buildings"></i>' + esc(e.instansi || '–') + '</span>') +
                   '</td>' +
+                  '<td style="padding:8px 10px;font-size:.78rem;font-weight:600;line-height:1.35">' + esc(e.pic || '–') + (isMine ? ' <span style="color:#b91c1c">(Anda)</span>' : '') + '</td>' +
                 '</tr>';
             });
           });
 
+          const otherPics = [];
+          relevant.forEach(function(d) {
+            (d.entries || []).forEach(function(e) {
+              const pn = String(e.pic || '').trim();
+              if (!isSaya(e) && pn && otherPics.indexOf(pn) === -1) otherPics.push(pn);
+            });
+          });
           const html =
             '<div style="text-align:left">' +
               '<p style="margin:0 0 12px;font-size:.9rem;line-height:1.55;color:var(--text,#1e293b)">' +
                 'Ditemukan <strong style="color:#dc2626">' + relevant.length + ' NIK/NISN/NIP duplikat</strong> (terdaftar lebih dari 1 kali / lintas instansi) ' +
-                'pada data milik <strong>' + esc(instansi) + '</strong>.' +
+                'pada data milik <strong>' + esc(instansi) + '</strong> (PIC <strong>' + esc(pic) + '</strong>).' +
               '</p>' +
+              (otherPics.length ? '<p style="margin:0 0 10px;font-size:.85rem">Data duplikat tercatat pada PIC/Kader: <strong>' + otherPics.map(function(x){ return esc(x); }).join(', ') + '</strong>. Mohon dikoordinasikan untuk perbaikan.</p>' : '') +
               '<div style="max-height:min(42vh,320px);overflow:auto;border:1px solid #e2e8f0;border-radius:12px">' +
                 '<table style="width:100%;border-collapse:collapse">' +
                   '<thead><tr style="background:#0f172a;color:#fff;position:sticky;top:0">' +
                     '<th style="padding:9px 10px;text-align:left;font-size:.72rem;font-weight:700;letter-spacing:.04em">NAMA</th>' +
                     '<th style="padding:9px 10px;text-align:left;font-size:.72rem;font-weight:700;letter-spacing:.04em">NIK / NISN / NIP</th>' +
                     '<th style="padding:9px 10px;text-align:left;font-size:.72rem;font-weight:700;letter-spacing:.04em">INSTANSI</th>' +
+                    '<th style="padding:9px 10px;text-align:left;font-size:.72rem;font-weight:700;letter-spacing:.04em">PIC / KADER</th>' +
                   '</tr></thead>' +
                   '<tbody>' + rowsHtml + '</tbody>' +
                 '</table>' +
@@ -8673,7 +8687,8 @@ function cekDuplikatSetelahIdentitas(instansi, pic, localData) {
             cancelButtonColor: '#64748b',
             reverseButtons: true,
             customClass: { popup: 'nik-duplikat-popup' },
-            allowOutsideClick: false
+            allowOutsideClick: true,
+            allowEscapeKey: true
           }).then(function(r) {
             if (r.isConfirmed) {
               try {
