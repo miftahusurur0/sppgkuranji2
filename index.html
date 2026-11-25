@@ -8620,11 +8620,15 @@ function cekDuplikatSetelahIdentitas(instansi, pic, localData) {
           });
           if (!relevant.length) return;
 
-          if (sessionStorage.getItem(sessionKey) === '1') return;
+          window._dupShownKeys = window._dupShownKeys || {};
+          let sudahTampil = window._dupShownKeys[sessionKey] === true;
+          try { sudahTampil = sudahTampil || sessionStorage.getItem(sessionKey) === '1'; } catch (e) {}
+          if (sudahTampil) return;
           // Hindari bentrok dengan popup NIK kosong / Swal lain yang sedang terbuka
           if (typeof Swal !== 'undefined' && Swal.isVisible && Swal.isVisible()) return;
 
-          sessionStorage.setItem(sessionKey, '1');
+          window._dupShownKeys[sessionKey] = true;
+          try { sessionStorage.setItem(sessionKey, '1'); } catch (e) {}
 
           let rowsHtml = '';
           relevant.forEach(function(d) {
@@ -8739,13 +8743,13 @@ document.getElementById('instansi').addEventListener('change', function(){
   resetNikKosongAlert();
   try {
     const i = document.getElementById('instansi').value.trim().toUpperCase();
-    Object.keys(sessionStorage).forEach(function(k){ if(k.indexOf('mbg_dup_alert_')===0) sessionStorage.removeItem(k); });
+    // Popup duplikat tidak direset saat field berubah (kunci sudah per instansi+PIC)
   } catch(e){}
 });
 document.getElementById('pic').addEventListener('change', function(){
   resetNikKosongAlert();
   try {
-    Object.keys(sessionStorage).forEach(function(k){ if(k.indexOf('mbg_dup_alert_')===0) sessionStorage.removeItem(k); });
+    // Popup duplikat tidak direset saat field berubah (kunci sudah per instansi+PIC)
   } catch(e){}
 });
 document.getElementById('instansi').addEventListener('input', checkNikReminder);
