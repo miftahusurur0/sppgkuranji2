@@ -90,6 +90,8 @@
     .dup-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:999px;font-size:.63rem;font-weight:800;background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;letter-spacing:.02em;cursor:pointer;white-space:nowrap;animation:pulseSoft 2s infinite}
     .dup-badge:hover{background:#fecaca;color:#b91c1c}
     [data-theme="dark"] .dup-badge{background:rgba(239,68,68,.22);color:#fca5a5;border-color:rgba(248,113,113,.45)}
+    .list-li.is-kurang{background:rgba(239,68,68,.07);box-shadow:inset 4px 0 0 #dc2626}
+    .kurang-badge{display:inline-flex;align-items:center;gap:4px;background:#dc2626;color:#fff;font-size:.66rem;font-weight:700;padding:2px 8px;border-radius:999px}
     .dup-banner{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:12px 16px;border-radius:14px;background:linear-gradient(135deg,rgba(239,68,68,.1),rgba(245,158,11,.08));border:1.5px solid rgba(239,68,68,.35);color:#991b1b;margin-bottom:14px;font-size:.82rem}
     [data-theme="dark"] .dup-banner{color:#fca5a5;background:linear-gradient(135deg,rgba(239,68,68,.18),rgba(245,158,11,.12));border-color:rgba(248,113,113,.4)}
 
@@ -170,7 +172,7 @@
     // 1) GANTI URL INI dengan URL Web App hasil Deploy Apps Script kamu
     //    (Deploy > New deployment > Web app > Execute as: Me > Who has access: Anyone > /exec)
     //    Hanya dipakai saat file ini berjalan di LUAR Apps Script (Blogger/Netlify).
-    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwRXG6dS3Ehn5tE-QqKfDFqTLjFaWAkPWboa6MePUF5wjtJhVxTnCPAssslQ-pK40A2/exec';
+    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzziAzzbJK3_KxxgEU-GT890UmZ7ZepS3eVszUlatH8j8tqnol7FnX6BPJPiuQxHsQB/exec';
 
     // 2) Peta nama fungsi server -> urutan nama parameter,
     //    HARUS SAMA PERSIS dengan switch(action) di Code.gs (doPost)
@@ -208,7 +210,9 @@
       getMaintenanceScheduleFromDB: ['adminPassword'],
       getMaintenanceSchedulePublic: [],
       clearMaintenanceScheduleFromDB: ['adminPassword'],
-      saveInstansiContact: ['instansi', 'pic', 'noHp', 'email'],
+      saveInstansiContact: ['instansi', 'pic', 'noHp', 'email', 'kodeVerifikasi'],
+      cekEmailTerdaftar: ['email'],
+      mintaKodeVerifikasiEmail: ['email'],
       getRiwayatByInstansiPic: ['instansi', 'pic', 'limit']
     };
 
@@ -2071,9 +2075,16 @@ const notify = {
                 <small id="noHpAutoStatus" class="text-muted d-none" style="font-size:.65rem"><i class="ph ph-check-circle" style="color:var(--success)"></i> <span></span></small>
               </div>
               <div class="col-sm-6 col-md-4">
-                <label class="fml"><i class="ph ph-envelope me-1" style="color:var(--primary)"></i>Email <small class="text-muted fw-normal" style="font-size:.6rem">(simpan ke DB)</small></label>
-                <input type="email" class="form-control" id="emailPelapor" placeholder="contoh@email.com" onchange="saveToLocal();onContactFieldInput();" oninput="onContactFieldInput();">
+                <label class="fml"><i class="ph ph-envelope me-1" style="color:var(--primary)"></i>Email <small class="text-danger fw-normal" style="font-size:.6rem">(Wajib)</small></label>
+                <input type="email" class="form-control" id="emailPelapor" placeholder="contoh@email.com" onchange="saveToLocal();onContactFieldInput();cekEmailBaru();" oninput="onContactFieldInput();">
                 <small id="emailAutoStatus" class="text-muted d-none" style="font-size:.65rem"><i class="ph ph-check-circle" style="color:var(--success)"></i> <span></span></small>
+                <div id="emailVerifWrap" class="d-none mt-1">
+                  <small id="emailVerifStatus" class="d-block mb-1" style="font-size:.7rem"></small>
+                  <div class="input-group input-group-sm">
+                    <input type="text" class="form-control" id="kodeVerifikasi" maxlength="6" inputmode="numeric" placeholder="Kode dari admin" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                    <button type="button" class="btn btn-outline-primary" id="btnMintaKode" onclick="mintaKodeVerifikasi()">Minta Kode ke Admin</button>
+                  </div>
+                </div>
               </div>
               <div class="col-sm-12 col-md-4 d-flex flex-column justify-content-end">
                 <button type="button" id="btnSimpanKontak" class="btn btn-sm w-100 d-flex align-items-center justify-content-center gap-1 d-none"
@@ -2316,9 +2327,44 @@ const notify = {
                   </select>
                 </div>
                 <div class="col-12">
-                  <label class="fml">Nama Orang Tua / Wali <small class="text-muted fw-normal">(opsional untuk Guru/SDM)</small></label>
-                  <input type="text" class="form-control" id="namaOrangTua" placeholder="Nama Ayah / Ibu / Wali" oninput="this.value=this.value.replace(/[^a-zA-Z\s'\-\.\,]/g,'');" title="Hanya huruf (A-Z, a-z), spasi, tanda petik ('), tanda hubung (-), titik (.), dan koma (,) yang diperbolehkan">
-                </div>
+  <label class="fml req">Nama Orang Tua / Wali <small class="text-danger">(Wajib)</small></label>
+  <input type="text" class="form-control" id="namaOrangTua" placeholder="Nama Ayah / Ibu / Wali" oninput="this.value=this.value.replace(/[^a-zA-Z\s'\-\.\,]/g,'');this.value=this.value.toUpperCase()" style="text-transform:uppercase;font-weight:600" title="Hanya huruf (A-Z, a-z), spasi, tanda petik ('), tanda hubung (-), titik (.), dan koma (,) yang diperbolehkan">
+</div>
+<div class="col-12" id="nikOrtuWrap">
+  <label class="fml req"><i class="ph ph-identification-card me-1" style="color:var(--primary)"></i>NIK Orang Tua / Wali <small class="text-danger">(Wajib)</small></label>
+  <div class="input-group">
+    <input type="text" class="form-control" id="nikOrtu" inputmode="numeric" maxlength="16" oninput="prosesNikOrtu()" placeholder="16 digit NIK Ayah / Ibu">
+    <span class="input-group-text"><i class="ph ph-identification-card text-muted"></i></span>
+  </div>
+  <div id="nikOrtuStatus" class="mt-1" style="min-height:20px"></div>
+</div>
+<div class="col-12 d-none" id="bumilWrap">
+  <div class="p-3 rounded-3 border" style="background:rgba(236,72,153,.05)">
+    <label class="fml req"><i class="ph ph-baby me-1" style="color:#db2777"></i>HPHT (Hari Pertama Haid Terakhir)</label>
+    <input type="date" class="form-control" id="hpht" style="max-width:260px">
+    <small class="text-muted">Untuk Ibu Hamil. Maksimal 11 bulan ke belakang.</small>
+  </div>
+</div>
+<div class="col-12 d-none" id="busuiWrap">
+  <div class="p-3 rounded-3 border" style="background:rgba(236,72,153,.05)">
+    <div class="fw-semibold mb-2"><i class="ph ph-baby me-1" style="color:#db2777"></i>Data Anak (Ibu Menyusui)</div>
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label class="fml req">Nama Anak</label>
+        <input type="text" class="form-control" id="namaAnak" placeholder="Nama lengkap anak" oninput="this.value=this.value.replace(/[^a-zA-Z\s'\-\.\,]/g,'');this.value=this.value.toUpperCase()" style="text-transform:uppercase;font-weight:600">
+      </div>
+      <div class="col-md-4">
+        <label class="fml req">NIK Anak</label>
+        <input type="text" class="form-control" id="nikAnak" inputmode="numeric" maxlength="16" placeholder="16 digit NIK anak" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+      </div>
+      <div class="col-md-4">
+        <label class="fml req">Tanggal Lahir Anak</label>
+        <input type="date" class="form-control" id="tglLahirAnak">
+        <small class="text-muted">Maksimal 2 tahun ke belakang</small>
+      </div>
+    </div>
+  </div>
+</div>
               </div>
             </div>
 
@@ -2389,6 +2435,7 @@ const notify = {
             <span class="badge rounded-pill px-3 py-2" style="background:var(--primary);font-size:.85rem"><span id="todayCount">0</span> Jiwa</span>
           </div>
           <div id="userDupBanner"></div>
+          <div id="kurangBanner"></div>
           <div id="dataListContainer"></div>
 
         </div>
@@ -3610,7 +3657,7 @@ const notify = {
             </div>
             <div class="col-md-5" id="edit_ketColWrap">
               <label class="form-label small fw-semibold text-muted mb-1">Kategori Penerima</label>
-              <select class="form-select shadow-sm" id="edit_ket" onchange="updateKelasFieldEdit()"></select>
+              <select class="form-select shadow-sm" id="edit_ket" onchange="updateKelasFieldEdit();updateEditSubKategori()"></select>
             </div>
             <div class="col-md-3 d-none" id="edit_kelasColWrap">
               <label class="form-label small fw-semibold text-muted mb-1"><i class="ph ph-chalkboard-teacher me-1" style="color:var(--primary)"></i>Kelas <span class="text-danger">*</span></label>
@@ -3653,6 +3700,30 @@ const notify = {
             <div class="col-12">
               <label class="form-label small fw-semibold text-muted mb-1">Nama Orang Tua / Wali</label>
               <input type="text" class="form-control shadow-sm" id="edit_namaOrangTua" placeholder="Nama Ayah/Ibu/Wali">
+            </div>
+            <div class="col-12" id="editNikOrtuWrap">
+              <label class="form-label small fw-semibold text-muted mb-1">NIK Orang Tua / Wali <span class="text-danger">(Wajib)</span></label>
+              <input type="text" class="form-control shadow-sm" id="edit_nikOrtu" inputmode="numeric" maxlength="16" placeholder="16 digit NIK" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+            </div>
+            <div class="col-12 d-none" id="editBumilWrap">
+              <label class="form-label small fw-semibold text-muted mb-1">HPHT Ibu Hamil <span class="text-danger">(Wajib, maks. 11 bulan ke belakang)</span></label>
+              <input type="date" class="form-control shadow-sm" id="edit_hpht">
+            </div>
+            <div class="col-12 d-none" id="editBusuiWrap">
+              <div class="row g-2">
+                <div class="col-md-4">
+                  <label class="form-label small fw-semibold text-muted mb-1">Nama Anak <span class="text-danger">(Wajib)</span></label>
+                  <input type="text" class="form-control shadow-sm" id="edit_namaAnak" style="text-transform:uppercase" oninput="this.value=this.value.replace(/[^a-zA-Z\s'\-\.\,]/g,'');this.value=this.value.toUpperCase()">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label small fw-semibold text-muted mb-1">NIK Anak <span class="text-danger">(Wajib)</span></label>
+                  <input type="text" class="form-control shadow-sm" id="edit_nikAnak" inputmode="numeric" maxlength="16" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label small fw-semibold text-muted mb-1">Tanggal Lahir Anak <span class="text-danger">(Wajib, maks. 2 tahun)</span></label>
+                  <input type="date" class="form-control shadow-sm" id="edit_tglLahirAnak">
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -4089,6 +4160,46 @@ function markKontakAsSaved(noHp, email) {
 /**
  * Klik tombol Simpan/Update No HP & Email.
  */
+// Cek apakah email sudah terdaftar; jika baru, tampilkan kolom kode verifikasi.
+function cekEmailBaru() {
+  const email = document.getElementById('emailPelapor').value.trim().toLowerCase();
+  const wrap = document.getElementById('emailVerifWrap');
+  const status = document.getElementById('emailVerifStatus');
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { wrap.classList.add('d-none'); return; }
+  google.script.run
+    .withSuccessHandler(function (r) {
+      if (!r || !r.success) { wrap.classList.add('d-none'); return; }
+      wrap.classList.remove('d-none');
+      if (r.terdaftar) {
+        status.innerHTML = '<span style="color:var(--success)"><i class="ph ph-check-circle"></i> Email sudah terdaftar, tidak perlu kode verifikasi.</span>';
+        document.getElementById('kodeVerifikasi').classList.add('d-none');
+        document.getElementById('btnMintaKode').classList.add('d-none');
+      } else {
+        status.innerHTML = '<span class="text-danger"><i class="ph ph-warning"></i> Email baru. Minta kode verifikasi ke admin.</span>';
+        document.getElementById('kodeVerifikasi').classList.remove('d-none');
+        document.getElementById('btnMintaKode').classList.remove('d-none');
+      }
+    })
+    .withFailureHandler(function () { wrap.classList.add('d-none'); })
+    .cekEmailTerdaftar(email);
+}
+function mintaKodeVerifikasi() {
+  const email = document.getElementById('emailPelapor').value.trim().toLowerCase();
+  const btn = document.getElementById('btnMintaKode');
+  btn.disabled = true;
+  google.script.run
+    .withSuccessHandler(function (r) {
+      btn.disabled = false;
+      if (r && r.success) {
+        if (r.terdaftar) { cekEmailBaru(); return; }
+        Swal.fire({ icon: 'success', title: 'Permintaan Terkirim', text: r.message, confirmButtonColor: '#6366f1' });
+      } else {
+        Swal.fire({ icon: 'warning', title: 'Belum Bisa Dikirim', text: (r && r.message) || 'Gagal meminta kode', confirmButtonColor: '#6366f1' });
+      }
+    })
+    .withFailureHandler(function (err) { btn.disabled = false; Swal.fire('Error', 'Gagal menghubungi server: ' + (err.message || ''), 'error'); })
+    .mintaKodeVerifikasiEmail(email);
+}
 function simpanKontakInstansi() {
   const instansi = document.getElementById('instansi').value.trim();
   const pic = document.getElementById('pic').value.trim();
@@ -4160,6 +4271,7 @@ function _doSimpanKontak(instansi, pic, noHp, email) {
         savedStatus.innerHTML = '<i class="ph ph-check-circle" style="color:var(--success)"></i> <span style="color:var(--success)">Kontak tersimpan di database</span>';
         // Simpan ke localStorage juga
         saveToLocal();
+        cekEmailBaru();
         const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2500, timerProgressBar: true });
         Toast.fire({ icon: 'success', title: '✅ ' + (res.message || 'Kontak tersimpan!') });
       } else {
@@ -4171,7 +4283,7 @@ function _doSimpanKontak(instansi, pic, noHp, email) {
       btn.innerHTML = origHtml;
       Swal.fire('Error', 'Gagal terhubung ke server: ' + (err.message || ''), 'error');
     })
-    .saveInstansiContact(instansi, pic, noHp, email);
+    .saveInstansiContact(instansi, pic, noHp, email, (document.getElementById('kodeVerifikasi').value || '').trim());
 }
 
 // ============================================================
@@ -6457,6 +6569,7 @@ function refreshData() {
     allDataCache = d || [];
     document.getElementById('todayCount').textContent = allDataCache.length;
     renderUserTable(allDataCache);
+    renderKurangBanner(allDataCache);
     renderCatSummaryCards(allDataCache);
     updatePublicGroupChart(allDataCache);
     if (allDataCache.length > 0) {
@@ -6661,6 +6774,31 @@ function showDupDetailPopup(nikRaw) {
   });
 }
 
+function renderKurangBanner(arr) {
+  const el = document.getElementById('kurangBanner');
+  if (!el) return;
+  const list = (arr || []).filter(it => it.kurang && it.kurang.length);
+  if (!list.length) { el.innerHTML = ''; return; }
+  const ringkas = {};
+  list.forEach(it => it.kurang.forEach(k => { ringkas[k] = (ringkas[k] || 0) + 1; }));
+  const rincian = Object.keys(ringkas).map(k => '<li>' + esc(k) + ': <strong>' + ringkas[k] + ' data</strong></li>').join('');
+  el.innerHTML = '<div class="dup-banner" style="background:linear-gradient(135deg,rgba(239,68,68,.12),rgba(245,158,11,.08));border-color:rgba(220,38,38,.35)">' +
+    '<div class="d-flex align-items-start gap-2">' +
+      '<i class="ph ph-warning-circle fs-4" style="color:#dc2626"></i>' +
+      '<div><strong>Mohon lengkapi ' + list.length + ' data yang belum lengkap</strong>' +
+      '<div class="small" style="opacity:.9">Data bertanda merah belum memiliki isian wajib berikut:</div>' +
+      '<ul class="small mb-0 ps-3">' + rincian + '</ul>' +
+      '<div class="small mt-1">Klik tombol <b>Edit</b> pada data bertanda merah untuk melengkapinya.</div></div>' +
+    '</div></div>';
+}
+function updateEditSubKategori() {
+  const k = (document.getElementById('edit_ket').value || '').toUpperCase();
+  document.getElementById('editBumilWrap').classList.toggle('d-none', k !== 'BUMIL');
+  document.getElementById('editBusuiWrap').classList.toggle('d-none', k !== 'BUSUI');
+  const today = tanggalISOClient(new Date());
+  const hp = document.getElementById('edit_hpht'); hp.max = today; hp.min = tanggalMundurClient(11);
+  const ta = document.getElementById('edit_tglLahirAnak'); ta.max = today; ta.min = tanggalMundurClient(24);
+}
 function renderUserTable(arr) {
   const el = document.getElementById('dataListContainer');
   const bannerEl = document.getElementById('userDupBanner');
@@ -6743,8 +6881,12 @@ function renderUserTable(arr) {
       const delBtn = (userDeleteEnabled || isAdmin)
         ? `<button class="btn btn-sm btn-light text-danger rounded-circle" style="width:32px;height:32px" onclick="hapusDataUser(${rowIdx})" title="Hapus"><i class="ph ph-trash-simple"></i></button>`
         : '';
+      const kurangList = item.kurang || [];
+      const kurangBadgeHtml = kurangList.length
+        ? `<span class="kurang-badge" title="Belum diisi: ${esc(kurangList.join(', '))}"><i class="ph ph-warning-circle"></i> Belum Lengkap</span>`
+        : '';
       const kelasVal = item.kelas && item.kelas !== '-' ? `<span style="background:rgba(99,102,241,.12);color:#4f46e5;font-weight:700;padding:1px 6px;border-radius:6px;font-size:.66rem">Kelas ${esc(item.kelas)}</span>•` : '';
-      html += `<li class="list-li${isDup ? ' is-dup' : ''}"><div class="d-flex align-items-center flex-1 min-w-0"><div class="avatar">${init}</div><div style="flex:1;min-width:0"><div class="pname d-flex align-items-center flex-wrap gap-1"><span>${esc(item.nama)}${alWarn}</span>${dupBadgeHtml}</div><div class="pmeta">${kelasVal}<span style="${isDup ? 'color:#dc2626;font-weight:700' : ''}">${item.nik||'-'}</span>•<span>${usiaDisplay}</span>${isDup && dInfo.isCrossInstansi ? `•<span style="color:#dc2626;font-weight:600"><i class="ph ph-buildings"></i> ${esc(otherInst)}</span>` : ''}</div></div></div><div class="act-grp">${gIcon}<button class="btn btn-sm btn-light rounded-circle" style="width:32px;height:32px" onclick="bukaModalEdit(${rowIdx})" title="Edit"><i class="ph ph-pencil-simple"></i></button>${delBtn}</div></li>`;
+      html += `<li class="list-li${isDup ? ' is-dup' : ''}${kurangList.length ? ' is-kurang' : ''}"><div class="d-flex align-items-center flex-1 min-w-0"><div class="avatar">${init}</div><div style="flex:1;min-width:0"><div class="pname d-flex align-items-center flex-wrap gap-1"><span>${esc(item.nama)}${alWarn}</span>${dupBadgeHtml}${kurangBadgeHtml}</div><div class="pmeta">${kelasVal}<span style="${isDup ? 'color:#dc2626;font-weight:700' : ''}">${item.nik||'-'}</span>•<span>${usiaDisplay}</span>${isDup && dInfo.isCrossInstansi ? `•<span style="color:#dc2626;font-weight:600"><i class="ph ph-buildings"></i> ${esc(otherInst)}</span>` : ''}</div></div></div><div class="act-grp">${gIcon}<button class="btn btn-sm btn-light rounded-circle" style="width:32px;height:32px" onclick="bukaModalEdit(${rowIdx})" title="Edit"><i class="ph ph-pencil-simple"></i></button>${delBtn}</div></li>`;
     });
     html += '</ul></div>';
   });
@@ -7019,6 +7161,8 @@ function toggleForm() {
   const k = document.getElementById('ket').value;
   const s = document.getElementById('jumlahSection');
   updateKelasFieldMain();
+  updateNikOrtuField();
+  updateSubKategoriFields();
   if(!k) { s.classList.add('d-none'); return; }
   s.classList.remove('d-none');
   if(k === 'BUMIL' || k === 'BUSUI') { document.getElementById('jk').value = 'Perempuan'; document.getElementById('jk').disabled = true; }
@@ -7688,6 +7832,91 @@ function isKategoriAktif(kategoriValue, selectId) {
 }
 
 // Mengembalikan null jika valid, atau pesan error string jika usia tidak sesuai aturan kategori.
+const NIK_ORTU_HARI_PER_BULAN = [31,29,31,30,31,30,31,31,30,31,30,31];
+function nikOrtuBerulang(s) { return /^(\d)\1+$/.test(s); }
+function nikOrtuBerurutan(s) {
+  let naik = true, turun = true;
+  for (let i = 1; i < s.length; i++) {
+    const selisih = (parseInt(s[i], 10) - parseInt(s[i - 1], 10) + 10) % 10;
+    if (selisih !== 1) naik = false;
+    if (selisih !== 9) turun = false;
+  }
+  return naik || turun;
+}
+// Mengembalikan pesan error, atau '' jika NIK Orang Tua valid.
+function validateNikOrtuClient(nikRaw, nikPembandingRaw, label, labelPembanding) {
+  label = label || 'Orang Tua / Wali';
+  labelPembanding = labelPembanding || 'anak';
+  const nik = String(nikRaw == null ? '' : nikRaw).replace(/[^0-9]/g, '');
+  const pembanding = String(nikPembandingRaw == null ? '' : nikPembandingRaw).replace(/[^0-9]/g, '');
+  if (!nik) return 'NIK ' + label + ' wajib diisi.';
+  if (nik.length !== 16) return 'NIK ' + label + ' harus 16 digit.';
+  if (pembanding && nik === pembanding) return 'NIK ' + label + ' tidak boleh sama dengan NIK ' + labelPembanding + '.';
+  const wilayah = nik.substring(0, 6), tgl = nik.substring(6, 12), urut = nik.substring(12, 16);
+  if (nikOrtuBerulang(nik) || nikOrtuBerulang(wilayah) || nikOrtuBerulang(tgl) || nikOrtuBerulang(urut) || nikOrtuBerurutan(nik))
+    return 'NIK ' + label + ' tidak valid: angka berulang atau deret berurutan (contoh 000000, 11111).';
+  if (wilayah.substring(0, 2) === '00' || wilayah.substring(2, 4) === '00' || wilayah.substring(4, 6) === '00')
+    return 'Kode wilayah NIK ' + label + ' (digit 1-6) tidak valid.';
+  let hari = parseInt(tgl.substring(0, 2), 10);
+  const bulan = parseInt(tgl.substring(2, 4), 10);
+  if (hari > 40) hari -= 40; // perempuan: tanggal ditambah 40
+  if (bulan < 1 || bulan > 12 || hari < 1 || hari > NIK_ORTU_HARI_PER_BULAN[bulan - 1])
+    return 'Tanggal lahir pada NIK ' + label + ' (digit 7-12) tidak valid. Untuk perempuan, tanggal ditambah 40.';
+  if (urut === '0000') return 'Nomor urut NIK ' + label + ' (digit 13-16) tidak valid.';
+  return '';
+}
+function tanggalISOClient(d) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function tanggalMundurClient(bulan) {
+  const t = new Date();
+  return tanggalISOClient(new Date(t.getFullYear(), t.getMonth() - bulan, t.getDate()));
+}
+// Mengembalikan pesan error, atau '' jika tanggal valid dan berada dalam rentang.
+function validateTanggalRentangClient(v, bulanMundur, label, maxText) {
+  if (!v) return label + ' wajib diisi.';
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return 'Format ' + label + ' tidak valid.';
+  if (v > tanggalISOClient(new Date())) return label + ' tidak boleh melebihi hari ini.';
+  if (v < tanggalMundurClient(bulanMundur)) return label + ' maksimal ' + maxText + ' ke belakang.';
+  return '';
+}
+function prosesNikOrtu() {
+  const el = document.getElementById('nikOrtu');
+  const s = document.getElementById('nikOrtuStatus');
+  el.value = el.value.replace(/[^0-9]/g, '').slice(0, 16);
+  el.classList.remove('is-invalid');
+  s.innerHTML = '';
+  if (!el.value) return;
+  if (el.value.length < 16) {
+    s.innerHTML = '<small class="text-muted">' + el.value.length + '/16 digit</small>';
+    return;
+  }
+  const err = validateNikOrtuClient(el.value, document.getElementById('nik').value);
+  if (err) {
+    s.innerHTML = '<small class="text-danger"><i class="ph ph-warning"></i> ' + err + '</small>';
+    el.classList.add('is-invalid');
+  } else {
+    s.innerHTML = '<small class="text-success"><i class="ph ph-check-circle"></i> NIK Orang Tua valid</small>';
+  }
+}
+function updateNikOrtuField() {
+  const w = document.getElementById('nikOrtuWrap');
+  if (!w) return;
+  w.classList.remove('d-none');
+}
+
+function updateSubKategoriFields() {
+  const k = document.getElementById('ket').value;
+  const bumil = document.getElementById('bumilWrap');
+  const busui = document.getElementById('busuiWrap');
+  if (bumil) bumil.classList.toggle('d-none', k !== 'BUMIL');
+  if (busui) busui.classList.toggle('d-none', k !== 'BUSUI');
+  const today = tanggalISOClient(new Date());
+  const hpht = document.getElementById('hpht');
+  if (hpht) { hpht.max = today; hpht.min = tanggalMundurClient(11); }
+  const tglAnak = document.getElementById('tglLahirAnak');
+  if (tglAnak) { tglAnak.max = today; tglAnak.min = tanggalMundurClient(24); }
+}
 function validateUsiaKategori(kategoriRaw, usiaStr, selectId) {
   const kategori = (kategoriRaw || '').trim().toUpperCase();
   const rule = KATEGORI_AGE_RULES[kategori];
@@ -8131,6 +8360,41 @@ function _proceedSimpan(instansi, pic, noHp, email, btn) {
   };
   
   if(!data.nama) { Swal.fire('Info','Nama wajib diisi','info'); return; }
+  if(!email) { Swal.fire('Info','Email wajib diisi','info'); document.getElementById('emailPelapor').focus(); return; }
+  data.kodeVerifikasi = (document.getElementById('kodeVerifikasi').value || '').trim();
+  if(!data.namaOrangTua) { Swal.fire('Info','Nama Orang Tua / Wali wajib diisi','info'); document.getElementById('namaOrangTua').focus(); return; }
+  data.nikOrangTua = document.getElementById('nikOrtu').value.replace(/[^0-9]/g, '');
+  const nikOrtuErr = validateNikOrtuClient(data.nikOrangTua, data.nik);
+  if (nikOrtuErr) {
+    Swal.fire({ icon: 'error', title: 'NIK Orang Tua Tidak Valid', text: nikOrtuErr, confirmButtonColor: '#ef4444', showCloseButton: true });
+    document.getElementById('nikOrtu').focus();
+    return;
+  }
+  if (ketSelected === 'BUMIL') {
+    data.hpht = document.getElementById('hpht').value;
+    const hphtErr = validateTanggalRentangClient(data.hpht, 11, 'HPHT', '11 bulan');
+    if (hphtErr) {
+      Swal.fire({ icon: 'error', title: 'HPHT Tidak Valid', text: hphtErr, confirmButtonColor: '#ef4444', showCloseButton: true });
+      document.getElementById('hpht').focus();
+      return;
+    }
+  }
+  if (ketSelected === 'BUSUI') {
+    data.namaAnak = document.getElementById('namaAnak').value.trim().toUpperCase();
+    data.nikAnak = document.getElementById('nikAnak').value.replace(/[^0-9]/g, '');
+    data.tglLahirAnak = document.getElementById('tglLahirAnak').value;
+    const checksAnak = [
+      ['namaAnak', data.namaAnak ? '' : 'Nama Anak wajib diisi.'],
+      ['nikAnak', validateNikOrtuClient(data.nikAnak, data.nik, 'Anak', 'ibu')],
+      ['tglLahirAnak', validateTanggalRentangClient(data.tglLahirAnak, 24, 'Tanggal Lahir Anak', '2 tahun')]
+    ];
+    const gagalAnak = checksAnak.find(function (c) { return c[1]; });
+    if (gagalAnak) {
+      Swal.fire({ icon: 'error', title: 'Data Anak Tidak Valid', text: gagalAnak[1], confirmButtonColor: '#ef4444', showCloseButton: true });
+      document.getElementById(gagalAnak[0]).focus();
+      return;
+    }
+  }
   if(!data.ket) { Swal.fire('Info','Kategori wajib dipilih','info'); return; }
   const kelasErr = validateKelasKategoriClient(data.ket, kelasSelected);
   if (kelasErr) {
@@ -8169,7 +8433,7 @@ function _proceedSimpan(instansi, pic, noHp, email, btn) {
       const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true });
       Toast.fire({ icon: 'success', title: data.nama + ' berhasil ditambahkan' });
       // Reset form
-      document.getElementById('nik').value = ''; document.getElementById('nama').value = ''; document.getElementById('tglLahir').value = ''; document.getElementById('usia').value = ''; document.getElementById('jk').value = ''; document.getElementById('ket').value = ''; if (document.getElementById('kelas')) document.getElementById('kelas').value = ''; updateKelasFieldMain(); document.getElementById('namaOrangTua').value = ''; document.getElementById('alamat').value = ''; document.getElementById('nikStatus').innerHTML = ''; document.getElementById('jumlahSection').classList.add('d-none'); document.querySelectorAll('.al-chk').forEach(c => c.checked = false); document.getElementById('alergiNote').value = '';
+      document.getElementById('nik').value = ''; document.getElementById('nikOrtu').value = ''; ['hpht','namaAnak','nikAnak','tglLahirAnak'].forEach(function (id) { var el = document.getElementById(id); if (el) el.value = ''; }); document.getElementById('namaOrangTua').value = ''; document.getElementById('nama').value = ''; document.getElementById('tglLahir').value = ''; document.getElementById('usia').value = ''; document.getElementById('jk').value = ''; document.getElementById('ket').value = ''; if (document.getElementById('kelas')) document.getElementById('kelas').value = ''; updateKelasFieldMain(); document.getElementById('namaOrangTua').value = ''; document.getElementById('alamat').value = ''; document.getElementById('nikStatus').innerHTML = ''; document.getElementById('jumlahSection').classList.add('d-none'); document.querySelectorAll('.al-chk').forEach(c => c.checked = false); document.getElementById('alergiNote').value = '';
       refreshSummary();
       refreshData();
       setTimeout(() => {
@@ -8178,7 +8442,7 @@ function _proceedSimpan(instansi, pic, noHp, email, btn) {
         loadUserRiwayat();
       }, 1500);
     } else if(r.isWarning) Swal.fire('Peringatan',r.message,'warning');
-    else Swal.fire('Gagal',r.message,'error');
+    else { Swal.fire('Gagal',r.message,'error'); if (/verifikasi/i.test(r.message || '')) cekEmailBaru(); }
   }).withFailureHandler(err => { btn.disabled = false; btn.innerHTML = originalBtnHtml; Swal.close(); Swal.fire('Error','Gagal: ' + err.message,'error'); }).simpanData(data, isAdmin ? currentPass : '');
 }
 
@@ -8434,6 +8698,12 @@ function bukaModalEdit(rowIndex) {
     })();
     updateKelasFieldEdit(data.kelas || '');
     document.getElementById('edit_namaOrangTua').value = data.namaOrangTua || '';
+    document.getElementById('edit_nikOrtu').value = data.nikOrangTua || '';
+    document.getElementById('edit_hpht').value = data.hpht || '';
+    document.getElementById('edit_namaAnak').value = data.namaAnak || '';
+    document.getElementById('edit_nikAnak').value = data.nikAnak || '';
+    document.getElementById('edit_tglLahirAnak').value = data.tglLahirAnak || '';
+    updateEditSubKategori();
     document.getElementById('edit_instansi').value = data.instansi || '';
     document.getElementById('edit_alamat').value = data.alamat || '';
     document.getElementById('edit_alergiNote').value = '';
@@ -8495,6 +8765,27 @@ function simpanEdit() {
   const editJk = document.getElementById('edit_jk').value;
   const editOrtu = document.getElementById('edit_namaOrangTua').value.trim();
   const editAlergi = getAlergi('edit_');
+  const editNikOrtu = document.getElementById('edit_nikOrtu').value.replace(/[^0-9]/g, '');
+  const editHpht = document.getElementById('edit_hpht').value;
+  const editNamaAnak = document.getElementById('edit_namaAnak').value.trim().toUpperCase();
+  const editNikAnak = document.getElementById('edit_nikAnak').value.replace(/[^0-9]/g, '');
+  const editTglLahirAnak = document.getElementById('edit_tglLahirAnak').value;
+  const editChecks = [
+    ['edit_namaOrangTua', editOrtu ? '' : 'Nama Orang Tua / Wali wajib diisi.'],
+    ['edit_nikOrtu', validateNikOrtuClient(editNikOrtu, nikEdit, 'Orang Tua / Wali', 'anak')]
+  ];
+  if (ket === 'BUMIL') editChecks.push(['edit_hpht', validateTanggalRentangClient(editHpht, 11, 'HPHT', '11 bulan')]);
+  if (ket === 'BUSUI') {
+    editChecks.push(['edit_namaAnak', editNamaAnak ? '' : 'Nama Anak wajib diisi.']);
+    editChecks.push(['edit_nikAnak', validateNikOrtuClient(editNikAnak, nikEdit, 'Anak', 'ibu')]);
+    editChecks.push(['edit_tglLahirAnak', validateTanggalRentangClient(editTglLahirAnak, 24, 'Tanggal Lahir Anak', '2 tahun')]);
+  }
+  const gagalEdit = editChecks.find(function (c) { return c[1]; });
+  if (gagalEdit) {
+    Swal.fire({ icon: 'error', title: 'Data Belum Lengkap', text: gagalEdit[1], confirmButtonColor: '#ef4444', showCloseButton: true });
+    document.getElementById(gagalEdit[0]).focus();
+    return;
+  }
   const finalKelasEdit = getAllowedKelasForKategoriClient(ket) ? normalizeKelasClient(editKelas) : '';
   
   const data = { 
@@ -8515,7 +8806,12 @@ function simpanEdit() {
     email: originalEmail,
     originalNik: originalData ? (originalData.nik || '') : origNikEdit,
     originalNama: originalData ? (originalData.nama || '') : '',
-    originalInstansi: originalInstansi
+    originalInstansi: originalInstansi,
+    nikOrangTua: editNikOrtu,
+    hpht: editHpht,
+    namaAnak: editNamaAnak,
+    nikAnak: editNikAnak,
+    tglLahirAnak: editTglLahirAnak
   };
 
   // Deteksi perubahan
