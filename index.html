@@ -172,7 +172,7 @@
     // 1) GANTI URL INI dengan URL Web App hasil Deploy Apps Script kamu
     //    (Deploy > New deployment > Web app > Execute as: Me > Who has access: Anyone > /exec)
     //    Hanya dipakai saat file ini berjalan di LUAR Apps Script (Blogger/Netlify).
-    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwMqOO8TIDV1nfG9hrbanyXUmMByAwr9RnekG5kfoZ8uWsYZw0sdiIi7Al6gATaKQAe/exec';
+    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz77nLk8vfM1fMj1jPqIcSFmCNeg9ASsMCOD37E1RBWGmoUuhyUKn96tTTyQKIksOxo/exec';
 
     // 2) Peta nama fungsi server -> urutan nama parameter,
     //    HARUS SAMA PERSIS dengan switch(action) di Code.gs (doPost)
@@ -7936,17 +7936,18 @@ function validateNikOrtuClient(nikRaw, nikPembandingRaw, label, labelPembanding)
   if (!nik) return 'NIK ' + label + ' wajib diisi.';
   if (nik.length !== 16) return 'NIK ' + label + ' harus 16 digit.';
   if (pembanding && nik === pembanding) return 'NIK ' + label + ' tidak boleh sama dengan NIK ' + labelPembanding + '.';
+  if (nikOrtuBerulang(nik) || nikOrtuBerurutan(nik))
+    return 'NIK ' + label + ' tidak valid: semua angka sama atau deret berurutan (contoh 0000000000000000, 1234567890123456).';
   const wilayah = nik.substring(0, 6), tgl = nik.substring(6, 12), urut = nik.substring(12, 16);
-  if (nikOrtuBerulang(nik) || nikOrtuBerulang(wilayah) || nikOrtuBerulang(tgl) || nikOrtuBerulang(urut) || nikOrtuBerurutan(nik))
-    return 'NIK ' + label + ' tidak valid: angka berulang atau deret berurutan (contoh 000000, 11111).';
-  if (wilayah.substring(0, 2) === '00' || wilayah.substring(2, 4) === '00' || wilayah.substring(4, 6) === '00')
-    return 'Kode wilayah NIK ' + label + ' (digit 1-6) tidak valid.';
+  if (nikOrtuBerulang(wilayah) || wilayah.substring(0, 2) === '00' || wilayah.substring(2, 4) === '00' || wilayah.substring(4, 6) === '00')
+    return 'Kode wilayah NIK ' + label + ' (digit 1-6) tidak valid: ' + wilayah + '.';
   let hari = parseInt(tgl.substring(0, 2), 10);
   const bulan = parseInt(tgl.substring(2, 4), 10);
   if (hari > 40) hari -= 40; // perempuan: tanggal ditambah 40
-  if (bulan < 1 || bulan > 12 || hari < 1 || hari > NIK_ORTU_HARI_PER_BULAN[bulan - 1])
-    return 'Tanggal lahir pada NIK ' + label + ' (digit 7-12) tidak valid. Untuk perempuan, tanggal ditambah 40.';
-  if (urut === '0000') return 'Nomor urut NIK ' + label + ' (digit 13-16) tidak valid.';
+  if (nikOrtuBerulang(tgl) || bulan < 1 || bulan > 12 || hari < 1 || hari > NIK_ORTU_HARI_PER_BULAN[bulan - 1])
+    return 'Tanggal lahir NIK ' + label + ' (digit 7-12) tidak valid: ' + tgl + '. Pastikan bulan 01-12 dan tanggal 01-31 (perempuan +40).';
+  if (nikOrtuBerulang(urut) || urut === '0000')
+    return 'Nomor urut NIK ' + label + ' (digit 13-16) tidak valid: ' + urut + '.';
   return '';
 }
 function tanggalISOClient(d) {
