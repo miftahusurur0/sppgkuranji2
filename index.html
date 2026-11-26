@@ -172,7 +172,7 @@
     // 1) GANTI URL INI dengan URL Web App hasil Deploy Apps Script kamu
     //    (Deploy > New deployment > Web app > Execute as: Me > Who has access: Anyone > /exec)
     //    Hanya dipakai saat file ini berjalan di LUAR Apps Script (Blogger/Netlify).
-    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz77nLk8vfM1fMj1jPqIcSFmCNeg9ASsMCOD37E1RBWGmoUuhyUKn96tTTyQKIksOxo/exec';
+    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyfy0JwnQB_Ne4OlVG7g6AynYgcHiVj1I4NWPB_ZewN8D_Lyp4PascLdlbxZJ0ckGbx/exec';
 
     // 2) Peta nama fungsi server -> urutan nama parameter,
     //    HARUS SAMA PERSIS dengan switch(action) di Code.gs (doPost)
@@ -7501,6 +7501,10 @@ function processTemplateRows(rows, instansi, pic, noHp) {
     if (jk !== 'LAKI-LAKI' && jk !== 'PEREMPUAN') rowErrors.push('Jenis Kelamin harus Laki-laki atau Perempuan');
     if (!kategori || (kategoriValid.length && kategoriValid.indexOf(kategori) === -1)) rowErrors.push('Kategori tidak dikenali: "' + (kategori || '-') + '"');
     if (!alamat) rowErrors.push('Alamat kosong');
+    if (nik && nik.replace(/[^0-9]/g, '').length === 16) {
+      const nikUtamaRowErr = validateNikOrtuClient(nik.replace(/[^0-9]/g, ''), '', 'Utama', '');
+      if (nikUtamaRowErr) rowErrors.push(nikUtamaRowErr);
+    }
 
     // Isian wajib: Nama & NIK Orang Tua (semua kategori), HPHT (BUMIL), data anak (BUSUI)
     if (!namaOrangTua && isOrtuWajibClient(kategori)) rowErrors.push('Nama Orang Tua kosong');
@@ -8450,6 +8454,13 @@ function _proceedSimpan(instansi, pic, noHp, email, btn) {
   };
   
   if(!data.nama) { Swal.fire('Info','Nama wajib diisi','info'); return; }
+  const nikUtamaDigit = String(data.nik || '').replace(/[^0-9]/g, '');
+  const nikUtamaErr = nikUtamaDigit.length === 16 ? validateNikOrtuClient(nikUtamaDigit, '', 'Utama', '') : '';
+  if (nikUtamaErr) {
+    Swal.fire({ icon: 'error', title: 'NIK Tidak Valid', text: nikUtamaErr, confirmButtonColor: '#ef4444', showCloseButton: true });
+    document.getElementById('nik').focus();
+    return;
+  }
   if(!email) { Swal.fire('Info','Email wajib diisi','info'); document.getElementById('emailPelapor').focus(); return; }
   data.kodeVerifikasi = (document.getElementById('kodeVerifikasi').value || '').trim();
   if(!data.namaOrangTua && isOrtuWajibClient(ketSelected)) { Swal.fire('Info','Nama Orang Tua / Wali wajib diisi','info'); document.getElementById('namaOrangTua').focus(); return; }
@@ -8880,6 +8891,7 @@ function simpanEdit() {
   const editNikAnak = document.getElementById('edit_nikAnak').value.replace(/[^0-9]/g, '');
   const editTglLahirAnak = document.getElementById('edit_tglLahirAnak').value;
   const editChecks = [
+    ['edit_nik', (nikEdit.replace(/[^0-9]/g, '').length === 16) ? validateNikOrtuClient(nikEdit.replace(/[^0-9]/g, ''), '', 'Utama', '') : ''],
     ['edit_namaOrangTua', (editOrtu || !isOrtuWajibClient(ket)) ? '' : 'Nama Orang Tua / Wali wajib diisi.'],
     ['edit_nikOrtu', (isOrtuWajibClient(ket) || editNikOrtu) ? validateNikOrtuClient(editNikOrtu, nikEdit, 'Orang Tua / Wali', 'anak') : '']
   ];
