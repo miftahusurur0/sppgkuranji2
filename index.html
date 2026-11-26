@@ -172,7 +172,7 @@
     // 1) GANTI URL INI dengan URL Web App hasil Deploy Apps Script kamu
     //    (Deploy > New deployment > Web app > Execute as: Me > Who has access: Anyone > /exec)
     //    Hanya dipakai saat file ini berjalan di LUAR Apps Script (Blogger/Netlify).
-    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyfy0JwnQB_Ne4OlVG7g6AynYgcHiVj1I4NWPB_ZewN8D_Lyp4PascLdlbxZJ0ckGbx/exec';
+    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbztv89m0tHU_bO52-VXa55Yj7hlkUW-kAFzGARyHq_3iCkYw0svq2QhmwyANT9sKxU3/exec';
 
     // 2) Peta nama fungsi server -> urutan nama parameter,
     //    HARUS SAMA PERSIS dengan switch(action) di Code.gs (doPost)
@@ -3179,18 +3179,19 @@ const notify = {
 
         <!-- Ringkasan Kelompok Usia -->
         <div class="modern-card p-4 mb-4">
-          <h6 class="fw-bold mb-3"><i class="ph ph-chart-pie-slice me-2 text-primary"></i>Rekapitulasi Kelompok Usia</h6>
+          <h6 class="fw-bold mb-3"><i class="ph ph-chart-pie-slice me-2 text-primary"></i>Rekapitulasi Posyandu</h6>
           <div class="table-responsive">
             <table class="table table-bordered table-sm mb-0" id="rekapUsiaTable" style="font-size:.82rem">
               <thead style="background:var(--primary);color:#fff">
-                 <tr>
-                  <th class="text-start ps-2" style="min-width:130px">Kelompok Usia</th>
-                  <th style="min-width:160px">Kategori (Ringkasan)</th>
+                <tr>
+                  <th class="text-start ps-2" style="min-width:130px">Posyandu</th>
                   <th style="min-width:70px">Laki-laki</th>
                   <th style="min-width:70px">Perempuan</th>
+                  <th style="min-width:80px">Lengkap</th>
+                  <th style="min-width:90px">Belum Lengkap</th>
                   <th style="min-width:60px">Total</th>
                   <th style="min-width:50px">%</th>
-                 </tr>
+                </tr>
               </thead>
               <tbody id="rekapUsiaBody">
                 <tr><td colspan="6" class="text-muted text-center">Memuat...</td></tr>
@@ -6805,6 +6806,12 @@ function updateEditSubKategori() {
 }
 function renderUserTable(arr) {
   const el = document.getElementById('dataListContainer');
+  // Data yang belum lengkap (merah) ditampilkan paling atas agar mudah diperbaiki
+  if (arr && arr.length) {
+    arr = [...arr].sort(function (a, b) {
+      return (b.kurang && b.kurang.length ? 1 : 0) - (a.kurang && a.kurang.length ? 1 : 0);
+    });
+  }
   const bannerEl = document.getElementById('userDupBanner');
   if(!arr || !arr.length) {
     if (bannerEl) bannerEl.innerHTML = '';
@@ -11310,58 +11317,42 @@ function renderRekapUsiaTable(data) {
   const tfoot = document.getElementById('rekapUsiaFoot');
   if (!tbody) return;
 
-  const allKats = [...new Set(data.map(d => d.kategori || d.ket || 'Lainnya').filter(k => k))].sort();
+  // Hanya kategori posyandu (BUMIL, BUSUI, BALITA, ATS)
+  const posyandu = (data || []).filter(d => isKategoriPosyanduClient(d.kategori || d.ket));
+  const kats = [...new Set(posyandu.map(d => d.kategori || d.ket))].sort();
+  const isLengkap = d => !(d.kurang && d.kurang.length);
 
-  let totalP = 0, totalW = 0, grandTotal = 0;
-  const rows = [];
-
-  USIA_GROUPS.forEach(g => {
-    const subset = data.filter(d => usiaInGroup(d.usia, g.key));
-    if (subset.length === 0) return;
-
-    const p = subset.filter(d => (d.jk||'').toUpperCase()==='LAKI-LAKI').length;
-    const w = subset.filter(d => (d.jk||'').toUpperCase()==='PEREMPUAN').length;
+  let totalP = 0, totalW = 0, totalL = 0, totalB = 0, grandTotal = 0;
+  const rows = kats.map(kat => {
+    const subset = posyandu.filter(d => (d.kategori || d.ket) === kat);
+    const p = subset.filter(d => (d.jk || '').toUpperCase() === 'LAKI-LAKI').length;
+    const w = subset.filter(d => (d.jk || '').toUpperCase() === 'PEREMPUAN').length;
+    const l = subset.filter(isLengkap).length;
     const t = subset.length;
-    totalP += p; totalW += w; grandTotal += t;
-    const pct = data.length ? ((t/data.length)*100).toFixed(1) : '0.0';
-
-    const katBreakdown = {};
-    subset.forEach(d => {
-      const kat = d.kategori || d.ket || 'Lainnya';
-      if (!katBreakdown[kat]) katBreakdown[kat] = 0;
-      katBreakdown[kat]++;
-    });
-
-    const katChips = Object.entries(katBreakdown)
-      .sort((a,b) => b[1]-a[1])
-      .map(([kat, cnt]) =>
-        `<span style="display:inline-flex;align-items:center;gap:3px;background:var(--primary-l);color:var(--primary);border:1px solid rgba(99,102,241,.2);padding:2px 7px;border-radius:20px;font-size:.68rem;font-weight:600;margin:2px 2px 2px 0;white-space:nowrap">${esc(kat)}: <strong>${cnt}</strong></span>`
-      ).join('');
-
-    rows.push(`<tr>
-      <td class="text-start ps-2 fw-semibold" style="vertical-align:middle">${g.label}</td>
-      <td class="text-start" style="padding:6px 8px">${katChips || '<span class="text-muted small">–</span>'}</td>
+    const b = t - l;
+    totalP += p; totalW += w; totalL += l; totalB += b; grandTotal += t;
+    const pct = posyandu.length ? ((t / posyandu.length) * 100).toFixed(1) : '0.0';
+    return `<tr>
+      <td class="text-start ps-2 fw-semibold" style="vertical-align:middle">${esc(kat)}</td>
       <td class="text-center fw-semibold" style="color:#2563eb;vertical-align:middle">${p}</td>
       <td class="text-center fw-semibold" style="color:#db2777;vertical-align:middle">${w}</td>
+      <td class="text-center fw-semibold" style="color:#16a34a;vertical-align:middle">${l}</td>
+      <td class="text-center fw-semibold" style="color:#dc2626;vertical-align:middle">${b}</td>
       <td class="text-center fw-bold" style="vertical-align:middle">${t}</td>
       <td class="text-center" style="vertical-align:middle"><small>${pct}%</small></td>
-    </tr>`);
+    </tr>`;
   });
 
-  if (rows.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-3">Tidak ada data</td></tr>';
-  } else {
-    tbody.innerHTML = rows.join('');
-  }
+  tbody.innerHTML = rows.length
+    ? rows.join('')
+    : '<tr><td colspan="7" class="text-center text-muted py-3">Tidak ada data posyandu</td></tr>';
 
   tfoot.innerHTML = `<tr style="background:var(--primary);color:#fff;font-weight:700">
     <td class="text-start ps-2">TOTAL</td>
-    <td class="text-start ps-2" style="font-size:.75rem">${allKats.map(k => {
-      const cnt = data.filter(d => (d.kategori||d.ket||'Lainnya') === k).length;
-      return cnt > 0 ? k + ': ' + cnt : '';
-    }).filter(Boolean).join(' | ')}</td>
     <td class="text-center">${totalP}</td>
     <td class="text-center">${totalW}</td>
+    <td class="text-center">${totalL}</td>
+    <td class="text-center">${totalB}</td>
     <td class="text-center">${grandTotal}</td>
     <td class="text-center">100%</td>
   </tr>`;
