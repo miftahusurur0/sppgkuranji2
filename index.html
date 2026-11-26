@@ -172,7 +172,7 @@
     // 1) GANTI URL INI dengan URL Web App hasil Deploy Apps Script kamu
     //    (Deploy > New deployment > Web app > Execute as: Me > Who has access: Anyone > /exec)
     //    Hanya dipakai saat file ini berjalan di LUAR Apps Script (Blogger/Netlify).
-    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwksO7mO5jFbta0Kga7Xgrit8yaLb_gyb6QSIAyt3ib140B9aAOFW_yNjlqRePB_z8/exec';
+    window.APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbynGdQ40H8V6yRmfqclngLPwKCOOB4p4QBq_Gl1HZ0UuJ9VxgItjRFx-XY5_zr8ioMZ/exec';
 
     // 2) Peta nama fungsi server -> urutan nama parameter,
     //    HARUS SAMA PERSIS dengan switch(action) di Code.gs (doPost)
@@ -9070,7 +9070,7 @@ function simpanEdit() {
     } else if(r.isWarning) {
       Swal.fire('Peringatan', r.message, 'warning');
     } else {
-      Swal.fire('Gagal', r.message, 'error');
+      if (r.stale) { Swal.fire({ icon: 'warning', title: 'Data Berubah', text: r.message, confirmButtonColor: '#6366f1' }); refreshData(); } else Swal.fire('Gagal', r.message, 'error');
     }
   }).withFailureHandler(err => { 
     Swal.close(); 
